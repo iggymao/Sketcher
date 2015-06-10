@@ -256,15 +256,14 @@ void Mesh::RenderMesh(Mesh **MemberMesh)
 		Shader.TurnOn();											// turns on the shader.
 		
 		// sets a time changing color scheme into our shader.
-		GLfloat timeValue = (GLfloat)glfwGetTime();
-		cout << "\nTime value: " << timeValue;
-		GLfloat greenValue = (GLfloat)((sin(timeValue) / 2) + 0.5);
-		cout << "\ngreenValue: " << greenValue;
-		GLint vertexColorLocation = Shader.GetVariable("ourColor");
-//			glGetUniformLocation(Shader.ShaderProgramID, "ourColor");
+		Shader.timeValue = (GLfloat)glfwGetTime();
+//		cout << "\nTime value: " << Shader.timeValue;
+		Shader.greenValue = (GLfloat)((sin(Shader.timeValue) / 2) + 0.5);
+//		cout << "\ngreenValue: " << Shader.greenValue;
+		Shader.vertexColorLocation = Shader.GetVariable("ourColor");
 
-		cout << "\nvertexColorLocation: " << vertexColorLocation << "    greenvalue: " << greenValue;
-//		glUniform4f(vertexColorLocation, 0.0f, Shader.greenValue, 0.0f, 1.0f); // passes the variables to the shader program
+//		cout << "\nvertexColorLocation: " << Shader.vertexColorLocation << "    greenvalue: " << Shader.greenValue;
+		glUniform4f(Shader.vertexColorLocation, 0.0f, Shader.greenValue, 0.0f, 1.0f); // passes the variables to the shader program
 
 		glBindVertexArray(VertexArrayID[VAO_count]);	
 		glDrawArrays(GL_TRIANGLES, 0, (MyMesh->MeshSize / 3) ); 	// Draw the shape ! 3 indices per triangle starting at 0 -> 1 triangle

@@ -119,7 +119,7 @@ void Model::RenderModel(AppWindow **WinID_array)
 			glfwSwapBuffers(Window);
 	//		getchar();
 		}
-		getchar();
+//		getchar();
 	} // end while
 	return;
 	

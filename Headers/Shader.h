@@ -24,6 +24,7 @@ public:
 
 	// This returns an ID for a variable in our shader, to be used with a Set*() function
 	GLint GetVariable(std::string strVariable);
+	GLuint GetShaderProgramID() {return ShaderProgramID;}
 
 	// Below are functions to set an integer, a set of floats or a matrix (float[16])
 	void SetInt(GLint id, int newValue)											{ glUniform1i(id, newValue); }

@@ -44,9 +44,8 @@ std::string Shader::LoadShaderFile(std::string strFile)
 // This function loads a vertex and fragment shader file and creates them
 void Shader::Initialize(std::string strVertexFile, std::string strFragmentFile)
 {
-//	timeValue =  (GLfloat) 1.0f;
-//	greenValue = (GLfloat) 1.0f;
-//	vertexColorLocation = (GLint) 1;
+    GLint success;
+    GLchar infoLog[512];
 
 	// These will hold the shader's text file data
 	std::string strVShader, strFShader;
@@ -86,7 +85,24 @@ void Shader::Initialize(std::string strVertexFile, std::string strFragmentFile)
 
 	// Now we actually compile the shader code
 	glCompileShader(VertexShaderID);
+	    // Check for compile time errors
+
+
+    glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(VertexShaderID, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+
 	glCompileShader(FragmentShaderID);
+    // Check for compile time errors
+    glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(FragmentShaderID, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
 
 	// Next we create a program object to represent our shaders
 	ShaderProgramID = glCreateProgram();
@@ -97,6 +113,12 @@ void Shader::Initialize(std::string strVertexFile, std::string strFragmentFile)
 
 	// Our last init function is to link our program object with OpenGL
 	glLinkProgram(ShaderProgramID);
+    // Check for linking errors
+    glGetProgramiv(ShaderProgramID, GL_LINK_STATUS, &success);
+    if (!success) {
+        glGetProgramInfoLog(ShaderProgramID, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+    }
 
 	// Now check to see if any errors happened in this function
 	ErrorCheckValue = glGetError();

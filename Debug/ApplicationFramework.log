@@ -1,4 +1,4 @@
-﻿Build started 6/9/2015 8:48:11 AM.
+﻿Build started 6/9/2015 10:43:35 PM.
      1>Project "C:\Programming\ApplicationFramework\ApplicationFramework\ApplicationFramework.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\ApplicationFramework.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -38,4 +38,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:23.52
+Time Elapsed 00:00:13.59
