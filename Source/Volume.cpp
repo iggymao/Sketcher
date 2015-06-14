@@ -30,11 +30,13 @@ void Volume::Initialize(int shape_code)
 		}
 		case VOLUME_RIGHT_PRISM:
 		{
+
 			MemberMesh[0] = new Mesh;
 			MemberMesh[0]->CreateMesh(WINDOW_VIEW1, MESH_TRIANGLE, (GLfloat)0.25, (GLfloat)-1.0, (GLfloat)1.0);
 			MemberMesh[1] = new Mesh;
 			MemberMesh[1]->CreateMesh(WINDOW_VIEW1, MESH_SQUARE, (GLfloat)1.50, (GLfloat)0.25, (GLfloat)1.0);
 			NumMeshes = 2; 
+
 			break;
 		}
 
@@ -60,6 +62,7 @@ void Volume::Initialize(int shape_code)
 			MemberMesh[3] = new Mesh;
 			MemberMesh[3]->CreateMesh(WINDOW_VIEW2, MESH_TRIANGLE, 0.75, -0.5, 0.0);
 			NumMeshes = 4;
+
 			break;
 		}
 		default:

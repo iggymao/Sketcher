@@ -44,6 +44,8 @@ public:
 	GLfloat greenValue;
 	GLint vertexColorLocation;
 
+	GLint transformLocation;
+
 	// These 2 functions turn on and off our shader, which uses the OpenGL glUseProgram() function
 	void TurnOn()		{ glUseProgram(ShaderProgramID); }
 	void TurnOff()		{ glUseProgram(0); }

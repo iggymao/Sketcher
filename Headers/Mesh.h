@@ -11,7 +11,10 @@
 #include <glm\glm.hpp>									// Used for the GLM math library
 #include <glm/gtc/matrix_transform.hpp>					// Used for the GLM math library
 #include <glm/gtx/transform2.hpp>						// Used for the GLM math library
+#include <glm/gtc/type_ptr.hpp>							// Used for the GLM math library
+
 #include "Shader.h"										// Used for loading and running our shaders
+#include "Texture.h"
 //#include "Camera.h"										// *NEW* Used to get access to the view and projection matrices
 #include <vector>
 
@@ -39,6 +42,9 @@ public:
 
 	vector<GLfloat> g_vertex_buffer_data;   // create a vector of g_vertex_buffer_data to store the vertex data in a std::vector container
 	
+	vector<GLfloat> vertex_buffer_data;   // create a vector of g_vertex_buffer_data to store the vertex data in a std::vector container
+	vector<GLuint> vertex_index_data;		// create a vector for the index data in a std::vector container.
+
 	// to create a Mesh in a specific window (WindowNum) and of a particular type (as defined in Mesh.h);
 	// param1:  width of the object
 	// param2:  height of the object
@@ -98,6 +104,9 @@ public:
 
 	// Our shader object to initialize and run the shaders
 	Shader Shader;
+
+	// Our texture object to initialize and run the texture routines
+	Texture Texture;
 };
 
 #endif

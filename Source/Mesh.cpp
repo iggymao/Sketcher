@@ -3,37 +3,82 @@
 #include "../Headers/Main.h"
 #include "../Headers/Mesh.h"
 #include "../Headers/Shader.h"
+#include "../Headers/Texture.h"
 
 using namespace std;
 
 #include <fstream>
 bool fexists(const std::string& filename) {
   ifstream ifile(filename.c_str());
-  return ifile;
+  return ifile != NULL;
 }
 
 // A constructor for the mesh class.  Makes a simple triangle to ensure that the drawing buffer doesnt blow up unexpectedly.  We will
 // use the RESERVE and RESIZE operators to modifiy to thecorrect sizes for different structures.
 Mesh::Mesh()
 {
-	// declare a vertex buffer to contain 9 elements (a minimal triangle)
-	g_vertex_buffer_data.reserve(9);
+	g_vertex_buffer_data.resize(0);			// delete the previous default buffer
+	vertex_buffer_data.resize(0);
+	vertex_index_data.resize(0);
 
-	MeshSize = 9;
+	// declare a vertex buffer to contain 9 elements (a minimal triangle)
+	g_vertex_buffer_data.reserve(18);		// allocate 9 elements for the three nodes of a triangle
+	vertex_buffer_data.reserve(18);			// allocate 9 elements for the three nodes of a triangle
+	vertex_index_data.reserve(3);			// allocate 3 elements for the three indices of the nodes of a triangle
+
+	MeshSize = 18;
+
+	// Data for a simple triangle
+	//1st node
+	vertex_buffer_data.push_back(0.5f);			// x-coord
+	vertex_buffer_data.push_back(-0.5f);			// y-coord
+	vertex_buffer_data.push_back(0.0f);				// z-coord
+	vertex_buffer_data.push_back(1.0f);				// red color
+	vertex_buffer_data.push_back(0.0f);				// green color
+	vertex_buffer_data.push_back(0.0f);				// blue color
+	//2nd node
+	vertex_buffer_data.push_back(-0.5f);				// x-coord
+	vertex_buffer_data.push_back(-0.5f);			// y-coord
+	vertex_buffer_data.push_back(0.0f);				// z-coord
+	vertex_buffer_data.push_back(0.0f);				// red color
+	vertex_buffer_data.push_back(1.0f);				// green color
+	vertex_buffer_data.push_back(0.0f);				// blue color
+	//3rd node
+	vertex_buffer_data.push_back(0.0f);				// x-coord
+	vertex_buffer_data.push_back(0.5f);				// y-coord
+	vertex_buffer_data.push_back(0.0f);				// z-coord
+	vertex_buffer_data.push_back(0.0f);				// red color
+	vertex_buffer_data.push_back(0.0f);				// green color
+	vertex_buffer_data.push_back(1.0f);				// blue color
+
+	vertex_index_data.push_back(0);
+	vertex_index_data.push_back(1);
+	vertex_index_data.push_back(2);
+
+
 	// Data for a simple triangle
 	//1st node
 	g_vertex_buffer_data.push_back(-1.0f);
 	g_vertex_buffer_data.push_back(-1.0f);
 	g_vertex_buffer_data.push_back(0.0f);
+	g_vertex_buffer_data.push_back(1.0f);				// red color
+	g_vertex_buffer_data.push_back(0.0f);				// green color
+	g_vertex_buffer_data.push_back(0.0f);				// blue color
 	//2nd node
 	g_vertex_buffer_data.push_back(1.0f);
 	g_vertex_buffer_data.push_back(-1.0f);
 	g_vertex_buffer_data.push_back(0.0f);
+	g_vertex_buffer_data.push_back(0.0f);				// red color
+	g_vertex_buffer_data.push_back(1.0f);				// green color
+	g_vertex_buffer_data.push_back(0.0f);				// blue color
 	//3rd node
 	g_vertex_buffer_data.push_back(0.0f);
 	g_vertex_buffer_data.push_back(1.0f);
 	g_vertex_buffer_data.push_back(0.0f);
-
+	g_vertex_buffer_data.push_back(0.0f);				// red color
+	g_vertex_buffer_data.push_back(0.0f);				// green color
+	g_vertex_buffer_data.push_back(1.0f);				// blue color
+	
 	TargetWindow = WINDOW_VIEW1;  // Default to the main window.  See application.h for the declarations.
 	MeshType = MESH_UNDEFINED;
 
@@ -51,23 +96,72 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 		case MESH_TRIANGLE:
 		{
 			g_vertex_buffer_data.resize(0);			// delete the previous default buffer
-			g_vertex_buffer_data.reserve(9);		// allocate 9 elements for a triangle
-			MeshSize = 9;
+			vertex_buffer_data.resize(0);
+			vertex_index_data.resize(0);
+
+			g_vertex_buffer_data.reserve(18);		// allocate 9 elements for a triangle
+			vertex_buffer_data.reserve(18);			// allocate 9 elements for a triangle
+			vertex_index_data.reserve(3);			// allocate 3 elements for the three nodes of a triangle
+
+			MeshSize = 18;
 
 			// Data for a simple triangle
+			//////////////////////
+			//  Uses ELEMENT INDICES
+			//////////////////////
+			//1st node
+			vertex_buffer_data.push_back((GLfloat)-width);
+			vertex_buffer_data.push_back((GLfloat)height);
+			vertex_buffer_data.push_back((GLfloat)depth);
+			vertex_buffer_data.push_back(1.0f);				// red color
+			vertex_buffer_data.push_back(0.0f);				// green color
+			vertex_buffer_data.push_back(0.0f);				// blue color
+			//2nd node
+			vertex_buffer_data.push_back((GLfloat)width);
+			vertex_buffer_data.push_back((GLfloat)height);
+			vertex_buffer_data.push_back((GLfloat)depth);
+			vertex_buffer_data.push_back(0.0f);				// red color
+			vertex_buffer_data.push_back(1.0f);				// green color
+			vertex_buffer_data.push_back(0.0f);				// blue color
+			//3rd node
+			vertex_buffer_data.push_back((GLfloat)0.0);
+			vertex_buffer_data.push_back((GLfloat)-height);
+			vertex_buffer_data.push_back((GLfloat)depth);
+			vertex_buffer_data.push_back(0.0f);				// red color
+			vertex_buffer_data.push_back(0.0f);				// green color
+			vertex_buffer_data.push_back(1.0f);				// blue color
+
+			vertex_index_data.push_back(0);
+			vertex_index_data.push_back(2);
+			vertex_index_data.push_back(1);
+			////////////////////////////////////
+
+			////////////////////////////////////
+			// Using vertex arrays
+			////////////////////////////////////
 			//1st node
 			g_vertex_buffer_data.push_back((GLfloat)-width);
 			g_vertex_buffer_data.push_back((GLfloat)height);
 			g_vertex_buffer_data.push_back((GLfloat)depth);
+			g_vertex_buffer_data.push_back(1.0f);				// red color
+			g_vertex_buffer_data.push_back(0.0f);				// green color
+			g_vertex_buffer_data.push_back(0.0f);				// blue color
 			//2nd node
 			g_vertex_buffer_data.push_back((GLfloat)width);
 			g_vertex_buffer_data.push_back((GLfloat)height);
 			g_vertex_buffer_data.push_back((GLfloat)depth);
+			g_vertex_buffer_data.push_back(0.0f);				// red color
+			g_vertex_buffer_data.push_back(1.0f);				// green color
+			g_vertex_buffer_data.push_back(0.0f);				// blue color
 			//3rd node
 			g_vertex_buffer_data.push_back((GLfloat)0.0);
 			g_vertex_buffer_data.push_back((GLfloat)-height);
 			g_vertex_buffer_data.push_back((GLfloat)depth);
-/*
+			g_vertex_buffer_data.push_back(0.0f);				// red color
+			g_vertex_buffer_data.push_back(0.0f);				// green color
+			g_vertex_buffer_data.push_back(1.0f);				// blue color
+			///////////////////////////////////////
+			/*
 			// Data for a simple triangle
 			//1st node
 			g_vertex_buffer_data.push_back(-1.0f);
@@ -81,41 +175,110 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 			g_vertex_buffer_data.push_back(0.0f);
 			g_vertex_buffer_data.push_back(-1.0f);
 			g_vertex_buffer_data.push_back(0.0f);
-*/
+			*/
+
 			cout << "\nCreatingMesh() Triangle...";
 			break;
 		}
 		case MESH_SQUARE:
 		{
 			g_vertex_buffer_data.resize(0);			// delete the previous default buffer
-			g_vertex_buffer_data.reserve(18);		// allocate 18 elements for two triangle
-			MeshSize=18;
+			vertex_buffer_data.resize(0);			// delete the previous default buffer
+			vertex_index_data.resize(0);			// delete the previous default buffer
 
-			// Data for a simple triangle
+			g_vertex_buffer_data.reserve(36);		// allocate 18 elements for two triangle
+			vertex_buffer_data.reserve(24);		// allocate 12 elements for the four nodes of a square
+			vertex_index_data.reserve(6);		// allocate 6 elements for indices of the two triangles comprising the square
+
+			MeshSize=36;
+
+			// Data for a simple square
+			//////////////////////
+			//  Uses ELEMENT INDICES
+			//////////////////////
+			//1st node
+			vertex_buffer_data.push_back((GLfloat)-0.5*width);
+			vertex_buffer_data.push_back((GLfloat)-0.5*height);
+			vertex_buffer_data.push_back((GLfloat)depth);
+			vertex_buffer_data.push_back(1.0f);				// red color
+			vertex_buffer_data.push_back(0.0f);				// green color
+			vertex_buffer_data.push_back(0.0f);				// blue color
+			//2nd node
+			vertex_buffer_data.push_back((GLfloat)-0.5*width);
+			vertex_buffer_data.push_back((GLfloat)0.5*height);
+			vertex_buffer_data.push_back((GLfloat)depth);
+			vertex_buffer_data.push_back(0.0f);				// red color
+			vertex_buffer_data.push_back(1.0f);				// green color
+			vertex_buffer_data.push_back(0.0f);				// blue color
+			//3rd node
+			vertex_buffer_data.push_back((GLfloat)0.5*width);
+			vertex_buffer_data.push_back((GLfloat)0.5*height);
+			vertex_buffer_data.push_back((GLfloat)depth);
+			vertex_buffer_data.push_back(0.0f);				// red color
+			vertex_buffer_data.push_back(0.0f);				// green color
+			vertex_buffer_data.push_back(1.0f);				// blue color
+			//4th node
+			vertex_buffer_data.push_back((GLfloat)0.5*width);
+			vertex_buffer_data.push_back((GLfloat)-0.5*height);
+			vertex_buffer_data.push_back((GLfloat)depth);
+			vertex_buffer_data.push_back(1.0f);				// red color
+			vertex_buffer_data.push_back(0.0f);				// green color
+			vertex_buffer_data.push_back(0.0f);				// blue color
+			//Triangle #1 indices (CCW order)
+			vertex_index_data.push_back(0);
+			vertex_index_data.push_back(2);
+			vertex_index_data.push_back(1);
+			// Triangle #2 indices (CCW order)
+			vertex_index_data.push_back(0);
+			vertex_index_data.push_back(3);
+			vertex_index_data.push_back(2);
+			////////////////////////////////////
+
+			////////////////////////////////////
+			// Using vertex arrays
+			////////////////////////////////////
 			//1st node
 			g_vertex_buffer_data.push_back((GLfloat)-0.5*width);
 			g_vertex_buffer_data.push_back((GLfloat)-0.5*height);
 			g_vertex_buffer_data.push_back((GLfloat)depth);
+			g_vertex_buffer_data.push_back(1.0f);				// red color
+			g_vertex_buffer_data.push_back(0.0f);				// green color
+			g_vertex_buffer_data.push_back(0.0f);				// blue color
 			//2nd node
 			g_vertex_buffer_data.push_back((GLfloat)0.5*width);
 			g_vertex_buffer_data.push_back((GLfloat)0.5*height);
 			g_vertex_buffer_data.push_back((GLfloat)depth);
+			g_vertex_buffer_data.push_back(0.0f);				// red color
+			g_vertex_buffer_data.push_back(1.0f);				// green color
+			g_vertex_buffer_data.push_back(0.0f);				// blue color
 			//3rd node
 			g_vertex_buffer_data.push_back((GLfloat)-0.5*width);
 			g_vertex_buffer_data.push_back((GLfloat)0.5*height);
 			g_vertex_buffer_data.push_back((GLfloat)depth);
+			g_vertex_buffer_data.push_back(0.0f);				// red color
+			g_vertex_buffer_data.push_back(0.0f);				// green color
+			g_vertex_buffer_data.push_back(1.0f);				// blue color
 			//4th vertex
 			g_vertex_buffer_data.push_back((GLfloat)-0.5*width);
 			g_vertex_buffer_data.push_back((GLfloat)-0.5*height);
 			g_vertex_buffer_data.push_back((GLfloat)depth);
+			g_vertex_buffer_data.push_back(1.0f);				// red color
+			g_vertex_buffer_data.push_back(0.0f);				// green color
+			g_vertex_buffer_data.push_back(0.0f);				// blue color
 			//5th vertex
 			g_vertex_buffer_data.push_back((GLfloat)0.5*width);
 			g_vertex_buffer_data.push_back((GLfloat)-0.5*height);
 			g_vertex_buffer_data.push_back((GLfloat)depth);
+			g_vertex_buffer_data.push_back(0.0f);				// red color
+			g_vertex_buffer_data.push_back(1.0f);				// green color
+			g_vertex_buffer_data.push_back(0.0f);				// blue color
 			//6th vertex
 			g_vertex_buffer_data.push_back((GLfloat)0.5*width);
 			g_vertex_buffer_data.push_back((GLfloat)0.5*height);
 			g_vertex_buffer_data.push_back((GLfloat)depth);	
+			g_vertex_buffer_data.push_back(0.0f);				// red color
+			g_vertex_buffer_data.push_back(0.0f);				// green color
+			g_vertex_buffer_data.push_back(1.0f);				// blue color
 
 			/*
 			// Data for a simple triangle
@@ -213,39 +376,70 @@ void Mesh::RenderMesh(Mesh **MemberMesh)
 		cout << "\nFragment shader file does not exist.  Check the file name in: " << strFragmentFile;
 
 	Shader.Initialize(strVertexFile, strFragmentFile);			// initialize the shades.  StrVertexFile is the name of the vertex shader, strFragmentFile is the name of the fragment shader. 
+//	Texture.Initialize();										// initializes the texture(s)
 	////////////////////////////////////////////////
 	//  End Shader programs Loading and Binding
 	////////////////////////////////////////////////
 
 	int num_VAO = 1;							// establishes 1 VAO (qty of VAO variables) -- Change this for multiple shaders if necessary
 	int num_VBO	= 1;							// establishes 1 VBO (qty of VBO variables) -- Change this for multiple buffers if necessary
+	int num_EBO = 1;
 	GLuint VertexArrayID[1];				// declare the VAO array
 	GLuint VertexBufferID[1];				// declare the VBO array
+	GLuint ElementBufferID[1];				// declare the EBO array (element buffer array) object for use with the indices.
+
 			
 	// Setup the VAO and VBO for the mesh
 	// current sets up 1 VAO or VBO -- might need more
 	glGenVertexArrays(num_VAO, VertexArrayID);					// Create the VAO
 	glGenBuffers(num_VBO, VertexBufferID);						// Create the VBO
+	glGenBuffers(num_EBO, ElementBufferID);						// Create the EBO
 	
 	for (int VAO_count=0;VAO_count<num_VAO;VAO_count++)
 	{
 		int VBO_count = VAO_count;  // A counter for the number of VBO arrays.  Assumed the same as VAO count
+		int EBO_count = VAO_count;
 
 		// Stores the VAO and VBO data into their respective arrays
 		glBindVertexArray(VertexArrayID[VAO_count]);						
 		glBindBuffer(GL_ARRAY_BUFFER, VertexBufferID[VBO_count]);
-		glBufferData(GL_ARRAY_BUFFER, (MyMesh->MeshSize)*sizeof(GLfloat), &(MyMesh->g_vertex_buffer_data).front(), GL_STATIC_DRAW);
+
+		// uses the vertex array (non indexed method)
+		// glBufferData(GL_ARRAY_BUFFER, (MyMesh->MeshSize)*sizeof(GLfloat), &(MyMesh->g_vertex_buffer_data).front(), GL_STATIC_DRAW);
+
+		// uses the vertex and indices methods
+		glBufferData(GL_ARRAY_BUFFER, (MyMesh->vertex_buffer_data).size()*sizeof(GLfloat), &(MyMesh->vertex_buffer_data).front(), GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ElementBufferID[VAO_count]);
+	    glBufferData(GL_ELEMENT_ARRAY_BUFFER, (MyMesh->vertex_index_data).size()*sizeof(GLuint), &(MyMesh->vertex_index_data).front(), GL_STATIC_DRAW);
+//		cout << "\nMyMesh->vertex_buffer_data.size()" << MyMesh->vertex_buffer_data.size();
+//		cout << "\nMyMesh->vertex_index_data.size()" << MyMesh->vertex_index_data.size();
+		//getchar();
+
 		glVertexAttribPointer
 		(
 			0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
 			3,                  // size
 			GL_FLOAT,           // type
 			GL_FALSE,           // normalized?
-			0,                  // stride
-			(void*)0            // array buffer offset
+			6*sizeof(GLfloat),
+			//			0,                  // stride
+			(GLvoid*)0
+			//			(void*)0            // array buffer offset
 		);
 		glEnableVertexAttribArray(0);
-		glBindVertexArray(0);	
+		glVertexAttribPointer
+		(
+			1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+			3,                  // size
+			GL_FLOAT,           // type
+			GL_FALSE,           // normalized?
+			6*sizeof(GLfloat),
+			//			0,                  // stride
+			(GLvoid*)(3 * sizeof(GLfloat))  // array buffer offset (because there are three GFLoat vertices.  Will need to adjust this if an alpha value is present.
+			//			(void*)0            // array buffer offset
+		);
+		glEnableVertexAttribArray(1);
+		glBindVertexArray(0);				// unbind the VAO
 
 		////////////////////////////////////////////////////////
 		//  Drawing the VAO with shaders etc.
@@ -254,19 +448,62 @@ void Mesh::RenderMesh(Mesh **MemberMesh)
 		// Now when we want to draw the first array object, we use the appropriate fragment shader	
 
 		Shader.TurnOn();											// turns on the shader.
-		
+//		Texture.TurnOn();											// turns on the texture mapper.
+		///////////////////////////////////////////////
+		// TIME CHANGING GREEN COLOR STUFF
+		///////////////////////////////////////////////
+
+/*
 		// sets a time changing color scheme into our shader.
 		Shader.timeValue = (GLfloat)glfwGetTime();
 //		cout << "\nTime value: " << Shader.timeValue;
 		Shader.greenValue = (GLfloat)((sin(Shader.timeValue) / 2) + 0.5);
 //		cout << "\ngreenValue: " << Shader.greenValue;
 		Shader.vertexColorLocation = Shader.GetVariable("ourColor");
-
 //		cout << "\nvertexColorLocation: " << Shader.vertexColorLocation << "    greenvalue: " << Shader.greenValue;
 		glUniform4f(Shader.vertexColorLocation, 0.0f, Shader.greenValue, 0.0f, 1.0f); // passes the variables to the shader program
+*/
+
+/*
+        // Bind Textures using texture units
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture[0]);
+		Texture.textureLocation = Shader.GetVariable("ourTexture1")
+	    glUniform1i(Texture.textureLocation, 0);
+//        glUniform1i(glGetUniformLocation(ourShader.Program, "ourTexture1"), 0);
+
+		// Used for extra textures
+		//glActiveTexture(GL_TEXTURE1);
+        //glBindTexture(GL_TEXTURE_2D, texture2);
+        //glUniform1i(glGetUniformLocation(ourShader.Program, "ourTexture2"), 1);
+
+*/
+
+/*
+		//////////////////////////////////////////////
+		// MATRIX TRANSFORMATION STUFF
+		//////////////////////////////////////////////
+		// Create transformations
+        glm::mat4 transform;
+        transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+        transform = glm::rotate(transform, (GLfloat)glfwGetTime() * 50.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+
+        // Get matrix's uniform location and set matrix
+        Shader.transformLocation = Shader.GetVariable("transform");
+        glUniformMatrix4fv(Shader.transformLocation, 1, GL_FALSE, glm::value_ptr(transform));
+		///////////////////////////////////////////////
+		// End transform stuff
+		///////////////////////////////////////////////
+*/
 
 		glBindVertexArray(VertexArrayID[VAO_count]);	
-		glDrawArrays(GL_TRIANGLES, 0, (MyMesh->MeshSize / 3) ); 	// Draw the shape ! 3 indices per triangle starting at 0 -> 1 triangle
+
+		// Uses the vertex array method
+//		glDrawArrays(GL_TRIANGLES, 0, (MyMesh->MeshSize / 3) ); 	// Draw the shape ! 3 indices per triangle starting at 0 -> 1 triangle
+ 
+		// Uses the vertex and indices method
+		glDrawElements(GL_TRIANGLES, (MyMesh->vertex_index_data.size()), GL_UNSIGNED_INT, 0);
+
 		glBindVertexArray(0);										// clear the VBO
 		glDisableVertexAttribArray(0);								// clear the VAO
 		Shader.TurnOff();											// turns off the current shader so subsequent renders don't utilize a wrong shader.

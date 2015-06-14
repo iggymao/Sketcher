@@ -1,0 +1,22 @@
+//Fragment shader
+#version 330 core
+//in vec4 vertexColor; //  the input variable from the vertex shader (same name)
+//in vec3 ourColor;
+in vec3 ourColor;
+in vec2 TexCoord;
+
+out vec4 color;
+
+uniform sampler2D ourTexture1;
+uniform sampler2D ourTexture2;
+
+//uniform vec4 ourColor; // set the variable in the OpenGL code in our program
+
+void main()
+{
+////	color = vec4(1.0f, 0.75f, 0.5f, 1.0f);		// an orange color
+////	color = vertexColor;				// for the red color passed from the vertex shader
+//	color = ourColor;
+	// Linearly interpolate between both textures (second texture is only slightly combined)
+	color = mix(texture(ourTexture1, TexCoord), texture(ourTexture2, TexCoord), 0.2);
+}
