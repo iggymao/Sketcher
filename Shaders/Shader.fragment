@@ -2,13 +2,17 @@
 #version 330 core
 //in vec4 vertexColor; //  the input variable from the vertex shader (same name)
 in vec3 ourColor;
+in vec2 TexCoord;
+
 out vec4 color;
 
 //uniform vec4 ourColor; // set the variable in the OpenGL code in our program
+uniform sampler2D ourTexture;
 
 void main()
 {
 //	color = vec4(1.0f, 0.75f, 0.5f, 1.0f);		// an orange color
 //	color = vertexColor;				// for the red color passed from the vertex shader
-	color = vec4(ourColor, 1.0f);			// to receive the color input from the vertex arrays extended buffers
+//	color = vec4(ourColor, 1.0f);			// to receive the color input from the vertex arrays extended buffers
+	color = texture(ourTexture, TexCoord);	
 }

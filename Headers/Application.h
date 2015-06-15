@@ -24,6 +24,9 @@ using namespace std;
 #define MESH_OTHER_2D	2								// for another 2D Shape
 #define MAX_MESH_TYPES	3								// should be one greater than the last MESH type defined above
 
+#define MESH_USE_TEXTURE_TRUE	0						// tells the mesh to use an assigned texture
+#define MESH_USE_TEXTURE_FALSE	1						// tells the mesh creator to ignore textures
+
 // default volume shapes for mesh construction rules
 #define VOLUME_UNDEFINED		-1						// an undeclared or undefined region (used for intialization)
 #define VOLUME_PLANAR_REGION	0						// for a planar region

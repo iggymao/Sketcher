@@ -32,26 +32,18 @@ void Volume::Initialize(int shape_code)
 		{
 
 			MemberMesh[0] = new Mesh;
-			MemberMesh[0]->CreateMesh(WINDOW_VIEW1, MESH_TRIANGLE, (GLfloat)0.25, (GLfloat)-1.0, (GLfloat)1.0);
-			MemberMesh[1] = new Mesh;
-			MemberMesh[1]->CreateMesh(WINDOW_VIEW1, MESH_SQUARE, (GLfloat)1.50, (GLfloat)0.25, (GLfloat)1.0);
-			NumMeshes = 2; 
+			MemberMesh[0]->CreateMesh(WINDOW_VIEW2, MESH_SQUARE, (GLfloat)1.50, (GLfloat)-1.5, (GLfloat)1.0);
+			NumMeshes = 1; 
 
 			break;
 		}
 
 		case VOLUME_AREA:
 		{
-
-			// A right prism volume will require six mesh surfaces (two ends and four sides)
-
-//			Mesh *MyMeshTest[6];		// creates an array to store a volume
-//			MyMeshTest[0] = new Mesh;
-//			MyMeshTest[0]->Initialize(MESH_SQUARE);
-//
-//			// store in the volume
-//			MemberMesh[0] = MyMeshTest[0];
-
+			MemberMesh[0] = new Mesh;
+			MemberMesh[0]->CreateMesh(WINDOW_VIEW2, MESH_TRIANGLE, (GLfloat)0.750, (GLfloat)0.50, (GLfloat)1.0);
+			NumMeshes = 1; 
+/*
 			//Create the Mesh (test)
 			MemberMesh[0] = new Mesh;
 			MemberMesh[0]->CreateMesh(WINDOW_VIEW1, MESH_TRIANGLE, 1.5, 0.5, 0.0);
@@ -62,7 +54,7 @@ void Volume::Initialize(int shape_code)
 			MemberMesh[3] = new Mesh;
 			MemberMesh[3]->CreateMesh(WINDOW_VIEW2, MESH_TRIANGLE, 0.75, -0.5, 0.0);
 			NumMeshes = 4;
-
+*/
 			break;
 		}
 		default:

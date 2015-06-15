@@ -4,6 +4,7 @@
 #include "../Headers/Mesh.h"
 #include "../Headers/Shader.h"
 #include "../Headers/Texture.h"
+#include "../Headers/SOIL.h"
 
 using namespace std;
 
@@ -22,11 +23,11 @@ Mesh::Mesh()
 	vertex_index_data.resize(0);
 
 	// declare a vertex buffer to contain 9 elements (a minimal triangle)
-	g_vertex_buffer_data.reserve(18);		// allocate 9 elements for the three nodes of a triangle
-	vertex_buffer_data.reserve(18);			// allocate 9 elements for the three nodes of a triangle
+	g_vertex_buffer_data.reserve(24);		// allocate 9 elements for the three nodes of a triangle
+	vertex_buffer_data.reserve(24);			// allocate 9 elements for the three nodes of a triangle
 	vertex_index_data.reserve(3);			// allocate 3 elements for the three indices of the nodes of a triangle
 
-	MeshSize = 18;
+	MeshSize = 24;
 
 	// Data for a simple triangle
 	//1st node
@@ -36,13 +37,17 @@ Mesh::Mesh()
 	vertex_buffer_data.push_back(1.0f);				// red color
 	vertex_buffer_data.push_back(0.0f);				// green color
 	vertex_buffer_data.push_back(0.0f);				// blue color
+	vertex_buffer_data.push_back(1.0f);				// texture coordinate 1
+	vertex_buffer_data.push_back(0.0f);				// texture coordinate 2
 	//2nd node
 	vertex_buffer_data.push_back(-0.5f);				// x-coord
 	vertex_buffer_data.push_back(-0.5f);			// y-coord
 	vertex_buffer_data.push_back(0.0f);				// z-coord
 	vertex_buffer_data.push_back(0.0f);				// red color
-	vertex_buffer_data.push_back(1.0f);				// green color
+	vertex_buffer_data.push_back(0.0f);				// green color
 	vertex_buffer_data.push_back(0.0f);				// blue color
+	vertex_buffer_data.push_back(0.0f);				// texture coordinate 1
+	vertex_buffer_data.push_back(0.0f);				// texture coordinate 2
 	//3rd node
 	vertex_buffer_data.push_back(0.0f);				// x-coord
 	vertex_buffer_data.push_back(0.5f);				// y-coord
@@ -50,6 +55,8 @@ Mesh::Mesh()
 	vertex_buffer_data.push_back(0.0f);				// red color
 	vertex_buffer_data.push_back(0.0f);				// green color
 	vertex_buffer_data.push_back(1.0f);				// blue color
+	vertex_buffer_data.push_back(0.5f);				// texture coordinate 1
+	vertex_buffer_data.push_back(1.0f);				// texture coordinate 2
 
 	vertex_index_data.push_back(0);
 	vertex_index_data.push_back(1);
@@ -64,6 +71,8 @@ Mesh::Mesh()
 	g_vertex_buffer_data.push_back(1.0f);				// red color
 	g_vertex_buffer_data.push_back(0.0f);				// green color
 	g_vertex_buffer_data.push_back(0.0f);				// blue color
+	g_vertex_buffer_data.push_back(0.0f);				// texture coordinate 1
+	g_vertex_buffer_data.push_back(0.0f);				// texture coordinate 2
 	//2nd node
 	g_vertex_buffer_data.push_back(1.0f);
 	g_vertex_buffer_data.push_back(-1.0f);
@@ -71,6 +80,8 @@ Mesh::Mesh()
 	g_vertex_buffer_data.push_back(0.0f);				// red color
 	g_vertex_buffer_data.push_back(1.0f);				// green color
 	g_vertex_buffer_data.push_back(0.0f);				// blue color
+	g_vertex_buffer_data.push_back(1.0f);				// texture coordinate 1
+	g_vertex_buffer_data.push_back(0.0f);				// texture coordinate 2
 	//3rd node
 	g_vertex_buffer_data.push_back(0.0f);
 	g_vertex_buffer_data.push_back(1.0f);
@@ -78,6 +89,8 @@ Mesh::Mesh()
 	g_vertex_buffer_data.push_back(0.0f);				// red color
 	g_vertex_buffer_data.push_back(0.0f);				// green color
 	g_vertex_buffer_data.push_back(1.0f);				// blue color
+	g_vertex_buffer_data.push_back(0.5f);				// texture coordinate 1
+	g_vertex_buffer_data.push_back(1.0f);				// texture coordinate 2
 	
 	TargetWindow = WINDOW_VIEW1;  // Default to the main window.  See application.h for the declarations.
 	MeshType = MESH_UNDEFINED;
@@ -99,11 +112,11 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 			vertex_buffer_data.resize(0);
 			vertex_index_data.resize(0);
 
-			g_vertex_buffer_data.reserve(18);		// allocate 9 elements for a triangle
-			vertex_buffer_data.reserve(18);			// allocate 9 elements for a triangle
+			g_vertex_buffer_data.reserve(24);		// allocate 9 elements for a triangle
+			vertex_buffer_data.reserve(24);			// allocate 9 elements for a triangle
 			vertex_index_data.reserve(3);			// allocate 3 elements for the three nodes of a triangle
 
-			MeshSize = 18;
+			MeshSize = 24;
 
 			// Data for a simple triangle
 			//////////////////////
@@ -116,6 +129,8 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 			vertex_buffer_data.push_back(1.0f);				// red color
 			vertex_buffer_data.push_back(0.0f);				// green color
 			vertex_buffer_data.push_back(0.0f);				// blue color
+			vertex_buffer_data.push_back(0.0f);				// texture coordinate 1
+			vertex_buffer_data.push_back(0.0f);				// texture coordinate 2
 			//2nd node
 			vertex_buffer_data.push_back((GLfloat)width);
 			vertex_buffer_data.push_back((GLfloat)height);
@@ -123,6 +138,8 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 			vertex_buffer_data.push_back(0.0f);				// red color
 			vertex_buffer_data.push_back(1.0f);				// green color
 			vertex_buffer_data.push_back(0.0f);				// blue color
+			vertex_buffer_data.push_back(1.0f);				// texture coordinate 1
+			vertex_buffer_data.push_back(0.0f);				// texture coordinate 2
 			//3rd node
 			vertex_buffer_data.push_back((GLfloat)0.0);
 			vertex_buffer_data.push_back((GLfloat)-height);
@@ -130,6 +147,8 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 			vertex_buffer_data.push_back(0.0f);				// red color
 			vertex_buffer_data.push_back(0.0f);				// green color
 			vertex_buffer_data.push_back(1.0f);				// blue color
+			vertex_buffer_data.push_back(0.5f);				// texture coordinate 1
+			vertex_buffer_data.push_back(1.0f);				// texture coordinate 2
 
 			vertex_index_data.push_back(0);
 			vertex_index_data.push_back(2);
@@ -146,6 +165,8 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 			g_vertex_buffer_data.push_back(1.0f);				// red color
 			g_vertex_buffer_data.push_back(0.0f);				// green color
 			g_vertex_buffer_data.push_back(0.0f);				// blue color
+			g_vertex_buffer_data.push_back(0.0f);				// texture coordinate 1
+			g_vertex_buffer_data.push_back(0.0f);				// texture coordinate 2
 			//2nd node
 			g_vertex_buffer_data.push_back((GLfloat)width);
 			g_vertex_buffer_data.push_back((GLfloat)height);
@@ -153,6 +174,8 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 			g_vertex_buffer_data.push_back(0.0f);				// red color
 			g_vertex_buffer_data.push_back(1.0f);				// green color
 			g_vertex_buffer_data.push_back(0.0f);				// blue color
+			g_vertex_buffer_data.push_back(1.0f);				// texture coordinate 1
+			g_vertex_buffer_data.push_back(0.0f);				// texture coordinate 2
 			//3rd node
 			g_vertex_buffer_data.push_back((GLfloat)0.0);
 			g_vertex_buffer_data.push_back((GLfloat)-height);
@@ -160,6 +183,8 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 			g_vertex_buffer_data.push_back(0.0f);				// red color
 			g_vertex_buffer_data.push_back(0.0f);				// green color
 			g_vertex_buffer_data.push_back(1.0f);				// blue color
+			g_vertex_buffer_data.push_back(0.5f);				// texture coordinate 1
+			g_vertex_buffer_data.push_back(1.0f);				// texture coordinate 2
 			///////////////////////////////////////
 			/*
 			// Data for a simple triangle
@@ -186,8 +211,8 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 			vertex_buffer_data.resize(0);			// delete the previous default buffer
 			vertex_index_data.resize(0);			// delete the previous default buffer
 
-			g_vertex_buffer_data.reserve(36);		// allocate 18 elements for two triangle
-			vertex_buffer_data.reserve(24);		// allocate 12 elements for the four nodes of a square
+			g_vertex_buffer_data.reserve(48);		// allocate 18 elements for two triangle
+			vertex_buffer_data.reserve(32);		// allocate 12 elements for the four nodes of a square
 			vertex_index_data.reserve(6);		// allocate 6 elements for indices of the two triangles comprising the square
 
 			MeshSize=36;
@@ -203,6 +228,8 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 			vertex_buffer_data.push_back(1.0f);				// red color
 			vertex_buffer_data.push_back(0.0f);				// green color
 			vertex_buffer_data.push_back(0.0f);				// blue color
+			vertex_buffer_data.push_back(0.0f);				// texture coordinate 1
+			vertex_buffer_data.push_back(0.0f);				// texture coordinate 2
 			//2nd node
 			vertex_buffer_data.push_back((GLfloat)-0.5*width);
 			vertex_buffer_data.push_back((GLfloat)0.5*height);
@@ -210,6 +237,8 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 			vertex_buffer_data.push_back(0.0f);				// red color
 			vertex_buffer_data.push_back(1.0f);				// green color
 			vertex_buffer_data.push_back(0.0f);				// blue color
+			vertex_buffer_data.push_back(0.0f);				// texture coordinate 1
+			vertex_buffer_data.push_back(1.0f);				// texture coordinate 2
 			//3rd node
 			vertex_buffer_data.push_back((GLfloat)0.5*width);
 			vertex_buffer_data.push_back((GLfloat)0.5*height);
@@ -217,6 +246,8 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 			vertex_buffer_data.push_back(0.0f);				// red color
 			vertex_buffer_data.push_back(0.0f);				// green color
 			vertex_buffer_data.push_back(1.0f);				// blue color
+			vertex_buffer_data.push_back(1.0f);				// texture coordinate 1
+			vertex_buffer_data.push_back(1.0f);				// texture coordinate 2
 			//4th node
 			vertex_buffer_data.push_back((GLfloat)0.5*width);
 			vertex_buffer_data.push_back((GLfloat)-0.5*height);
@@ -224,6 +255,9 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 			vertex_buffer_data.push_back(1.0f);				// red color
 			vertex_buffer_data.push_back(0.0f);				// green color
 			vertex_buffer_data.push_back(0.0f);				// blue color
+			vertex_buffer_data.push_back(1.0f);				// texture coordinate 1
+			vertex_buffer_data.push_back(0.0f);				// texture coordinate 2
+
 			//Triangle #1 indices (CCW order)
 			vertex_index_data.push_back(0);
 			vertex_index_data.push_back(2);
@@ -244,6 +278,8 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 			g_vertex_buffer_data.push_back(1.0f);				// red color
 			g_vertex_buffer_data.push_back(0.0f);				// green color
 			g_vertex_buffer_data.push_back(0.0f);				// blue color
+			g_vertex_buffer_data.push_back(0.0f);				// texture coordinate 1
+			g_vertex_buffer_data.push_back(0.0f);				// texture coordinate 2
 			//2nd node
 			g_vertex_buffer_data.push_back((GLfloat)0.5*width);
 			g_vertex_buffer_data.push_back((GLfloat)0.5*height);
@@ -251,6 +287,8 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 			g_vertex_buffer_data.push_back(0.0f);				// red color
 			g_vertex_buffer_data.push_back(1.0f);				// green color
 			g_vertex_buffer_data.push_back(0.0f);				// blue color
+			g_vertex_buffer_data.push_back(1.0f);				// texture coordinate 1
+			g_vertex_buffer_data.push_back(1.0f);				// texture coordinate 2
 			//3rd node
 			g_vertex_buffer_data.push_back((GLfloat)-0.5*width);
 			g_vertex_buffer_data.push_back((GLfloat)0.5*height);
@@ -258,6 +296,8 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 			g_vertex_buffer_data.push_back(0.0f);				// red color
 			g_vertex_buffer_data.push_back(0.0f);				// green color
 			g_vertex_buffer_data.push_back(1.0f);				// blue color
+			g_vertex_buffer_data.push_back(0.0f);				// texture coordinate 1
+			g_vertex_buffer_data.push_back(1.0f);				// texture coordinate 2
 			//4th vertex
 			g_vertex_buffer_data.push_back((GLfloat)-0.5*width);
 			g_vertex_buffer_data.push_back((GLfloat)-0.5*height);
@@ -265,6 +305,8 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 			g_vertex_buffer_data.push_back(1.0f);				// red color
 			g_vertex_buffer_data.push_back(0.0f);				// green color
 			g_vertex_buffer_data.push_back(0.0f);				// blue color
+			g_vertex_buffer_data.push_back(0.0f);				// texture coordinate 1
+			g_vertex_buffer_data.push_back(0.0f);				// texture coordinate 2
 			//5th vertex
 			g_vertex_buffer_data.push_back((GLfloat)0.5*width);
 			g_vertex_buffer_data.push_back((GLfloat)-0.5*height);
@@ -272,6 +314,8 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 			g_vertex_buffer_data.push_back(0.0f);				// red color
 			g_vertex_buffer_data.push_back(1.0f);				// green color
 			g_vertex_buffer_data.push_back(0.0f);				// blue color
+			g_vertex_buffer_data.push_back(1.0f);				// texture coordinate 1
+			g_vertex_buffer_data.push_back(0.0f);				// texture coordinate 2
 			//6th vertex
 			g_vertex_buffer_data.push_back((GLfloat)0.5*width);
 			g_vertex_buffer_data.push_back((GLfloat)0.5*height);
@@ -279,7 +323,8 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 			g_vertex_buffer_data.push_back(0.0f);				// red color
 			g_vertex_buffer_data.push_back(0.0f);				// green color
 			g_vertex_buffer_data.push_back(1.0f);				// blue color
-
+			g_vertex_buffer_data.push_back(1.0f);				// texture coordinate 1
+			g_vertex_buffer_data.push_back(1.0f);				// texture coordinate 2
 			/*
 			// Data for a simple triangle
 			//1st node
@@ -313,7 +358,7 @@ void Mesh::CreateMesh(int WinNum, int mesh_type, GLfloat param1, GLfloat param2,
 		default:  // uses the default constructor from Mesh::Mesh()
 			break;
 	}
-	TargetWindow = WinNum;
+	TargetWindow = WinNum;			// WinNum not currently used.  Target window is set by Model.cpp declaration
 	MeshType = mesh_type;
 	cout << "\nMESH CREATED:  MeshType: " << MeshType << " targetting window #: " << TargetWindow << endl;
 	return;
@@ -421,8 +466,8 @@ void Mesh::RenderMesh(Mesh **MemberMesh)
 			3,                  // size
 			GL_FLOAT,           // type
 			GL_FALSE,           // normalized?
-			6*sizeof(GLfloat),
-			//			0,                  // stride
+			8*sizeof(GLfloat),				// stride offset -- 3coords, 3rgb, 2text glfloat
+			//			0,                  
 			(GLvoid*)0
 			//			(void*)0            // array buffer offset
 		);
@@ -433,19 +478,58 @@ void Mesh::RenderMesh(Mesh **MemberMesh)
 			3,                  // size
 			GL_FLOAT,           // type
 			GL_FALSE,           // normalized?
-			6*sizeof(GLfloat),
-			//			0,                  // stride
+			8*sizeof(GLfloat),				// stride offset -- 3coords, 3rgb, 2text glfloat
+			//			0,                  
 			(GLvoid*)(3 * sizeof(GLfloat))  // array buffer offset (because there are three GFLoat vertices.  Will need to adjust this if an alpha value is present.
 			//			(void*)0            // array buffer offset
 		);
 		glEnableVertexAttribArray(1);
+		// The texture attribute pointer
+		glVertexAttribPointer
+		(
+			2, 
+			2, 
+			GL_FLOAT,
+			GL_FALSE, 
+			8 * sizeof(GLfloat), 
+			(GLvoid*)(6 * sizeof(GLfloat))
+		);
+		glEnableVertexAttribArray(2); 
+
 		glBindVertexArray(0);				// unbind the VAO
+
+		///////////////////////////////////
+	    // Load and create a texture 
+		//////////////////////////////////
+	    GLuint texture;
+	    glGenTextures(1, &texture);
+	    glBindTexture(GL_TEXTURE_2D, texture); // All upcoming GL_TEXTURE_2D operations now have effect on this texture object
+	    // Set the texture wrapping parameters
+	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// Set texture wrapping to GL_REPEAT (usually basic wrapping method)
+	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	    // Set texture filtering parameters
+	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	    // Load image, create texture and generate mipmaps
+	    int width, height;
+		unsigned char* image = SOIL_load_image("Textures/container.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		SOIL_free_image_data(image);
+		glBindTexture(GL_TEXTURE_2D, 0); // Unbind texture when done, so we won't accidentily mess up our texture.
+		////////////////////////////////
+		// End Loading Texture
+		////////////////////////////////
+
 
 		////////////////////////////////////////////////////////
 		//  Drawing the VAO with shaders etc.
 		////////////////////////////////////////////////////////
 		// Draw the first array object (will need an array for multiple objects)
 		// Now when we want to draw the first array object, we use the appropriate fragment shader	
+
+//        // Bind Texture
+//        glBindTexture(GL_TEXTURE_2D, texture);
 
 		Shader.TurnOn();											// turns on the shader.
 //		Texture.TurnOn();											// turns on the texture mapper.
@@ -495,8 +579,9 @@ void Mesh::RenderMesh(Mesh **MemberMesh)
 		// End transform stuff
 		///////////////////////////////////////////////
 */
-
-		glBindVertexArray(VertexArrayID[VAO_count]);	
+        // Bind Texture
+        glBindTexture(GL_TEXTURE_2D, texture);
+		glBindVertexArray(VertexArrayID[VAO_count]);			// binf the VAO
 
 		// Uses the vertex array method
 //		glDrawArrays(GL_TRIANGLES, 0, (MyMesh->MeshSize / 3) ); 	// Draw the shape ! 3 indices per triangle starting at 0 -> 1 triangle
