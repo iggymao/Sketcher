@@ -52,6 +52,7 @@ public:
 	void CreateMesh(int WindowNum, int ObjectType, GLfloat param1, GLfloat param2, GLfloat param3);		
 	int MeshSize;			// stores the number of meshes that make up the volume
 
+	bool TextureAlreadyLoaded;
 	// These are created to standardize the index properties used for vertex properties.
 	static const GLuint kVertexIndex = 0;				// This is for the x,y,z vertices
 	static const GLuint kColorIndex = 1;				// This is for the r,g,b,a colors

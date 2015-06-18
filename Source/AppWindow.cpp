@@ -1,4 +1,7 @@
 #include "stdafx.h"
+#include <stdarg.h>
+#include <time.h>
+#include <assert.h>
 #include <iostream>
 #include "../Headers/Main.h"							// Include our main header for the application..includes the necessary includes for the application
 #include "../Headers/Mesh.h"							// Include our main header for the application..includes the necessary includes for the application
@@ -9,6 +12,74 @@ class AppWindow;	// forward declaration?
 class Mesh;			// forward declaration?
 
 //Model g_Triangle;										// Our class to handle initializing and drawing our triangle
+
+FILE *stream;
+
+bool restart_gl_log()
+{
+	FILE* file = fopen(GL_LOG_FILE, "w");
+	if (!file) {
+		fprintf(stderr, "ERROR: could not open GL_LOG_FILE log file %s for writing\n", GL_LOG_FILE);
+		return false;
+	}
+	time_t now = time (NULL);
+	char* date = ctime(&now);
+	fprintf(file,"GL_LOG_FILE log. local time %s\n", date);
+	fclose(file);
+	return true;
+}
+
+bool gl_log_err (const char* message, ...) {
+	va_list argptr;
+	FILE* file = fopen (GL_LOG_FILE, "a");
+	if (!file)
+	{
+		fprintf(stderr,"ERROR: could not open GL_LOG_FILE %s file for appending\n", GL_LOG_FILE);
+		return false;
+	}
+	va_start(argptr, message);
+	vfprintf(file, message, argptr);
+	va_end(argptr);
+	va_start (argptr, message);
+	vfprintf(stderr, message, argptr);
+	va_end (argptr);
+	fclose (file);
+	return true;
+}
+
+// A generic log file function
+bool gl_log (const char* message, ...) 
+{
+	va_list argptr;
+	FILE* file = fopen(GL_LOG_FILE, "a");
+	if(!file) {
+		fprintf(stderr,"ERROR: could not open GL_LOG_FILE %s file for appending\n", GL_LOG_FILE);
+		return false;
+	}
+	va_start (argptr, message);
+	vfprintf(file, message, argptr);
+	va_end (argptr);
+	fclose(file);
+	return true;
+}
+
+void glfw_error_callback (int error, const char* description)
+{
+	gl_log_err ("GLFW ERROR: code %i msg: %s\n", error, description);
+}
+
+// a call-back function
+void glfw_window_size_callback(GLFWwindow* window, int width, int height) 
+{
+	// change the window size parameters somehow?
+	//ScreenWidth = width;
+	//ScreenHeight = height;
+
+	//update perspective matrices here???
+
+}
+
+
 
 
 static void error_callback(int error, const char* description)  
@@ -28,6 +99,12 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 int AppWindow::Initialize(int width, int height, std::string strTitle, bool bFullScreen, int x_pos, int y_pos)
 {
 	printf("\nCreating a window..");
+	assert (restart_gl_log());
+	// start GL context and O/S window using the GLFW helper library
+	gl_log ("starting GLFW\n%s\n", glfwGetVersionString());
+	// register the error call-back function that we wrote, above
+	glfwSetErrorCallback (glfw_error_callback);
+
 
 	// This tries to first init the GLFW library and make sure it is available
 	if ( !glfwInit() )
@@ -46,7 +123,10 @@ int AppWindow::Initialize(int width, int height, std::string strTitle, bool bFul
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_DECORATED, GL_FALSE);
+//	glfwWindowHint(GLFW_DECORATED, GL_FALSE);
+
+	GLFWmonitor* mon = glfwGetPrimaryMonitor();
+	const GLFWvidmode* vmode = glfwGetVideoMode(mon);
 
 //	// Create a window either in fullscreen or not
 	if( bFullScreen )

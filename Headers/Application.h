@@ -1,6 +1,9 @@
 #ifndef _Application_H
 #define _Application_H
 
+#include <stdarg.h>
+#include <time.h>
+#include <assert.h>
 #include <vector>
 using namespace std;
 
@@ -9,13 +12,17 @@ using namespace std;
 #include <string>										// Used for our STL string objects
 #include <fstream>										// Used for fprintf and stderr									
 //#include "glfw3\include\GLFW\glfw3.h"					// Used to reference the GLFW library
-#include "WindowManager.h"								// Used to reference the abstract base class
 
+#define GL_LOG_FILE "gl.log"
+
+#include "WindowManager.h"								// Used to reference the abstract base class
 #define WINDOW_VIEW_UNDEFINED -1						// Used for initialization of the Volume classes only...
-#define WINDOW_VIEWMODEL 0								// Counters for the main model windows of the application
-#define WINDOW_VIEW1 1									// Counters for the subwindows of the application
-#define WINDOW_VIEW2 2									// Counters for the subwindows of the application
-#define MAX_WINDOWS 3									// Counter for the number of windows in the application.  Must be greater than the highest WINDOW_VIEW# defined above.
+#define WINDOW_VIEWMODEL 0		// Must be the first in the list.  Controls the main modeling window
+								// used in Model.cpp in the main reindering loop.
+								// Counters for the main model windows of the application
+#define WINDOW_VIEW1 1							// Counters for the subwindows of the application
+#define WINDOW_VIEW2 2							// Counters for the subwindows of the application
+#define MAX_WINDOWS 3							// Counter for the number of windows in the application.  Must be greater than the highest WINDOW_VIEW# defined above.
 
 // default MESH primitives
 #define MESH_UNDEFINED -1								// for an undeclared or undefined mesh primitive type (used for intialization)
@@ -38,7 +45,8 @@ using namespace std;
 #define VOLUME_SPHERE			6						// for a sphere
 #define VOLUME_SPIRAL			7						// for a spiral shape
 #define VOLUME_OTHER_3D			8						// for other shapes
-#define MAX_VOLUME_QTY			9						// Number of differents defined known by the application.  Used as a parameter for the MODEL array/
+#define MAX_VOLUME_QTY			9						// Number of differents defined known by the application.  Used as a parameter for the MODEL array
+
 
 class AppWindow;  // Forward declaration
 class Mesh;		  // Forward declaration

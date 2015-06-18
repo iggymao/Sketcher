@@ -94,6 +94,7 @@ Mesh::Mesh()
 	
 	TargetWindow = WINDOW_VIEW1;  // Default to the main window.  See application.h for the declarations.
 	MeshType = MESH_UNDEFINED;
+	TextureAlreadyLoaded = false;	// Tells the mesh that a texture is needed to be loaded on the intial render cycle.
 
 
 }
@@ -444,6 +445,7 @@ void Mesh::RenderMesh(Mesh **MemberMesh)
 	{
 		int VBO_count = VAO_count;  // A counter for the number of VBO arrays.  Assumed the same as VAO count
 		int EBO_count = VAO_count;
+		GLuint texture1;
 
 		// Stores the VAO and VBO data into their respective arrays
 		glBindVertexArray(VertexArrayID[VAO_count]);						
@@ -498,29 +500,31 @@ void Mesh::RenderMesh(Mesh **MemberMesh)
 
 		glBindVertexArray(0);				// unbind the VAO
 
-		///////////////////////////////////
-	    // Load and create a texture 
-		//////////////////////////////////
-	    GLuint texture;
-	    glGenTextures(1, &texture);
-	    glBindTexture(GL_TEXTURE_2D, texture); // All upcoming GL_TEXTURE_2D operations now have effect on this texture object
-	    // Set the texture wrapping parameters
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// Set texture wrapping to GL_REPEAT (usually basic wrapping method)
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	    // Set texture filtering parameters
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	    // Load image, create texture and generate mipmaps
-	    int width, height;
-		unsigned char* image = SOIL_load_image("Textures/container.jpg", &width, &height, 0, SOIL_LOAD_RGB);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-		glGenerateMipmap(GL_TEXTURE_2D);
-		SOIL_free_image_data(image);
-		glBindTexture(GL_TEXTURE_2D, 0); // Unbind texture when done, so we won't accidentily mess up our texture.
-		////////////////////////////////
-		// End Loading Texture
-		////////////////////////////////
-
+//		if(!TextureAlreadyLoaded)
+//		{
+			///////////////////////////////////
+		    // Load and create a texture 
+			//////////////////////////////////
+		    glGenTextures(1, &texture1);
+			glBindTexture(GL_TEXTURE_2D, texture1); // All upcoming GL_TEXTURE_2D operations now have effect on this texture object
+			// Set the texture wrapping parameters
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// Set texture wrapping to GL_REPEAT (usually basic wrapping method)
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+			// Set texture filtering parameters
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			// Load image, create texture and generate mipmaps
+			int width, height;
+			unsigned char* image = SOIL_load_image("Textures/container.jpg", &width, &height, 0, SOIL_LOAD_RGB);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+			glGenerateMipmap(GL_TEXTURE_2D);
+			SOIL_free_image_data(image);
+//			glBindTexture(GL_TEXTURE_2D, 0); // Unbind texture when done, so we won't accidentily mess up our texture.
+			////////////////////////////////
+			// End Loading Texture
+			////////////////////////////////
+			TextureAlreadyLoaded = true;
+//		}
 
 		////////////////////////////////////////////////////////
 		//  Drawing the VAO with shaders etc.
@@ -536,7 +540,6 @@ void Mesh::RenderMesh(Mesh **MemberMesh)
 		///////////////////////////////////////////////
 		// TIME CHANGING GREEN COLOR STUFF
 		///////////////////////////////////////////////
-
 /*
 		// sets a time changing color scheme into our shader.
 		Shader.timeValue = (GLfloat)glfwGetTime();
@@ -548,29 +551,27 @@ void Mesh::RenderMesh(Mesh **MemberMesh)
 		glUniform4f(Shader.vertexColorLocation, 0.0f, Shader.greenValue, 0.0f, 1.0f); // passes the variables to the shader program
 */
 
-/*
+
         // Bind Textures using texture units
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture[0]);
-		Texture.textureLocation = Shader.GetVariable("ourTexture1")
-	    glUniform1i(Texture.textureLocation, 0);
+        glBindTexture(GL_TEXTURE_2D, texture1);
+		Texture.textureLocation1 = Shader.GetVariable("ourTexture1");
+	    glUniform1i(Texture.textureLocation1, 0);
 //        glUniform1i(glGetUniformLocation(ourShader.Program, "ourTexture1"), 0);
-
+/*
 		// Used for extra textures
 		//glActiveTexture(GL_TEXTURE1);
         //glBindTexture(GL_TEXTURE_2D, texture2);
         //glUniform1i(glGetUniformLocation(ourShader.Program, "ourTexture2"), 1);
-
 */
 
-/*
 		//////////////////////////////////////////////
 		// MATRIX TRANSFORMATION STUFF
 		//////////////////////////////////////////////
 		// Create transformations
         glm::mat4 transform;
-        transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
-        transform = glm::rotate(transform, (GLfloat)glfwGetTime() * 50.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+        transform = glm::translate(transform, glm::vec3(0.0f, 0.0f, 0.0f));
+        transform = glm::rotate(transform, (GLfloat)glfwGetTime() * 0.1f, glm::vec3(0.0f, 0.0f, 1.0f));
 
         // Get matrix's uniform location and set matrix
         Shader.transformLocation = Shader.GetVariable("transform");
@@ -578,14 +579,12 @@ void Mesh::RenderMesh(Mesh **MemberMesh)
 		///////////////////////////////////////////////
 		// End transform stuff
 		///////////////////////////////////////////////
-*/
-        // Bind Texture
-        glBindTexture(GL_TEXTURE_2D, texture);
-		glBindVertexArray(VertexArrayID[VAO_count]);			// binf the VAO
+
+      //  // Bind Texture
+		glBindVertexArray(VertexArrayID[VAO_count]);			// bind the VAO
 
 		// Uses the vertex array method
 //		glDrawArrays(GL_TRIANGLES, 0, (MyMesh->MeshSize / 3) ); 	// Draw the shape ! 3 indices per triangle starting at 0 -> 1 triangle
- 
 		// Uses the vertex and indices method
 		glDrawElements(GL_TRIANGLES, (MyMesh->vertex_index_data.size()), GL_UNSIGNED_INT, 0);
 

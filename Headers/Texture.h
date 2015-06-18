@@ -16,15 +16,14 @@ class Texture
 
 		void Initialize();		// initializes the texture
 
-/*
-		Gluint texture[1];		// stores up to MAX_TEXTURES per mesh
-		GLuint texture_qty;					// stores the number of textures in use.  Should be less than MAX_TEXTURES
+//		Gluint texture[1];		// stores up to MAX_TEXTURES per mesh
+//		GLuint texture_qty;					// stores the number of textures in use.  Should be less than MAX_TEXTURES
 
-		GLint textureLocation;
+		GLint textureLocation1;
 		// These 2 functions turn on and off our shader, which uses the OpenGL glUseProgram() function
-		void TurnOn()		{ cout << "\nTurning on texture... need a UseProgram call like the shaders?"; }
-		void TurnOff()		{ cout << "\nTurning off texture... need a glUseProgram(0) like the shaders?"; }
-*/
+//		void TurnOn()		{ cout << "\nTurning on texture... need a UseProgram call like the shaders?"; }
+//		void TurnOff()		{ cout << "\nTurning off texture... need a glUseProgram(0) like the shaders?"; }
+
 		// This releases our memory for our shader
 		void Destroy();
 };
