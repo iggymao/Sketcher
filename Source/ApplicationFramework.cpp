@@ -10,6 +10,7 @@ using namespace System;
 int main(array<System::String ^> ^args)
 {
 	Application application;
-    //Console::WriteLine(L"Hello World");			// alternate technique to write to the console
+
+	//Console::WriteLine(L"Hello World");			// alternate technique to write to the console
     return application.Main();						// Launches into the main application routine
 }

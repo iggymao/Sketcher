@@ -95,6 +95,7 @@
     <ClInclude Include="Headers\Mesh.h" />
     <ClInclude Include="Headers\Model.h" />
     <ClInclude Include="Headers\Shader.h" />
+    <ClInclude Include="Headers\ShaderManager.h" />
     <ClInclude Include="Headers\Texture.h" />
     <ClInclude Include="Headers\Volume.h" />
     <ClInclude Include="Headers\WindowManager.h" />
@@ -112,6 +113,7 @@
     <ClCompile Include="Source\Mesh.cpp" />
     <ClCompile Include="Source\Model.cpp" />
     <ClCompile Include="Source\Shader.cpp" />
+    <ClCompile Include="Source\ShaderManager.cpp" />
     <ClCompile Include="Source\Texture.cpp" />
     <ClCompile Include="Source\Volume.cpp" />
     <ClCompile Include="stdafx.cpp">

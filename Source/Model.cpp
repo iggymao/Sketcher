@@ -5,6 +5,8 @@
 //#include "../Headers/Volume.h"
 #include "../Headers/Main.h"
 #include "../Headers/Model.h"
+#include "../Headers/ShaderManager.h"		// for testing the ShaderManageralgorithm
+
 
 using namespace std;
 
@@ -136,7 +138,6 @@ void Model::Initialize()
 void Model::RenderModel(AppWindow **WinID_array)
 {
 	printf("\nRendering a model...");
-
 	GLFWwindow *Window;
 	Window = (*(WinID_array+ModelTargetWindow))->GetWindow();
 
@@ -157,6 +158,41 @@ void Model::RenderModel(AppWindow **WinID_array)
 		return;
 	}
 	log_gl_params();  // list the parameters of the GLEW install.  Must be included after GLEW has been initialized.
+
+	/////////////////////////////////////////////
+	// Create and load the ShaderManager
+	// This must be after the GLEW has been initialized because of the calls located in BuildShaderProgram method of
+	// the ShaderManager class in ShaderManager.h
+	ShaderManager shadermanager;
+	shadermanager.Initialize();
+
+	//populate the shade manager explicitly, eventually this should probably be moved out of this
+	// method.  Perhaps up to the Application level??
+	std::string strvertexfilename = "Shaders/test";
+	std::string strfragmentfilename = "Shaders/junk";
+	shadermanager.AddShader(shadermanager.MemberInfo, SHADER_VERTEX, strvertexfilename, strfragmentfilename);
+	strvertexfilename = "Shaders/Shader.vertex";
+	strfragmentfilename = "Shaders/Shader.fragment";
+	shadermanager.AddShader(shadermanager.MemberInfo, SHADER_VERTEX, strvertexfilename, strfragmentfilename);
+	// end adding to shader.
+
+	ShaderInfo *temp = shadermanager.searchShaderInfo(shadermanager.MemberInfo, strvertexfilename, strfragmentfilename);
+	printf("-----------------------------------------");
+//	printf("\nEntry temp->ShaderID: %i", (*temp).ShaderID);
+//	shadermanager.ShowDetails(shadermanager.MemberInfo);
+
+	if(!temp)
+	{
+		printf("\nNo record found...aborting...");
+		// maybe enter a log entry here?
+	} else {
+		shadermanager.BuildShaderProgram(temp);
+//		printf("\nShader BuildShaderProgram complete");
+	}
+	shadermanager.ShowDetails(shadermanager.MemberInfo);
+	getchar();  // to pause the compilation for now
+	// End the ShaderManager creation
+	//////////////////////////////////
 
 	// Ensure we can capture the escape key being pressed below
 	glfwSetInputMode(Window, GLFW_STICKY_KEYS, GL_TRUE);

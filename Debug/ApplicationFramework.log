@@ -1,4 +1,4 @@
-﻿Build started 6/17/2015 10:58:50 PM.
+﻿Build started 6/18/2015 11:20:04 PM.
      1>Project "C:\Programming\ApplicationFramework\ApplicationFramework\ApplicationFramework.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\ApplicationFramework.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -8,7 +8,7 @@
          All outputs are up-to-date.
          C:\Program Files\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I"C:\opengl-wrappers\soil\lib" /IC:\Programming\ApplicationFramework\ApplicationFramework\Lib\soil\lib /I"C:\opengl-wrappers\glfw\include" /I"C:\opengl-wrappers\glew\include" /AI"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0" /Zi /clr /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D GLEW_STATIC /D _UNICODE /D UNICODE /EHa /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\ApplicationFramework.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /TP /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Core.dll" /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Data.dll" /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.dll" /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Drawing.dll" /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Windows.Forms.dll" /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Xml.dll" /analyze- /errorReport:prompt Source\Model.cpp /clr:nostdlib 
          Model.cpp
-     1>Source\Model.cpp(98): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+     1>Source\Model.cpp(100): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
                  C:\Program Files\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
          All outputs are up-to-date.
        ResourceCompile:
@@ -22,6 +22,7 @@
          Debug\Mesh.obj
          Debug\Model.obj
          Debug\Shader.obj
+         Debug\ShaderManager.obj
          Debug\Texture.obj
          Debug\Volume.obj
          Debug\stdafx.obj
@@ -41,4 +42,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:17.72
+Time Elapsed 00:00:18.54

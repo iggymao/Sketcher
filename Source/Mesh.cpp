@@ -536,7 +536,9 @@ void Mesh::RenderMesh(Mesh **MemberMesh)
 //        glBindTexture(GL_TEXTURE_2D, texture);
 
 		Shader.TurnOn();											// turns on the shader.
-//		Texture.TurnOn();											// turns on the texture mapper.
+
+		
+		//		Texture.TurnOn();											// turns on the texture mapper.
 		///////////////////////////////////////////////
 		// TIME CHANGING GREEN COLOR STUFF
 		///////////////////////////////////////////////
