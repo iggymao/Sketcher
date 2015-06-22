@@ -3,7 +3,8 @@
 
 #include <string>										// Used for our STL string objects
 #include <fstream>										// Used for our ifstream object to load text files
-#include "../Headers/Main.h"
+//#include "../Headers/Main.h"
+#include <GL/glew.h>				// for the GLuint, GLbool variable calls
 
 #define MAX_TEXTURE		1
 

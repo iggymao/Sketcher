@@ -91,9 +91,18 @@
   <ItemGroup>
     <ClInclude Include="Headers\Application.h" />
     <ClInclude Include="Headers\AppWindow.h" />
+    <ClInclude Include="Headers\AudioManager.h" />
+    <ClInclude Include="Headers\EventManager.h" />
+    <ClInclude Include="Headers\FileManager.h" />
+    <ClInclude Include="Headers\GraphicsManager.h" />
+    <ClInclude Include="Headers\InputManager.h" />
+    <ClInclude Include="Headers\LogManager.h" />
     <ClInclude Include="Headers\Main.h" />
     <ClInclude Include="Headers\Mesh.h" />
     <ClInclude Include="Headers\Model.h" />
+    <ClInclude Include="Headers\ModelManager.h" />
+    <ClInclude Include="Headers\NetworkManager.h" />
+    <ClInclude Include="Headers\PrintManager.h" />
     <ClInclude Include="Headers\Shader.h" />
     <ClInclude Include="Headers\ShaderManager.h" />
     <ClInclude Include="Headers\Texture.h" />
@@ -109,13 +118,23 @@
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="Source\ApplicationFramework.cpp" />
     <ClCompile Include="Source\AppWindow.cpp" />
+    <ClCompile Include="Source\AudioManager.cpp" />
+    <ClCompile Include="Source\EventManager.cpp" />
+    <ClCompile Include="Source\FileManager.cpp" />
+    <ClCompile Include="Source\GraphicsManager.cpp" />
+    <ClCompile Include="Source\InputManager.cpp" />
+    <ClCompile Include="Source\LogManager.cpp" />
     <ClCompile Include="Source\Main.cpp" />
     <ClCompile Include="Source\Mesh.cpp" />
     <ClCompile Include="Source\Model.cpp" />
+    <ClCompile Include="Source\ModelManager.cpp" />
+    <ClCompile Include="Source\NetworkManager.cpp" />
+    <ClCompile Include="Source\PrintManager.cpp" />
     <ClCompile Include="Source\Shader.cpp" />
     <ClCompile Include="Source\ShaderManager.cpp" />
     <ClCompile Include="Source\Texture.cpp" />
     <ClCompile Include="Source\Volume.cpp" />
+    <ClCompile Include="Source\WindowManager.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

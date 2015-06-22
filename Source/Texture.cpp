@@ -5,7 +5,7 @@
 
 #include <string>						// Used for our STL string objects
 #include <fstream>						// Used for our ifstream object to load text files
-#include "../Headers/Main.h"			// Adds our other program headers
+//#include "../Headers/Main.h"			// Adds our other program headers
 #include "../Headers/Texture.h"			// adds our texture class
 
 void Texture::Initialize()
@@ -38,5 +38,5 @@ void Texture::Initialize()
 
 void Texture::Destroy()
 {
-	cout << "\nDestroying a texture...";
+	printf("\nDestroying a texture...");
 }

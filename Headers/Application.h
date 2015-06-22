@@ -1,21 +1,27 @@
 #ifndef _Application_H
 #define _Application_H
 
-#include <stdarg.h>
-#include <time.h>
-#include <assert.h>
-#include <vector>
-using namespace std;
+//#include <stdarg.h>
+//#include <time.h>
+//#include <assert.h>
+//#include <vector>
+//using namespace std;
 
-#include "../Headers/Main.h"
+//#include "../Headers/Main.h"
 
-#include <string>										// Used for our STL string objects
-#include <fstream>										// Used for fprintf and stderr									
+//#include <string>										// Used for our STL string objects
+//#include <fstream>										// Used for fprintf and stderr									
 //#include "glfw3\include\GLFW\glfw3.h"					// Used to reference the GLFW library
 
-#define GL_LOG_FILE "gl.log"
 
-#include "WindowManager.h"								// Used to reference the abstract base class
+
+#include "../Headers/GraphicsManager.h"					// Used to reference the graphics manager class
+#include "../Headers/LogManager.h"						// Used to reference the logmanager class
+#include "../Headers/AppWindow.h"
+
+//#include "WindowManager.h"								// Used to reference the abstract base class
+
+
 #define WINDOW_VIEW_UNDEFINED -1						// Used for initialization of the Volume classes only...
 #define WINDOW_VIEWMODEL 0		// Must be the first in the list.  Controls the main modeling window
 								// used in Model.cpp in the main reindering loop.
@@ -34,37 +40,23 @@ using namespace std;
 #define MESH_USE_TEXTURE_TRUE	0						// tells the mesh to use an assigned texture
 #define MESH_USE_TEXTURE_FALSE	1						// tells the mesh creator to ignore textures
 
-// default volume shapes for mesh construction rules
-#define VOLUME_UNDEFINED		-1						// an undeclared or undefined region (used for intialization)
-#define VOLUME_PLANAR_REGION	0						// for a planar region
-#define VOLUME_AREA				1						// for a defined 2D area such as triangle or square
-#define VOLUME_RIGHT_PRISM		2						// for a right prism
-#define VOLUME_PYRAMID			3						// for a pyramid
-#define VOLUME_CONE				4						// for a cone
-#define VOLUME_TETRAHEDRON		5						// for a tetrahedron
-#define VOLUME_SPHERE			6						// for a sphere
-#define VOLUME_SPIRAL			7						// for a spiral shape
-#define VOLUME_OTHER_3D			8						// for other shapes
-#define MAX_VOLUME_QTY			9						// Number of differents defined known by the application.  Used as a parameter for the MODEL array
 
-
-class AppWindow;  // Forward declaration
-class Mesh;		  // Forward declaration
+//class GraphicsManager; // forward declaration
+//class LogManager; // Forward declaration
+//class AppWindow;  // Forward declaration
+//class Mesh;		  // Forward declaration
 
 // This is our main application class that handles orchestrating the init, main loop and cleanup
 class Application
 {
 public:
-	GLuint AppID;				// the ApplicationID
-
 	// The width and height of the application
 //	static const int ScreenWidth = 1024;
 //	static const int ScreenHeight = 768;
 
 	// Create a default constructor and deconstructor which cleans up
-	Application();
-
-	//	~Application() { Destroy(); }
+	Application();			//constructor
+	~Application();			// destructor
 
 	// This is the main function for our application, which is called by the main() function
 	// in the WindowManager.cpp file.  This helps abstract out the environments entry point.
@@ -75,28 +67,46 @@ public:
 //	WindowManager *GetWindowManager() { return WindowManager; }
 //	void SetWindowManager(WindowManager *pWindowManager) { WindowManager = pWindowManager; }
 
-	// This gets and sets a specified window within the application.  This will be used right after a window is crating to allow the application
+	// This gets and sets a specified window within the application.  This will be used right after a window is created to allow the application
 	// to know the handles of each of the windows...to be used in identifying a rendering target when the time comes.
 	AppWindow *GetWindowID(int counter) {return Window[counter]; }
+	AppWindow *GetWindowArray() {return *Window;}	// returns the Window array
 	void SetWindowID(int counter, AppWindow *pAppWindow) { Window[counter] = pAppWindow; }
 	
-//	vector<int> *AppModel;		// An array to store the pointers to meshes in the application.  This will include a counter to tell a particular window where the Mesh is to be drawn.
+	LogManager *GetLog() {return LogMan;}				// gets the log manager
+	void SetLogMan(LogManager *log) {LogMan = log;}		// sets the pointer to the log manager
+
+	GraphicsManager *GetGraphMan() {return GraphicsMan;}  // gets the graphics manager handle
+	void SetGraphMan(GraphicsManager *p_graphic) {GraphicsMan = p_graphic;}  // sets the pointer to the Graphics Manager
+
+	//	vector<int> *AppModel;		// An array to store the pointers to meshes in the application.  This will include a counter to tell a particular window where the Mesh is to be drawn.
 //	Mesh *GetMeshID(int counter) {return Model[counter]; }
 //	void SetMeshID(int counter, Mesh *pMesh) { Model->g_vertex_buffer_data.push_back(pMesh); }
-	void SetMeshID(int counter, Mesh *pMesh);
+//	void SetMeshID(int counter, Mesh *pMesh);
 //	Mesh *GetMeshID(int counter) { return Model[counter]; }
 
 //	vector<Mesh> Model;  // to store the meshes in the application.  This will include a counter to tell a particular window where the Mesh is to be drawn.
-	int NumMesh;		// The number of meshes known by the Application.
+//	int NumMesh;		// The number of meshes known by the Application.
 	
 	// This initializes the application
 	void Initialize();
-	void RenderApplication(AppWindow **pAppWindow);
+
 	// This runs the game loop and only quits when the user hits Escape or closes the window
-	void AppLoop();
+//	void AppLoop();
 
 	// This cleans up the application and tells other objects to also cleanup
 	void Destroy();
+
+	void StartLogMgr();				//Start LogMgr;
+	void StartFileMgr();				//Start FileMgr;
+	void StartPrintMgr();			//Start PrintMgr;
+	int StartGraphicsMgr();			//Start GraphicsMgr;
+	void StartWindowsMgr();			//Start WindowsMgr;
+	void StartModelMgr();			//Start ModelMgr;
+	void StartInputMgr();			//Start InputMgr;
+	void StartNetworkMgr();			//StartNetworkMgr;
+	void StartAudioMgr();			//StartAudioMgr;
+	void StartEventMgr();			//StartEventMgr
 
 protected:
 	// Our abstract window manager to create the window and manage input, which should be
@@ -105,6 +115,9 @@ protected:
 
 //	WindowManager *WindowManager;
 	AppWindow *Window[MAX_WINDOWS];			// An array to store the pointers to each of the windows of the application
+	LogManager *LogMan;					// a pointer to the log manager
+	GraphicsManager *GraphicsMan;		// a pointer to the graphics manager
+
 };
 
 #endif

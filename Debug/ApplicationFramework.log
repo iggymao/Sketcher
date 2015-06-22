@@ -1,4 +1,4 @@
-﻿Build started 6/18/2015 11:20:04 PM.
+﻿Build started 6/21/2015 11:36:03 PM.
      1>Project "C:\Programming\ApplicationFramework\ApplicationFramework\ApplicationFramework.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\ApplicationFramework.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -6,10 +6,8 @@
        Skipping target "GenerateTargetFrameworkMonikerAttribute" because all output files are up-to-date with respect to the input files.
        ClCompile:
          All outputs are up-to-date.
-         C:\Program Files\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I"C:\opengl-wrappers\soil\lib" /IC:\Programming\ApplicationFramework\ApplicationFramework\Lib\soil\lib /I"C:\opengl-wrappers\glfw\include" /I"C:\opengl-wrappers\glew\include" /AI"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0" /Zi /clr /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D GLEW_STATIC /D _UNICODE /D UNICODE /EHa /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\ApplicationFramework.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /TP /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Core.dll" /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Data.dll" /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.dll" /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Drawing.dll" /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Windows.Forms.dll" /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Xml.dll" /analyze- /errorReport:prompt Source\Model.cpp /clr:nostdlib 
-         Model.cpp
-     1>Source\Model.cpp(100): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-                 C:\Program Files\Microsoft Visual Studio 10.0\VC\include\stdio.h(371) : see declaration of 'sprintf'
+         C:\Program Files\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I"C:\opengl-wrappers\soil\lib" /IC:\Programming\ApplicationFramework\ApplicationFramework\Lib\soil\lib /I"C:\opengl-wrappers\glfw\include" /I"C:\opengl-wrappers\glew\include" /AI"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0" /Zi /clr /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D GLEW_STATIC /D _UNICODE /D UNICODE /EHa /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\ApplicationFramework.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /TP /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Core.dll" /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Data.dll" /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.dll" /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Drawing.dll" /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Windows.Forms.dll" /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Xml.dll" /analyze- /errorReport:prompt Source\Mesh.cpp /clr:nostdlib 
+         Mesh.cpp
          All outputs are up-to-date.
        ResourceCompile:
          All outputs are up-to-date.
@@ -18,19 +16,27 @@
          Debug\AssemblyInfo.obj
          Debug\ApplicationFramework.obj
          Debug\AppWindow.obj
+         Debug\AudioManager.obj
+         Debug\EventManager.obj
+         Debug\FileManager.obj
+         Debug\GraphicsManager.obj
+         Debug\InputManager.obj
+         Debug\LogManager.obj
          Debug\Main.obj
          Debug\Mesh.obj
          Debug\Model.obj
+         Debug\ModelManager.obj
+         Debug\NetworkManager.obj
+         Debug\PrintManager.obj
          Debug\Shader.obj
          Debug\ShaderManager.obj
          Debug\Texture.obj
          Debug\Volume.obj
+         Debug\WindowManager.obj
          Debug\stdafx.obj
          "Debug\.NETFramework,Version=v4.0.AssemblyAttributes.obj"
-     1>SOIL.lib(SOIL.obj) : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/INCREMENTAL:NO' specification
-     1>Model.obj : warning LNK4248: unresolved typeref token (01000017) for 'GLFWwindow'; image may not run
-     1>AppWindow.obj : warning LNK4248: unresolved typeref token (01000017) for 'GLFWwindow'; image may not run
-     1>AppWindow.obj : warning LNK4248: unresolved typeref token (0100001C) for 'GLFWmonitor'; image may not run
+     1>GraphicsManager.obj : warning LNK4248: unresolved typeref token (0100001D) for 'GLFWwindow'; image may not run
+     1>GraphicsManager.obj : warning LNK4248: unresolved typeref token (0100001E) for 'GLFWmonitor'; image may not run
      1>glew32s.lib(glew.obj) : warning LNK4099: PDB 'vc120.pdb' was not found with 'glew32s.lib(glew.obj)' or at 'C:\Programming\ApplicationFramework\Debug\vc120.pdb'; linking object as if no debug info
          ApplicationFramework.vcxproj -> C:\Programming\ApplicationFramework\Debug\ApplicationFramework.exe
        Manifest:
@@ -42,4 +48,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:18.54
+Time Elapsed 00:00:16.70

@@ -9,8 +9,14 @@
 // specific implementations like GLFW (i.e. GLFWManager), Win32, GLUT or SDL.
 class WindowManager
 {
-public:
 
+public:
+	WindowManager();	// constructor
+	~WindowManager();   // destructor
+
+	void Initialize();
+	void Destroy();
+/*
 	// This is needed so that the class inheriting this will have it's deconstructor called
 	virtual ~WindowManager() {}
 
@@ -25,6 +31,7 @@ public:
 
 	// This destroys the window and OpenGL context
 	virtual void Destroy() = 0;
+	*/
 };
 
 #endif

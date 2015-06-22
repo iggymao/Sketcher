@@ -17,7 +17,7 @@
 // #include statements centralized here and then shared to other files that need this information specifically
 #include "Application.h"		// Includes the header for the application class
 #include "AppWindow.h"			// Includes the header for the application's windows class
-
+//#include "GraphicsManager.h"	// Includes the header for the GraphicsManager
 //#include <vector>
 
 

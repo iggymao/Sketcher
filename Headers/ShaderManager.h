@@ -1,8 +1,12 @@
 #ifndef _ShaderManager_H
 #define _ShaderManager_H
 
-#include "../Headers/Main.h"			// include our main application header file
-#include "../Headers/Shader.h"
+//#include "../Headers/Main.h"			// include our main application header file
+//#include "../Headers/Shader.h"
+//Include GLEW  
+#include <GL/glew.h>  // for the GLuint, GLbool variable calls
+//Include GLFW  
+//#include <GLFW/glfw3.h> 
 
 //Used in our manager routine to identify the types of shaders and or textures
 #define SHADER_UNDEFINED -1			// the default value used at creation time

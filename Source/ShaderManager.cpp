@@ -1,12 +1,17 @@
 #include "stdafx.h"
+#include <string>
 #include <iostream>
 #include <stdio.h>
-#include <fstream>
 
 #include "../Headers/ShaderManager.h"
-#include "../Headers/Shader.h"
+//#include "../Headers/Shader.h"
 
-bool fexists(const std::string& filename);  // declared in mesh.cpp
+#include <fstream>
+
+bool fexists(const std::string& filename) {
+  std::ifstream ifile(filename.c_str());
+  return ifile != NULL;
+}
 
 // This function loads a text file and returns the code for our shaders
 std::string ShaderManager::LoadShaderFile(std::string strFile)
@@ -17,7 +22,7 @@ std::string ShaderManager::LoadShaderFile(std::string strFile)
 	// Make sure we opened the file correctly
 	if ( !fin )
 	{
-		cout << "\nError opening shader file: " << strFile;
+		printf("\nError opening shader file: %s", strFile.c_str());
 		return "";
 	}
 	std::string strLine = "";
