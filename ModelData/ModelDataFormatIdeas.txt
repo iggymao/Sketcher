@@ -1,0 +1,59 @@
+//Header Information
+
+
+
+//////////////
+// Model File
+//////////////
+1) ModelID
+
+// Volume members (global coordinate data) -- InsertPtVol<X,Y,Z> is the transformed coordinates of the Mesh Center point?
+2) VolID, InsertPtVol<X,y,Z>, OrientVol<N,T,B>
+... repeat as necessary
+
+
+
+//////////////
+// Volume File
+//////////////
+1) VolID
+
+2) vertex shader filename / loc  	-- optional
+3) fragment shader filename / loc  	-- optional
+4) texture filename / loc		-- optional
+
+// Prismatic Cross sections (local coordinate data)
+5) START: MeshID, InsertPtMesh<X,Y,Z>, OrientMesh<N,T,B>
+6) END  : MeshID, InsertPtMesh<X,Y,Z>, OrientMesh<N,T,B>
+
+// -- to be computed CenterPt<X,Y,Z>? 
+// -- TBN calcs... START at 180d  END at 0 d
+// -- Automesher?
+
+
+
+
+////////////
+// MESH File
+////////////
+1) MeshID  (local coords)
+2) V - Vertex #
+3) X, Y, Z		-- XYZ coords
+4) Alpha		-- transparency
+5) R, G, B		-- red, green, blue color combos
+6) U, V		-- u, v texture coords
+
+... repeat as needed, minimum of three
+
+//Connectivity Index (minimum three needed?  What bout points or lines?)// Can this be automated for certain known meshes?:
+7) I 1		// for point
+7) I 1 2 		// for line
+7) I 1 2 3		// for triangle
+/// repeat as needed
+
+
+// To be compute:
+TBN for each MeshID -- this can be computed in local?
+Connectivity index?  -- Array of triangle nodes? (i.e. automesh algorithm)
+
+

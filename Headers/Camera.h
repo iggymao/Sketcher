@@ -1,107 +1,131 @@
-#ifndef _Camera_H
-#define _Camera_H
+// Std. Includes
+#include <vector>
 
-#define PI 3.14159265358979323846264338327950288		// Define PI for usage in positioning the camera's rotations
-#define GLM_FORCE_RADIANS								// Make sure GLM is using radians instead of degrees
-#include "../Headers/Main.h"
-
-#include <fstream>
-#include <glm\glm.hpp>									// Used for the GLM math library
-#include <glm/gtc/matrix_transform.hpp>					// Used for the GLM math library
-#include <glm/gtx/transform2.hpp>						// Used for the GLM math library
-using namespace glm;
+// GL Includes
+#include <GL/glew.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 
-//////////// *** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
 
-// This is our bare-bones Camera class to manage user movement in our 3D scene.
-// The next tutorials will add rotation and mouse support to our class.
+// Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
+enum Camera_Movement {
+    FORWARD,
+    BACKWARD,
+    LEFT,
+    RIGHT
+};
+
+// Default camera values
+const GLfloat YAW        = -90.0f;
+const GLfloat PITCH      =  0.0f;
+const GLfloat SPEED      =  3.0f;
+const GLfloat SENSITIVTY =  0.25f;
+const GLfloat ZOOM       =  45.0f;
+
+
+// An abstract camera class that processes input and calculates the corresponding Eular Angles, Vectors and Matrices for use in OpenGL
 class Camera
 {
 public:
+    // Camera Attributes
+    glm::vec3 Position;
+    glm::vec3 Front;
+    glm::vec3 Up;
+    glm::vec3 Right;
+    glm::vec3 WorldUp;
+    // Eular Angles
+    GLfloat Yaw;
+    GLfloat Pitch;
+    // Camera options
+    GLfloat MovementSpeed;
+    GLfloat MouseSensitivity;
+    GLfloat Zoom;
 
-	Camera();
+    // Constructor with vectors
+    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), GLfloat yaw = YAW, GLfloat pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVTY), Zoom(ZOOM)
+    {
+        this->Position = position;
+        this->WorldUp = up;
+        this->Yaw = yaw;
+        this->Pitch = pitch;
+        this->updateCameraVectors();
+    }
+    // Constructor with scalar values
+    Camera(GLfloat posX, GLfloat posY, GLfloat posZ, GLfloat upX, GLfloat upY, GLfloat upZ, GLfloat yaw, GLfloat pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVTY), Zoom(ZOOM)
+    {
+        this->Position = glm::vec3(posX, posY, posZ);
+        this->WorldUp = glm::vec3(upX, upY, upZ);
+        this->Yaw = yaw;
+        this->Pitch = pitch;
+        this->updateCameraVectors();
+    }
 
-	// This sets and returns a perspective matrix that is build from the field of fiew, aspect ratio and near/far planes
-	mat4 SetPerspective(float fov, float aspectRatio, float nearPlane, float farPlane);
+    // Returns the view matrix calculated using Eular Angles and the LookAt Matrix
+    glm::mat4 GetViewMatrix()
+    {
+        return glm::lookAt(this->Position, this->Position + this->Front, this->Up);
+    }
 
-	// This builds and returns a rotation matrix from the yaw and pitch rotations
-	mat4 GetRotationMatrix();
+    // Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
+    void ProcessKeyboard(Camera_Movement direction, GLfloat deltaTime)
+    {
+        GLfloat velocity = this->MovementSpeed * deltaTime;
+        if (direction == FORWARD)
+            this->Position += this->Front * velocity;
+        if (direction == BACKWARD)
+            this->Position -= this->Front * velocity;
+        if (direction == LEFT)
+            this->Position -= this->Right * velocity;
+        if (direction == RIGHT)
+            this->Position += this->Right * velocity;
+    }
 
-	// This returns the current ProjectionMatrix
-	mat4 GetProjectionMatrix() { return ProjectionMatrix; }
+    // Processes input received from a mouse input system. Expects the offset value in both the x and y direction.
+    void ProcessMouseMovement(GLfloat xoffset, GLfloat yoffset, GLboolean constrainPitch = true)
+    {
+        xoffset *= this->MouseSensitivity;
+        yoffset *= this->MouseSensitivity;
 
-	// This returns the current view matrix according to the camera's position and rotation
-	mat4 GetViewMatrix();
+        this->Yaw   += xoffset;
+        this->Pitch += yoffset;
 
-	// This sets and gets the camera's position
-	void SetPosition(vec3 position)	{ Position = position; }
-	vec3 GetPosition()	{ return Position; }
+        // Make sure that when pitch is out of bounds, screen doesn't get flipped
+        if (constrainPitch)
+        {
+            if (this->Pitch > 89.0f)
+                this->Pitch = 89.0f;
+            if (this->Pitch < -89.0f)
+                this->Pitch = -89.0f;
+        }
 
-	// This calculates the current view vector from the rotation matrix (hard coded for now)
-	vec3 GetView();
+        // Update Front, Right and Up Vectors using the updated Eular angles
+        this->updateCameraVectors();
+    }
 
-	// This returns the camera's up vector (the direction pointing up)
-	vec3 GetUp();
+    // Processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
+    void ProcessMouseScroll(GLfloat yoffset)
+    {
+        if (this->Zoom >= 1.0f && this->Zoom <= 45.0f)
+            this->Zoom -= yoffset;
+        if (this->Zoom <= 1.0f)
+            this->Zoom = 1.0f;
+        if (this->Zoom >= 45.0f)
+            this->Zoom = 45.0f;
+    }
 
-	// This returns the camera's right vector (perpendicular vector pointing to the right)
-	vec3 GetRight();
-
-	// This sets and gets the Yaw and Pitch rotations (in radians)
-	float GetYaw() { return Yaw; }
-	void SetYaw(float yaw)	{ Yaw = yaw; }
-	float GetPitch() { return Pitch; }
-	void SetPitch(float pitch) { Pitch = pitch; }
-
-	// This sets and gets the camera's movement speed
-	void SetSpeed(float speed) { Speed = speed; }
-	double GetSpeed() { return Speed; }
-
-	// This gets and sets the rotation speed for the camera
-	void SetRotationSpeed(float speed) { RotationSpeed = speed; }
-	double GetRotationSpeed() { return RotationSpeed; }
-
-	// This sets the pitch and yaw of our camera from the mouse x and y deltas from the last frame
-	void SetViewByMouse(float mouseX, float mouseY);
-
-	// This sets the Position and the yaw and pitch rotations (in radians)
-	void PositionCamera(float positionX, float positionY, float positionZ, float yaw, float pitch);
-
-	// This will move the camera forward or backwards depending on the speed (negative for backwards)
-	void MoveCamera(float speed);
-
-	// This strafes the camera left or right depending on the speed
-	void Strafe(float speed);
-
-protected:
-
-	mat4 ProjectionMatrix;								// The camera's projection matrix
-	vec3 Position;										// The camera's position
-
-	float Speed;									// The camera's speed that is used with a time slice
-	float RotationSpeed;							// This is our rotation speed that is used with the time slice and yaw
-	double MouseSpeed;							// The speed for the mouse rotations
-	float Yaw;										// The horizontal rotation angle (in radians), y-axis
-	float Pitch;									// The vertical rotation angle (in radians, x-axis
-
-
+private:
+    // Calculates the front vector from the Camera's (updated) Eular Angles
+    void updateCameraVectors()
+    {
+        // Calculate the new Front vector
+        glm::vec3 front;
+        front.x = cos(glm::radians(this->Yaw)) * cos(glm::radians(this->Pitch));
+        front.y = sin(glm::radians(this->Pitch));
+        front.z = sin(glm::radians(this->Yaw)) * cos(glm::radians(this->Pitch));
+        this->Front = glm::normalize(front);
+        // Also re-calculate the Right and Up vector
+        this->Right = glm::normalize(glm::cross(this->Front, this->WorldUp));  // Normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
+        this->Up    = glm::normalize(glm::cross(this->Right, this->Front));
+    }
 };
-
-
-#endif 
-
-//////////// *** NEW *** ////////// *** NEW *** ///////////// *** NEW *** ////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////////
-//
-// * QUICK NOTES * 
-//
-// The camera class is used to be able to move a camera around in the world and
-// take input from the user such as arrow keys, WASD keys or the mouse in a later
-// tutorial.  Unlike our older tutorials, we now depend on matrices more to be
-// able to calculate our camera vectors by our position and yaw/pitch rotations.
-// We no longer store a view or up vector, but derive those from our rotation
-// matrix which will be defined in the next tutorial.
-//
-// © 2000-2015 GameTutorials

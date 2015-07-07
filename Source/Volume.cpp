@@ -3,22 +3,178 @@
 //#include "../Headers/Main.h"
 //#include "../Headers/Mesh.h"
 #include "../Headers/Volume.h"
+#include "../Headers/Mesh.h"
 
-class Volume;		// forward declaration
+GLuint Volume::next_id = -1;			// set the initial value at the start of the program
 
 // A constructor for our volume class
 Volume::Volume()
 {
-	NumMeshes = 0;
-	VolumeType = VOLUME_UNDEFINED;
-	VolTargetWindow = 0;
+	//NumMeshes = 0;
+	//VolumeType = VOLUME_UNDEFINED;
+	//VolTargetWindow = 0;
 	printf("\nVolume constructor...");
+
+	//MeshID = Volume::next_id++; 
+	//printf("\nVolume::next_id++ %i",Volume::next_id);
+	VolumeID = next_volume_id();
+	printf("\nVolume::next_id++ %i",Volume::next_id);
+
+
+	VolumeInfo *newVolInfo = new VolumeInfo;
+	newVolInfo->MeshID = -1;		// copy the MeshID into the VolumeInfo record
+
+	newVolInfo->MeshInsertPt[0] = NULL;
+	newVolInfo->MeshInsertPt[1] = NULL;
+	newVolInfo->MeshInsertPt[2] = NULL;
+	newVolInfo->MeshTanVect[0] = NULL; 	// a tangent vector for the orientation of a member mesh
+	newVolInfo->MeshTanVect[1] = NULL;
+	newVolInfo->MeshTanVect[2] = NULL;
+	newVolInfo->MeshNormVect[0] = NULL;	// a normal vector for the orientation of a member mesh
+	newVolInfo->MeshNormVect[1] = NULL;
+	newVolInfo->MeshNormVect[2] = NULL;
+	newVolInfo->MeshBinormVect[0] = NULL;	// a binormal vector for the orientation of a member mesh
+	newVolInfo->MeshBinormVect[1] = NULL;
+	newVolInfo->MeshBinormVect[2] = NULL;
+
+	newVolInfo->previous = NULL;
+	newVolInfo->next = NULL;
+
+	MemberMesh = newVolInfo;
+//	CurrentMeshNumber = -1;
+
 }
 
-void Volume::Initialize(int shape_code)
+// Initialize the class using a simple shape parameter defined in application.h
+void Volume::Initialize()
 {
-	printf("\nInitializing the volume...");
+	printf("\nInitialize volume.");
+	printf("\nINCOMPLETE:  install initial values");
 
+	ShowVolumeDetails(MemberMesh);  // verify the that the volume Details are empty.
+	printf("\nShowing the empty volume details (hopefully)");
+
+	// a test mesh
+	Mesh *testmesh;
+	testmesh = new Mesh;
+	testmesh->Initialize();
+
+	//       mesh     <---coords-->  <-- tan vec--> <-- norm ---> <-- binorm --->
+	AddMesh(testmesh, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
+	AddMesh(testmesh, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
+
+	// display the results of the testmesh
+	testmesh->ShowMeshVertexDetails(testmesh->MeshVertexInfo);
+	testmesh->ShowMeshIndexDetails(testmesh->MeshIndexInfo);
+
+	ShowVolumeDetails(MemberMesh);
+}
+
+// adds a mesh to the MemberMesh linked list
+int Volume::AddMesh(Mesh *mesh, GLfloat x, GLfloat y, GLfloat z, GLfloat tan_i, GLfloat tan_j, GLfloat tan_k, GLfloat norm_i, GLfloat norm_j, GLfloat norm_k, GLfloat binorm_i, GLfloat binorm_j, GLfloat binorm_k)
+{
+	printf("\nAdding mesh to volume.");
+	printf("\nAdding mesh #%i to list.",mesh->GetMeshID());
+	VolumeInfo *newVolInfo = new VolumeInfo;
+	newVolInfo->MeshID = mesh->GetMeshID();		// copy the MeshID into the VolumeInfo record
+	printf ("meshID: mesh->GetMeshID(): %i", mesh->GetMeshID());
+
+
+	newVolInfo->MeshInsertPt[0] = x;
+	newVolInfo->MeshInsertPt[1] = y;
+	newVolInfo->MeshInsertPt[2] = z;
+	newVolInfo->MeshTanVect[0] = tan_i; 	// a tangent vector for the orientation of a member mesh
+	newVolInfo->MeshTanVect[1] = tan_j;
+	newVolInfo->MeshTanVect[2] = tan_k;
+	newVolInfo->MeshNormVect[0] = norm_i;	// a normal vector for the orientation of a member mesh
+	newVolInfo->MeshNormVect[1] = norm_j;
+	newVolInfo->MeshNormVect[2] = norm_k;
+	newVolInfo->MeshBinormVect[0] = binorm_i;	// a binormal vector for the orientation of a member mesh
+	newVolInfo->MeshBinormVect[1] = binorm_j;
+	newVolInfo->MeshBinormVect[2] = binorm_k;
+
+	newVolInfo->previous = NULL;
+	newVolInfo->next = NULL;
+	
+	VolumeInfo *curVolInfo = MemberMesh;
+
+	if (MemberMesh->MeshID == -1)
+	{
+		MemberMesh = newVolInfo;
+		lastVolumeInfo = newVolInfo;
+		return newVolInfo->MeshID;
+	}
+	while (curVolInfo)
+	{
+		if(curVolInfo->next == NULL)
+		{
+			curVolInfo->next = newVolInfo;
+			lastVolumeInfo = curVolInfo->next;
+			return newVolInfo->MeshID;
+		}
+		curVolInfo = curVolInfo->next;
+	}
+	return newVolInfo->MeshID;
+}
+
+void Volume::ShowVolumeDetails(struct VolumeInfo *head)
+{
+	printf("\n===============================================================");
+	printf("\nShow details of the volume data for Volume #: %i", GetVolumeID());
+	VolumeInfo *list = head;
+	
+	if (head->MeshID == -1)
+	{
+		printf("\n...No Volume Info added at this time...");
+		return;
+	}
+
+	while(list)
+	{
+		printf("\nMeshID: %i ", list->MeshID);		// copy the MeshID into the VolumeInfo record
+		printf("\nMeshInsertPt:      X: %f   Y: %f  Z: %f", list->MeshInsertPt[0], list->MeshInsertPt[1], list->MeshInsertPt[2]);
+		printf("\nMeshTanVector:     i: %f   j: %f  k: %f", list->MeshTanVect[0],list->MeshTanVect[1],list->MeshTanVect[2]);
+		printf("\nMeshNormVector:    i: %f   j: %f  k: %f", list->MeshNormVect[0],list->MeshNormVect[1],list->MeshNormVect[2]);
+		printf("\nMeshBinormVector:  i: %f   j: %f  k: %f", list->MeshBinormVect[0],list->MeshBinormVect[1],list->MeshBinormVect[2]);
+		list=list->next;
+	}
+	printf("\n===============================================================");
+	return;
+}
+
+// deletes a mesh to the MemberMesh linked list
+void Volume::DeleteMesh()
+{
+	printf("\nDeleting mesh from volume.");
+}
+
+// search the MemberMesh linked list for a particular member mesh
+void Volume::SearchMesh()
+{
+	printf("\nSearching for mesh in member list.");
+}
+
+void Volume::CreateVAO()
+{
+
+}
+
+void Volume::CreateVBO()
+{
+
+}
+
+void Volume::CreateEBO()
+{
+	printf("\n		Creating an EBO");
+}
+
+
+
+//void Volume::Initialize(int shape_code)
+//{
+//	printf("\nInitializing the volume...");
+//
 //	VolTargetWindow = WINDOW_VIEW_UNDEFINED;
 //
 //	switch(shape_code)
@@ -67,7 +223,7 @@ void Volume::Initialize(int shape_code)
 //	NumVAO = NumMeshes;
 //	NumVBO = NumMeshes;
 //	return;
-}
+//}
 
 //void Volume::RenderVolume(int target_window, AppWindow **WinID_array)
 ////void Volume::RenderVolume(AppWindow **p_array, GLuint **VolVBO_ID, GLuint **VolVAO_ID)

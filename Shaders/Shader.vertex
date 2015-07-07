@@ -9,12 +9,16 @@ layout (location = 2) in vec2 texCoord;
 out vec3 ourColor;
 out vec2 TexCoord;
 
-uniform mat4 transform;
+//uniform mat4 transform;
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
 
 void main()
 {
 	//gl_Position = vec4(position.x, position.y, position.z, 1.0);
-	gl_Position = transform*vec4(position, 1.0);  //same as previous line, but concatenates a vec3 into a vec4
+//	gl_Position = transform*vec4(position, 1.0);  //same as previous line, but concatenates a vec3 into a vec4
+	gl_Position = projection * view * model * vec4 (position, 1.0f);  // to install a camera projection
 //	vertexColor = vec4(0.5f, 0.0f, 0.0f, 1.0f);  // set the output variable to a constant color
 	ourColor = color;
 //	TexCoord = texCoord;

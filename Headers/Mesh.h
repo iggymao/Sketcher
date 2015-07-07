@@ -59,8 +59,13 @@ struct IndexInfo
 // The Mesh class to handle initializing, rendering and destroying of a 3D object
 class Mesh
 {
+private:
+	GLuint MeshID;					// Stores an ID for the mesh
+	static GLuint next_id;
 public:
-	GLuint MeshID;						// Stores an ID for the mesh
+//	GLuint MeshID;	
+	GLuint GetMeshID() {return MeshID;}
+	static GLuint next_mesh_id(){	next_id++; 	return next_id;	} ;	// to obtain the next mesh number
 	GLuint MeshType;					// Stores the type of Mesh as defined in Application.h
 	GLuint VertexNumber;				// Stores the last Vertex number
 
@@ -83,6 +88,7 @@ public:
 	GLuint AddMeshVertex(VertexInfo *head, GLfloat x, GLfloat y, GLfloat z, GLfloat red, GLfloat green, GLfloat blue, GLfloat u, GLfloat v);	
 	void AddMeshIndex(IndexInfo *head, int index_val);	// adds a new IndexInfo to the MeshIndexInfo linked list 
 
+	// methods to show contents of the index and vertex pointer lists.
 	void ShowMeshVertexDetails(VertexInfo *head);
 	void ShowMeshIndexDetails(IndexInfo *head);
 	//	vector<GLfloat> vertex_data;		// create a vector to store the vertex information
@@ -161,5 +167,7 @@ public:
 //	// Our texture object to initialize and run the texture routines
 //	Texture Texture;
 };
+
+
 
 #endif

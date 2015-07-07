@@ -14,14 +14,21 @@
 //  return ifile != NULL;
 //}
 
+GLuint Mesh::next_id = -1;			// set the initial value at the start of the program
+
 // A constructor for the mesh class.  Makes a simple triangle to ensure that the drawing buffer doesnt blow up unexpectedly.  We will
 // use the RESERVE and RESIZE operators to modifiy to thecorrect sizes for different structures.
 Mesh::Mesh()
 {
 	printf("\nMesh constructor called...");
-	
+	//MeshID = Mesh::next_id++; 
+	//printf("\nMesh::next_id++ %i",Mesh::next_id);
+	MeshID = next_mesh_id();
+	printf("\nMesh::next_id++ %i",Mesh::next_id);
 	MeshVertexInfo = new VertexInfo;
 	MeshVertexInfo->VertexID = -1;			// the vertex number
+	VertexNumber = MeshVertexInfo->VertexID;
+
 	MeshVertexInfo->x_pos=0.0f;				// x coord
 	MeshVertexInfo->y_pos=0.0f;				// y coord
 	MeshVertexInfo->z_pos=0.0f;				// z coord
@@ -43,8 +50,10 @@ Mesh::Mesh()
 	// Since nothing is currently stored, the first and last members are pointed to the previous value (NULL);
 	firstIndexInfo = MeshIndexInfo;		// point the first member to the previous value
 	lastIndexInfo = MeshIndexInfo;		// point the last member to the previous value
-
-	VertexNumber = -1;					// start with a VertexNumber of -1 to indicate no vertices created
+	
+//	next_id = -1;
+//	MeshID++;;							// initialize the first MeshID to -1
+	
 
 	//g_vertex_buffer_data.resize(0);			// delete the previous default buffer
 	//vertex_buffer_data.resize(0);
@@ -130,6 +139,8 @@ Mesh::Mesh()
 void Mesh::Initialize()
 {
 	printf("\nInitializing Mesh...");
+	printf("\nINCOMPLETE:  install initial values");
+
 	GLuint node_num;
 	node_num = AddMeshVertex(MeshVertexInfo, -0.6f, -0.6f, 0.0f, 1.0f, 0.0f, 0.0f, -1.0f, -1.0f);
 	AddMeshIndex(MeshIndexInfo, node_num);
@@ -137,9 +148,8 @@ void Mesh::Initialize()
 	AddMeshIndex(MeshIndexInfo, node_num);
 	node_num = AddMeshVertex(MeshVertexInfo,  0.0f,  0.6f, 0.0f, 1.0f, 0.0f, 0.0f, -1.0f, -1.0f);
 	AddMeshIndex(MeshIndexInfo, node_num);
-
-
 	
+//	MeshID = next_mesh_id();	// increment the MeshID
 }
 
 GLuint Mesh::AddMeshVertex(VertexInfo *head, GLfloat x, GLfloat y, GLfloat z, GLfloat red, GLfloat green, GLfloat blue, GLfloat u, GLfloat v)
@@ -148,6 +158,7 @@ GLuint Mesh::AddMeshVertex(VertexInfo *head, GLfloat x, GLfloat y, GLfloat z, GL
 	VertexInfo *newVertex = new VertexInfo;
 	newVertex->VertexID = (VertexNumber+1);  // increment the vertex ID based on the current VertexNumber
 	VertexNumber++;							 // then increment the counter for subsequent initializations
+	printf("\nCurrentVertexNumber: %i", VertexNumber);
 
 	newVertex->x_pos=x;				// x coord
 	newVertex->y_pos=y;				// y coord
@@ -164,7 +175,6 @@ GLuint Mesh::AddMeshVertex(VertexInfo *head, GLfloat x, GLfloat y, GLfloat z, GL
 
 	if (head->VertexID == -1)
 	{
-//		printf("\nAdding first shader..");
 		MeshVertexInfo = newVertex;
 		lastVertexInfo = newVertex;
 		return newVertex->VertexID;
@@ -214,7 +224,8 @@ void Mesh::AddMeshIndex(IndexInfo *head, int index_val)
 
 void Mesh::ShowMeshVertexDetails(struct VertexInfo *head)
 {
-	printf("\nShow details of the vertex data.");
+	printf("\n");
+	printf("\nShow details of the vertex data for Mesh #: %i",GetMeshID());
 
 	VertexInfo *list = head;
 	printf("\n===============================================================");

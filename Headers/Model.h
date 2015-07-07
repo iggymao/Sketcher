@@ -25,6 +25,11 @@ public:
 	~Model() {};						// a destructor for the model class
 //	
 	void Initialize();					// initializes the model
+	void Destroy();						// This cleans up the VBO and VAO's
+
+
+
+
 ////	void RenderModel(AppWindow **p_array);				// renders the known model
 //
 //
@@ -34,33 +39,32 @@ public:
 //	static const GLuint kTextureIndex = 2;				// This is for the u,v texture coordinates
 //	static const GLuint kNormalIndex = 3;				// This is for the x,y,z normals
 	
-/*
-	// Set the scale of our model to 100% by default
-	Model()		{ Scale = vec3(1.0f, 1.0f, 1.0f); }
-	~Model()	{ Destroy(); }
 
-	// Takes in a list of x,y,z vertices and vertex length to create the VBO and VAO's from,
-	// as well as the text file locations for the vertex and fragment shaders to load.
-	void Initialize(Vertex3 vertices[], int length, std::string strVertex, std::string strFragment);
+	//// Set the scale of our model to 100% by default
+	//Model()		{ Scale = vec3(1.0f, 1.0f, 1.0f); }
+	//~Model()	{ Destroy(); }
 
-	// This draws the Model to the backbuffer
-	void Render();
+	//// Takes in a list of x,y,z vertices and vertex length to create the VBO and VAO's from,
+	//// as well as the text file locations for the vertex and fragment shaders to load.
+	//void Initialize(Vertex3 vertices[], int length, std::string strVertex, std::string strFragment);
 
-	// Create the getter and setters for the model's position
-	vec3 GetPosition() { return Position; }
-	void SetPosition(vec3 position) { Position = position; }
+	//// This draws the Model to the backbuffer
+	//void Render();
 
-	// Create the getter and setters for the model's rotation
-	vec3 GetRotation() { return Rotation; }
-	void SetRotation(vec3 rotation) { Rotation = rotation; }
+	//// Create the getter and setters for the model's position
+	//vec3 GetPosition() { return Position; }
+	//void SetPosition(vec3 position) { Position = position; }
 
-	// Create the getter and setters for the model's scale
-	vec3 GetScale() { return Scale; }
-	void SetScale(vec3 scale) { Scale = scale; }
+	//// Create the getter and setters for the model's rotation
+	//vec3 GetRotation() { return Rotation; }
+	//void SetRotation(vec3 rotation) { Rotation = rotation; }
 
-	// This cleans up the VBO and VAO's
-	void Destroy();
-*/
+	//// Create the getter and setters for the model's scale
+	//vec3 GetScale() { return Scale; }
+	//void SetScale(vec3 scale) { Scale = scale; }
+
+
+
 
 // protected:
 

@@ -20,7 +20,7 @@ class GraphicsManager
 public:
 	~GraphicsManager() { Destroy();}
 
-	MainWinInfo *MyWinInfo;	// structure containing the main window information
+	MainWinInfo *MyWinInfo;		// structure containing the main window information
 	void Initialize();			// Starts the graphics manager
 	int LaunchOpenGL();			// Launches the OpenGL routines.
 

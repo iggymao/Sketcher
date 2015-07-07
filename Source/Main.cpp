@@ -56,6 +56,7 @@ void Application::Initialize()
 	StartWindowsMgr();			//Start WindowsMgr;
 	StartGraphicsMgr();			//Start GraphicsMgr;
 
+/*
 	StartModelMgr();			//Start the ModelManager
 	StartFileMgr();				//Start FileMgr;
 	StartPrintMgr();			//Start PrintMgr;
@@ -63,6 +64,9 @@ void Application::Initialize()
 	StartNetworkMgr();			//StartNetworkMgr;
 	StartAudioMgr();			//StartAudioMgr;
 	StartEventMgr();			//StartEventMgr
+*/
+
+
 
 	// Make sure the window manager is initialized prior to calling this and creates the OpenGL context
 //	if ( !WindowManager || WindowManager->Initialize(ScreenWidth, ScreenHeight, "I Beam Sketcher - GameTutorials - Matrices", false) != 0 )
@@ -239,7 +243,7 @@ int Application::StartGraphicsMgr()			//Start GraphicsMgr;
 		return -1;
 	}
 
-	if(graphmgr->IsLoadedOpenGL)
+	if(graphmgr->IsLoadedOpenGL)		// if the graphics manager successfully loads, then we'll report the context settings for the OPENGL case
 		GetLog()->gl_log_params();
 
 	//printf("\n    Pointer to graphmgr: %d",GetGraphMan());
@@ -289,13 +293,11 @@ void Application::StartModelMgr()			//Start the Model Managersubsystems;
 {
 	printf("\nStart Model Manager");
 
-	Mesh *testmesh;
-	testmesh = new Mesh;
-	testmesh->Initialize();
+	ModelManager *modelmanager;
+	modelmanager = new ModelManager;
+	modelmanager->Initialize();
+	SetModelMan(modelmanager);		// store the pointer to the modelmanager
 
-	testmesh->ShowMeshVertexDetails(testmesh->MeshVertexInfo);
-	testmesh->ShowMeshIndexDetails(testmesh->MeshIndexInfo);
-	
 	// Do stuff here..
 //	AppWindow *MyWin;
 //	MyWin = GetWindowArray();

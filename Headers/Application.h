@@ -1,25 +1,12 @@
 #ifndef _Application_H
 #define _Application_H
 
-//#include <stdarg.h>
-//#include <time.h>
-//#include <assert.h>
-//#include <vector>
-//using namespace std;
-
-//#include "../Headers/Main.h"
-
-//#include <string>										// Used for our STL string objects
-//#include <fstream>										// Used for fprintf and stderr									
-//#include "glfw3\include\GLFW\glfw3.h"					// Used to reference the GLFW library
-
-
-
-#include "../Headers/GraphicsManager.h"					// Used to reference the graphics manager class
-#include "../Headers/LogManager.h"						// Used to reference the logmanager class
+#include "../Headers/ModelManager.h"			// Used to reference the modelmanager class		
+#include "../Headers/GraphicsManager.h"			// Used to reference the graphics manager class
+#include "../Headers/LogManager.h"				// Used to reference the logmanager class
 #include "../Headers/AppWindow.h"
 
-//#include "WindowManager.h"								// Used to reference the abstract base class
+//#include "WindowManager.h"					// Used to reference the abstract base class
 
 
 #define WINDOW_VIEW_UNDEFINED -1						// Used for initialization of the Volume classes only...
@@ -77,7 +64,10 @@ public:
 	void SetLogMan(LogManager *log) {LogMan = log;}		// sets the pointer to the log manager
 
 	GraphicsManager *GetGraphMan() {return GraphicsMan;}  // gets the graphics manager handle
-	void SetGraphMan(GraphicsManager *p_graphic) {GraphicsMan = p_graphic;}  // sets the pointer to the Graphics Manager
+	void SetGraphMan(GraphicsManager *p_graphic) {GraphicsMan = p_graphic;}  // sets the pointer to the graphics manager
+
+	ModelManager *GetModelMan() { return ModelMan;}		// get the model manager handle
+	void SetModelMan(ModelManager *p_model) {ModelMan = p_model;}	// sets the pointer to the model manager
 
 	//	vector<int> *AppModel;		// An array to store the pointers to meshes in the application.  This will include a counter to tell a particular window where the Mesh is to be drawn.
 //	Mesh *GetMeshID(int counter) {return Model[counter]; }
@@ -117,6 +107,7 @@ protected:
 	AppWindow *Window[MAX_WINDOWS];			// An array to store the pointers to each of the windows of the application
 	LogManager *LogMan;					// a pointer to the log manager
 	GraphicsManager *GraphicsMan;		// a pointer to the graphics manager
+	ModelManager *ModelMan;				// a pointer to the model manager
 
 };
 

@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "../Headers/Model.h"
-#include "../Headers/ShaderManager.h"		// for testing the ShaderManageralgorithm
+//#include "../Headers/ShaderManager.h"		// for testing the ShaderManageralgorithm
 //
 //
 //double previous_seconds;
