@@ -5,6 +5,7 @@
 #include <string>
 #include <GL/glew.h>   
 #include <GLFW/glfw3.h> 
+#include "../Headers/ShaderManager.h"
 
 struct MainWinInfo{
 	GLFWwindow *MainWindow;		// pointer for the main window object
@@ -20,8 +21,12 @@ class GraphicsManager
 public:
 	~GraphicsManager() { Destroy();}
 
-	MainWinInfo *MyWinInfo;		// structure containing the main window information
+	MainWinInfo *MyWinInfo;				// structure containing the main window information
+	ShaderManager *MyShaderManagerInfo;	// class containing the shader manager info
+
 	void Initialize();			// Starts the graphics manager
+	void Draw();				// a basic draw routine controlled by the graphics manager
+
 	int LaunchOpenGL();			// Launches the OpenGL routines.
 
 	bool IsLoadedOpenGL;		// a variable to let us know that OpenGL has been successfully loaded.

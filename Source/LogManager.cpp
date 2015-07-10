@@ -104,6 +104,7 @@ void LogManager::Initialize()
 	printf("\n     Intialize the Log Manager");
 	AddLog(MemberInfo, LOG_TYPE_MAIN, LOG_FILE);
 	AddLog(MemberInfo, LOG_TYPE_OPENGL, GL_LOG_FILE);
+	AddLog(MemberInfo, LOG_TYPE_SHADER, SHADER_LOG_FILE);
 }
 
 void LogManager::ShowDetails(struct LogInfo *head)

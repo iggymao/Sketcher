@@ -48,14 +48,14 @@ class ShaderManager
 		void SetID(int id_num) { ShaderManagerID = id_num; }
 		int GetID() { return ShaderManagerID;}
 	
-		void Initialize();		// Initializes the shader manager
+		int Initialize();		// Initializes the shader manager
 
 		// adds an entry to the shader manager
 		void AddShader(struct ShaderInfo *head, int type, std::string strVertexFilename, std::string strFragmentFilename);		// Adds an item to the shader manager
 		// search for a ShaderInfo entry based the frag and vert file name.
 		struct ShaderInfo *searchShaderInfo(struct ShaderInfo *MemberInfo, std::string strVertexFile, std::string strFragmentFile) ;
 
-		void BuildShaderProgram(struct ShaderInfo *head); // Build the shader program for the record referenced by *head;
+		int BuildShaderProgram(struct ShaderInfo *head); // Build the shader program for the record referenced by *head;
 		std::string LoadShaderFile(std::string strFile);  // loads a fragment/vertex shader from file
 
 		void ShowDetails(struct ShaderInfo *head);		// Shows all the items currently known by the shader manager.

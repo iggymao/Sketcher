@@ -1,6 +1,14 @@
 ﻿#include "stdafx.h"
 #include <iostream>
 #include <string.h>
+// GLEW
+#include <GL/glew.h>
+// GLFW
+#include <GLFW/glfw3.h>
+// GLM Mathematics
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "../Headers/Application.h"			// Include our model header for the graphics manager
 #include "../Headers/Mesh.h"				// Include the mesh header for testing purposes
@@ -55,9 +63,8 @@ void Application::Initialize()
 	StartLogMgr();				//Start LogMgr;
 	StartWindowsMgr();			//Start WindowsMgr;
 	StartGraphicsMgr();			//Start GraphicsMgr;
-
-/*
 	StartModelMgr();			//Start the ModelManager
+/*
 	StartFileMgr();				//Start FileMgr;
 	StartPrintMgr();			//Start PrintMgr;
 	StartInputMgr();			//Start InputMgr;
@@ -247,6 +254,25 @@ int Application::StartGraphicsMgr()			//Start GraphicsMgr;
 		GetLog()->gl_log_params();
 
 	//printf("\n    Pointer to graphmgr: %d",GetGraphMan());
+
+	// Start the shader manager.  Must be done after GLEW/GLFW have been initialized and the context
+	// set to the main graphics window.
+	ShaderManager *MyShaderManager;
+	MyShaderManager = new ShaderManager;
+	GetLog()->gl_log(LOG_FILE, "\nCreating the ShaderManager...");
+
+	if (MyShaderManager->Initialize() == 0)
+	{
+		GetLog()->gl_log(GL_LOG_FILE, "\nShader manager successfully created.");
+
+	} else {
+		GetLog()->gl_log(GL_LOG_FILE, "\nERROR intializing the shader manager");	
+	};
+	MyShaderManager->ShowDetails(MyShaderManager->MemberInfo);
+	graphmgr->MyShaderManagerInfo = MyShaderManager;  // store the newly create shader manafer in the graphics manager
+
+	// the main draw command
+	graphmgr->Draw();
 	return 0;
 }
 
@@ -299,6 +325,7 @@ void Application::StartModelMgr()			//Start the Model Managersubsystems;
 	SetModelMan(modelmanager);		// store the pointer to the modelmanager
 
 	// Do stuff here..
+	/////////////////////////////////////////////////////////////////
 //	AppWindow *MyWin;
 //	MyWin = GetWindowArray();
 

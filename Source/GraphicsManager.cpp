@@ -7,6 +7,7 @@
 #include <GLFW/glfw3.h>
 #include "../Headers/GraphicsManager.h"
 #include "../Headers/Camera.h"
+#include "../Headers/ShaderManager.h"
 
 // GLM Mathematics
 #include <glm/glm.hpp>
@@ -44,6 +45,7 @@ GLfloat aspect = 45.0f;
 GLfloat deltaTime = 0.0f;			// time between current frame and last frame
 GLfloat lastFrame = 0.0f;			// time of last frame
 
+/*
 const char* GL_type_to_string(GLenum type){
 	switch(type) {
 		case GL_BOOL: return "bool";
@@ -63,7 +65,9 @@ const char* GL_type_to_string(GLenum type){
 	}
 	return "other";
 }
+*/
 
+/*
 void _print_shader_info_log (GLuint shader_index) {
 	int max_length = 2048;
 	int actual_length = 0;
@@ -144,7 +148,7 @@ void print_all(GLuint programme) {
 
 	_print_programme_info_log(programme);
 }
-
+*/
 
 
 
@@ -197,22 +201,19 @@ int GraphicsManager::LaunchOpenGL()
 
 	GLFWwindow* Window; 
 
-	// This tells OpenGL that we want a multisampling value of 4 (anti-aliasing)
-	glfwWindowHint(GLFW_SAMPLES, 4);
-
-	// Set our OpenGL version to 4 using the core profile
+	
+	// Set our OpenGL version to 3.3 using the core profile
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-	glfwWindowHint(GLFW_SAMPLES, 4);
-
-	//	glfwWindowHint(GLFW_DECORATED, GL_FALSE);
+	glfwWindowHint(GLFW_SAMPLES, 4);	// This tells OpenGL that we want a multisampling value of 4 (anti-aliasing)
+	//	glfwWindowHint(GLFW_DECORATED, GL_FALSE);  // This tells OpenGL that the window will not have a border.
 
 	//	GLFWmonitor* mon = glfwGetPrimaryMonitor();
 	//	const GLFWvidmode* vmode = glfwGetVideoMode(mon);
 
-	//This creates the main window, needed to launch the OpenGL context
+	
 //	std::string strTitle = "OpenGL Window";
 //	GLuint width = 800;
 //	GLuint height = 600;
@@ -221,8 +222,10 @@ int GraphicsManager::LaunchOpenGL()
 	//		Window = glfwCreateWindow(width, height, strTitle.c_str(), glfwGetPrimaryMonitor(), nullptr);
 	//	else
 
+	//This creates the main window, needed to launch the OpenGL context
+	// Create the window.  Still need to consider full screen mode options here.
 	Window = glfwCreateWindow(MyWinInfo->main_win_width, MyWinInfo->main_win_height, MyWinInfo->strWinTitle.c_str(), nullptr, nullptr);
-	MyWinInfo->MainWindow = Window;  // store the pointer to the MainWindow
+
 	// Make sure the window is valid, if not, throw an error.
 	if ( Window == nullptr )
 	{
@@ -230,9 +233,10 @@ int GraphicsManager::LaunchOpenGL()
 		glfwTerminate();
 		return -1;
 	}
-	glfwSetWindowPos(Window, MyWinInfo->main_pos_x, MyWinInfo->main_pos_y);
+	MyWinInfo->MainWindow = Window;											// store the pointer to the MainWindow
+	glfwSetWindowPos(Window, MyWinInfo->main_pos_x, MyWinInfo->main_pos_y);	// size and relocate the window
 
-	glfwMakeContextCurrent(Window); // Initialize GLEW 
+	glfwMakeContextCurrent(Window); // make the context current
 
     // Set the required callback functions
     glfwSetKeyCallback(Window, key_callback);
@@ -240,11 +244,10 @@ int GraphicsManager::LaunchOpenGL()
 	glfwSetScrollCallback(Window, scroll_callback);
 
 	// GLFW options
-	glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  // hide the cursor (used for the camera control)
 
 	// Initialize GLEW
 	glewExperimental = true; // Needed for core profile
-
 	if (glewInit() != GLEW_OK) 
 	{
 		fprintf(stderr, "Failed to initialize GLEW\n");
@@ -257,87 +260,40 @@ int GraphicsManager::LaunchOpenGL()
 
 	glClearColor(0.4f, 0.5f, 0.5f, 1.0f);	// Clear the colorbuffer (set it to a grayscale)
 	glClear( GL_COLOR_BUFFER_BIT );			// Clear the screen
-
 	glfwSwapBuffers(Window);				// Swap the buffer to create an initial colored screen
 
 	// at this point the context is active, so store a variable to tell the main application
 	IsLoadedOpenGL = true;	
+	return 0;
+}
+void GraphicsManager::Draw()
+{
+	GLuint shader_program;
+	ShaderInfo *temp;
 
+	// Retrieve the shader program ID for the normal shader.  This will need rework when
+	// multiple shaders are possible in the same rendering drawing.  But it does allow for the loading of the 
+	// default shader program in the event access is denied or an error exists within the shader manager records.
+	// This will need rework and possible inclusion in the main draw loop.
+	std::string strvertexfilename = "Shaders/Shader.vertex";
+	std::string strfragmentfilename = "Shaders/Shader.fragment";
+	temp = MyShaderManagerInfo->searchShaderInfo(MyShaderManagerInfo->MemberInfo, strvertexfilename, strfragmentfilename);
 
-	//Shader Stuff
-	/*const char* vertex_shader =
-		"#version 330\n"
-		"in vec3 vp;"
-		"void main() {"
-		"  gl_Position = vec4 (vp, 1.0);"
-		"}";*/
+	if (!(temp == NULL))
+	{
+		shader_program = temp->ShaderProgramID;
+		printf("\nShader found.  Loading ShaderProgram ID = %i", shader_program);
+	} else {
+		std::string strvertexfilename = "Shaders/DefaultShader.vertex";
+		std::string strfragmentfilename = "Shaders/DefaultShader.fragment";
+		temp = MyShaderManagerInfo->searchShaderInfo(MyShaderManagerInfo->MemberInfo, strvertexfilename, strfragmentfilename);
+		shader_program = temp->ShaderProgramID;		
+		printf("\nShader not found...Loading the default shader, ShaderProgramID %i",shader_program);
+	} 
 
-	const char* vertex_shader =
-		"#version 330\n"
-		"layout (location = 0) in vec3 position;"
-		"uniform mat4 model;"
-		"uniform mat4 view;"
-		"uniform mat4 projection;"
-		"void main() {"
-		"  gl_Position = projection * view * model * vec4 (position, 1.0f);"
-		"}";
-
-	const char* fragment_shader =
-		"#version 330\n"
-		"out vec4 frag_color;"
-		"void main() {"
-		"  frag_color = vec4(0.5, 0.0, 0.5, 1.0);"
-		"}";
-
-	GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource (vs, 1, &vertex_shader, NULL);
-	glCompileShader(vs);
-
-	// check for compile errors
-	int params = -1;
-	glGetShaderiv(vs, GL_COMPILE_STATUS, &params);
-	if(GL_TRUE != params) { 
-		fprintf (stderr, "ERROR: GL shader index %i did not compile\n", vs);
-		_print_shader_info_log (vs);
-		return false; // or exit or something
-	}
-
-	GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fs, 1, &fragment_shader, NULL);
-	glCompileShader(fs);
-	
-	// check for compile errors
-	params = -1;
-	glGetShaderiv(fs, GL_COMPILE_STATUS, &params);
-	if(GL_TRUE != params) { 
-		fprintf (stderr, "ERROR: GL shader index %i did not compile\n", fs);
-		_print_shader_info_log (fs);
-		return false; // or exit or something
-	}
-
-	GLuint shader_program = glCreateProgram();
-	glAttachShader (shader_program, fs);
-	glAttachShader (shader_program, vs);
-	glLinkProgram (shader_program);
-	// check if link was successful
-	params = -1;
-	glGetProgramiv (shader_program, GL_LINK_STATUS, &params);
-	if (GL_TRUE != params) {
-		fprintf (stderr, "ERROR: could not link shader programme GL index %u\n", shader_program);
-		_print_programme_info_log (shader_program);
-		return false;
-	}
-	 print_all(shader_program);		// print all the shader info
-	// End Shader stuff
-
+	//////////////////////////////////////////////////////////
 	// Vertex VAO, VBO stuff
-//	GLfloat points[] = { 
-//	0.0f, 0.5f, 0.0f,
-//	0.5f, -0.5f, 0.0f,
-//	-0.5f, -0.5f, 0.0f,
-////	0.0f, 0.5f, 0.0f
-//	};
-
+	//////////////////////////////////////////////////////////
 	// Set up vertex data (and buffer(s)) and attribute pointers
  		// X      Y      Z   TextU  TextV
 	 GLfloat vertices[] = {
@@ -397,7 +353,6 @@ int GraphicsManager::LaunchOpenGL()
         glm::vec3(-1.3f,  1.0f, -1.5f)
     };
 
-
 	GLuint vao=0;
 	GLuint vbo=0;
 	glGenVertexArrays (1, &vao);
@@ -414,10 +369,11 @@ int GraphicsManager::LaunchOpenGL()
 
 	glBindVertexArray(0); // Unbind VAO
 
-	while (!glfwWindowShouldClose(Window))
+	// for now draw to the main window associated with the GraphicsManager.
+	while (!glfwWindowShouldClose(MyWinInfo->MainWindow))
     {
 		// Calculate deltatime of current frame
-		GLfloat currentFrame = glfwGetTime();
+		GLfloat currentFrame = (GLfloat)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
@@ -469,7 +425,10 @@ int GraphicsManager::LaunchOpenGL()
         glBindVertexArray(0);
 
 		// Swap the screen buffers
-		glfwSwapBuffers (Window);
+		glfwSwapBuffers (MyWinInfo->MainWindow);
+
+		// Turn off the shader program
+		glUseProgram(0);						 // use our shader program
 	} 
 	// Properly de-allocate all vertex arrays
 	glDeleteVertexArrays(1, &vao);
@@ -477,8 +436,7 @@ int GraphicsManager::LaunchOpenGL()
 	// Terminate GLFW, clearing any resources allocated by GLFW
 	glfwTerminate();
 
-	return 0;
-
+	return;
 }
 
 void GraphicsManager::Destroy()
@@ -535,5 +493,5 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    camera.ProcessMouseScroll(yoffset);
+    camera.ProcessMouseScroll((GLfloat)yoffset);
 }

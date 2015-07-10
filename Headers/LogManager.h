@@ -5,11 +5,14 @@
 #include <string>
 
 #define LOG_FILE "logs/log.log"					// a log file for general information
-#define GL_LOG_FILE "logs/opengl.log"				// a logfile for opengl related items
+#define GL_LOG_FILE "logs/opengl.log"			// a logfile for opengl related items
+#define SHADER_LOG_FILE "logs/shader.log"		// a logfile for shader related items
+
 
 #define LOG_TYPE_UNDEFINED	-1				// default log type
 #define LOG_TYPE_MAIN		 0				// default for the main logs
 #define LOG_TYPE_OPENGL		 1				// default for the opengl log
+#define LOG_TYPE_SHADER		 2				// default for the shader log
 
 // linked list showing Shader information (Type of Shader, Type of Texture, etc.)
 struct LogInfo
