@@ -3,10 +3,8 @@
 
 //#include "../Headers/Main.h"			// include our main application header file
 //#include "../Headers/Shader.h"
-//Include GLEW  
-#include <GL/glew.h>  // for the GLuint, GLbool variable calls
-//Include GLFW  
-//#include <GLFW/glfw3.h> 
+
+#include <GL/glew.h>  // Include GLEW for the GLuint, GLbool variable calls
 
 //Used in our manager routine to identify the types of shaders and or textures
 #define SHADER_UNDEFINED -1			// the default value used at creation time
@@ -33,6 +31,15 @@ struct ShaderInfo
 	bool IsBuilt;					// store a boolean to tell us if the program has been compiled
 };
 
+struct TextureInfo
+{
+	GLuint TextureID;
+	std::string strTextureFilename;
+	TextureInfo *next;				// point to the next TextureItem
+	TextureInfo *previous;			// point to the previous TextureItem
+	bool IsBuilt;					// store a boolean to tell us if the texture has already been loaded
+};
+
 // This class creates a shader manager to load and  handles all shaders and textures needed by the model,
 // recording an ID and information for each. 
 class ShaderManager
@@ -41,10 +48,17 @@ class ShaderManager
 		ShaderManager();	// default constructor
 		~ShaderManager();	// deconstructor
 	
-		ShaderInfo *MemberInfo;				// a linked list of all members
-		ShaderInfo *firstMemberInfo;			// a pointer to the first member
-		ShaderInfo *lastMemberInfo;			// a pointer to the last member 
-		
+		// Shader info linked list
+		ShaderInfo *ShaderMemberInfo;				// a linked list of all members
+		ShaderInfo *firstShaderMemberInfo;			// a pointer to the first member
+		ShaderInfo *lastShaderMemberInfo;			// a pointer to the last member 
+
+		// Texture info linked list
+		TextureInfo *TextureMemberInfo;				// a linked list of all members
+		TextureInfo *firstTextureMemberInfo;			// a pointer to the first member
+		TextureInfo *lastTextureMemberInfo;			// a pointer to the last member 
+		TextureInfo *ActiveTexture;					// contains the most recently loaded Texture
+
 		void SetID(int id_num) { ShaderManagerID = id_num; }
 		int GetID() { return ShaderManagerID;}
 	
@@ -53,12 +67,20 @@ class ShaderManager
 		// adds an entry to the shader manager
 		void AddShader(struct ShaderInfo *head, int type, std::string strVertexFilename, std::string strFragmentFilename);		// Adds an item to the shader manager
 		// search for a ShaderInfo entry based the frag and vert file name.
-		struct ShaderInfo *searchShaderInfo(struct ShaderInfo *MemberInfo, std::string strVertexFile, std::string strFragmentFile) ;
-
+		struct ShaderInfo *searchShaderInfo(struct ShaderInfo *ShaderMemberInfo, std::string strVertexFile, std::string strFragmentFile) ;
 		int BuildShaderProgram(struct ShaderInfo *head); // Build the shader program for the record referenced by *head;
 		std::string LoadShaderFile(std::string strFile);  // loads a fragment/vertex shader from file
+		void ShowShaderDetails(struct ShaderInfo *head);		// Shows all the shader items currently known by the shader manager.
 
-		void ShowDetails(struct ShaderInfo *head);		// Shows all the items currently known by the shader manager.
+		// adds an entry to the shader manager
+		void AddTexture(struct TextureInfo *head, std::string strTextureFilename);	// Adds an item to the shader manager
+		// search for a ShaderInfo entry based the frag and vert file name.
+//		struct TextureInfo *searchTextureInfo(struct TextureInfo *TextureMemberInfo, std::string strTextureFilename) ;
+		struct TextureInfo *searchTextureInfo(struct TextureInfo *TextureMemberInfo, std::string strTextureFilename) ;
+
+		int BuildTextureProgram(struct TextureInfo *head); // Builds a texture for the record referenced by *head;
+		bool LoadTextureFile(std::string strFile);  // loads a texture and returns the image file
+		void ShowTextureDetails(struct TextureInfo *head); // Shows all the texture items currently known by the shader manager.
 
 		void Destroy();			// destroys our shader manager
 

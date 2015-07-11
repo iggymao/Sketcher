@@ -4,12 +4,14 @@
 in vec3 ourColor;
 in vec2 TexCoord;
 
-out vec4 frag_color;
+out vec4 color;
 
 //uniform vec4 ourColor; // set the variable in the OpenGL code in our program
 uniform sampler2D ourTexture;
 
 void main()
 {
-    frag_color = vec4(0.5, 0.0, 0.5, 1.0);
+    //frag_color = vec4(0.5, 0.0, 0.5, 1.0);
+    color = texture(ourTexture, TexCoord);
+//	color = texture(ourTexture, TexCoord) * vec4(ourColor, 1.0f);  
 }

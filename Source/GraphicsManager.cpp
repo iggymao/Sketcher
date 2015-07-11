@@ -8,6 +8,7 @@
 #include "../Headers/GraphicsManager.h"
 #include "../Headers/Camera.h"
 #include "../Headers/ShaderManager.h"
+#include "../Headers/SOIL.h"			// include the soil image loader based on stb_image for texture loading
 
 // GLM Mathematics
 #include <glm/glm.hpp>
@@ -277,7 +278,7 @@ void GraphicsManager::Draw()
 	// This will need rework and possible inclusion in the main draw loop.
 	std::string strvertexfilename = "Shaders/Shader.vertex";
 	std::string strfragmentfilename = "Shaders/Shader.fragment";
-	temp = MyShaderManagerInfo->searchShaderInfo(MyShaderManagerInfo->MemberInfo, strvertexfilename, strfragmentfilename);
+	temp = MyShaderManagerInfo->searchShaderInfo(MyShaderManagerInfo->ShaderMemberInfo, strvertexfilename, strfragmentfilename);
 
 	if (!(temp == NULL))
 	{
@@ -286,58 +287,68 @@ void GraphicsManager::Draw()
 	} else {
 		std::string strvertexfilename = "Shaders/DefaultShader.vertex";
 		std::string strfragmentfilename = "Shaders/DefaultShader.fragment";
-		temp = MyShaderManagerInfo->searchShaderInfo(MyShaderManagerInfo->MemberInfo, strvertexfilename, strfragmentfilename);
+		temp = MyShaderManagerInfo->searchShaderInfo(MyShaderManagerInfo->ShaderMemberInfo, strvertexfilename, strfragmentfilename);
 		shader_program = temp->ShaderProgramID;		
 		printf("\nShader not found...Loading the default shader, ShaderProgramID %i",shader_program);
 	} 
 
+	GLfloat red = 0.5f;
+	GLfloat green = 0.0f;
+	GLfloat blue = 0.5f;
 	//////////////////////////////////////////////////////////
 	// Vertex VAO, VBO stuff
 	//////////////////////////////////////////////////////////
 	// Set up vertex data (and buffer(s)) and attribute pointers
- 		// X      Y      Z   TextU  TextV
+ 		// X      Y      Z  ||  R      G     B    ||  TextU  TextV
 	 GLfloat vertices[] = {
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 //Front
+		0.5f, -0.5f, -0.5f,  red, green, blue,     0.0f, 0.0f,
+        -0.5f, -0.5f, -0.5f,  red, green, blue,     1.0f, 0.0f,
+         0.5f,  0.5f, -0.5f,  red, green, blue,     1.0f, 1.0f,
+        -0.5f,  0.5f, -0.5f,  red, green, blue,     1.0f, 1.0f,
+        0.5f,  0.5f, -0.5f,  red, green, blue,     0.0f, 1.0f,
+        -0.5f, -0.5f, -0.5f,  red, green, blue,     0.0f, 0.0f,
 
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		//Back
+        -0.5f, -0.5f,  0.5f,  red, green, blue,     0.0f, 0.0f,
+         0.5f, -0.5f,  0.5f,  red, green, blue,     1.0f, 0.0f,
+        -0.5f,  0.5f,  0.5f,  red, green, blue,     1.0f, 1.0f,
+         0.5f,  0.5f,  0.5f,  red, green, blue,     1.0f, 1.0f,
+        -0.5f,  0.5f,  0.5f,  red, green, blue,     0.0f, 1.0f,
+         0.5f, -0.5f,  0.5f,  red, green, blue,     0.0f, 0.0f,
 
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		//Left Side
+        -0.5f,  -0.5f,  -0.5f,  red, green, blue,    0.0f, 0.0f,
+        -0.5f,  -0.5f,   0.5f,  red, green, blue,    1.0f, 0.0f,
+        -0.5f,   0.5f,  -0.5f,  red, green, blue,    1.0f, 1.0f,
+        -0.5f,   0.5f,   0.5f,  red, green, blue,    1.0f, 1.0f,
+        -0.5f,   0.5f,  -0.5f,  red, green, blue,    0.0f, 1.0f,
+        -0.5f,  -0.5f,   0.5f,  red, green, blue,    0.0f, 0.0f,
 
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		//Right Side
+        0.5f,  -0.5f,   0.5f,  red, green, blue,     0.0f, 0.0f,
+        0.5f,  -0.5f,  -0.5f,  red, green, blue,     1.0f, 0.0f,
+        0.5f,   0.5f,   0.5f,  red, green, blue,	 1.0f, 1.0f,
+        0.5f,   0.5f,  -0.5f,  red, green, blue,	 1.0f, 1.0f,
+        0.5f,   0.5f,   0.5f,  red, green, blue,     0.0f, 1.0f,
+        0.5f,  -0.5f,  -0.5f,  red, green, blue,     0.0f, 0.0f,
 
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-         0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-        -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-        -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+		//Bottom
+        0.5f, -0.5f,  -0.5f,  red, green, blue,     0.0f, 0.0f,
+		0.5f, -0.5f,   0.5f,  red, green, blue,     1.0f, 0.0f,
+       -0.5f, -0.5f,  -0.5f,  red, green, blue,     1.0f, 1.0f,
+	   -0.5f, -0.5f,   0.5f,  red, green, blue,     1.0f, 1.0f,
+	   -0.5f, -0.5f,  -0.5f,  red, green, blue,     0.0f, 1.0f,
+		0.5f, -0.5f,   0.5f,  red, green, blue,     0.0f, 0.0f,
+
+		//Top
+       -0.5f, 0.5f,  -0.5f,  red, green, blue,     0.0f, 0.0f,
+       -0.5f, 0.5f,   0.5f,  red, green, blue,     1.0f, 0.0f,
+        0.5f, 0.5f,  -0.5f,  red, green, blue,     1.0f, 1.0f,
+		0.5f, 0.5f,   0.5f,  red, green, blue,     1.0f, 1.0f,
+        0.5f, 0.5f,  -0.5f,  red, green, blue,     0.0f, 1.0f,
+       -0.5f, 0.5f,   0.5f,  red, green, blue,     0.0f, 0.0f,
     };
 
     glm::vec3 cubePositions[] = {
@@ -364,9 +375,15 @@ void GraphicsManager::Draw()
 	glBufferData (GL_ARRAY_BUFFER, sizeof (vertices), vertices, GL_STATIC_DRAW);
 
 	// position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
-
+	// Color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
+    // TexCoord attribute
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
+	
 	glBindVertexArray(0); // Unbind VAO
 
 	// for now draw to the main window associated with the GraphicsManager.
@@ -385,7 +402,16 @@ void GraphicsManager::Draw()
 		glClearColor(0.4f, 0.5f, 0.5f, 1.0f);	// Clear the colorbuffer (set it to a grayscale)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  // wipe the drawing surface clear
 
+		// If we have an active texture allocated in the shader manager, bind it and look for thereference variables in the shader program
+
 		glUseProgram(shader_program);						 // use our shader program
+
+		if(MyShaderManagerInfo->ActiveTexture)
+		{
+		    glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, MyShaderManagerInfo->ActiveTexture->TextureID);
+			glUniform1i(glGetUniformLocation(shader_program, "ourTexture"), 0);
+		}
 
 	    // Camera/View transformation
         glm::mat4 view;
@@ -420,15 +446,17 @@ void GraphicsManager::Draw()
             model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f));
             glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+            glDrawArrays(GL_TRIANGLES, 0, 36); 
         }
         glBindVertexArray(0);
 
 		// Swap the screen buffers
 		glfwSwapBuffers (MyWinInfo->MainWindow);
 
-		// Turn off the shader program
-		glUseProgram(0);						 // use our shader program
+		// Turn off the shader program and unbind any textures
+		glUseProgram(0);			
+		glBindTexture(GL_TEXTURE_2D, 0);	 
+
 	} 
 	// Properly de-allocate all vertex arrays
 	glDeleteVertexArrays(1, &vao);

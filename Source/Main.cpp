@@ -268,8 +268,9 @@ int Application::StartGraphicsMgr()			//Start GraphicsMgr;
 	} else {
 		GetLog()->gl_log(GL_LOG_FILE, "\nERROR intializing the shader manager");	
 	};
-	MyShaderManager->ShowDetails(MyShaderManager->MemberInfo);
-	graphmgr->MyShaderManagerInfo = MyShaderManager;  // store the newly create shader manafer in the graphics manager
+	MyShaderManager->ShowShaderDetails(MyShaderManager->ShaderMemberInfo);
+	MyShaderManager->ShowTextureDetails(MyShaderManager->TextureMemberInfo);
+	graphmgr->MyShaderManagerInfo = MyShaderManager;  // store the newly create shader manager in the graphics manager
 
 	// the main draw command
 	graphmgr->Draw();
