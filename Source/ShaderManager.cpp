@@ -200,7 +200,7 @@ int ShaderManager::Initialize()
 	std::string strfragmentfilename = "Shaders/DefaultShader.fragment";
 	AddShader(ShaderMemberInfo, SHADER_VERTEX, strvertexfilename, strfragmentfilename);
 	ShaderInfo *temp0 = searchShaderInfo(ShaderMemberInfo, strvertexfilename, strfragmentfilename);
-//	ShowShaderDetails(MemberInfo);
+	//	ShowShaderDetails(MemberInfo);
 	BuildShaderProgram(temp0);
 
 	// Our first actual shader parameters.
@@ -209,7 +209,7 @@ int ShaderManager::Initialize()
 	strfragmentfilename = "Shaders/Shader.fragment";
 	AddShader(ShaderMemberInfo, SHADER_VERTEX, strvertexfilename, strfragmentfilename);
 	ShaderInfo *temp = searchShaderInfo(ShaderMemberInfo, strvertexfilename, strfragmentfilename);
-//	ShowShaderDetails(MemberInfo);
+	//	ShowShaderDetails(ShaderMemberInfo);
 	BuildShaderProgram(temp);
 
 	// a junk shader for testing the search function
@@ -217,17 +217,15 @@ int ShaderManager::Initialize()
 	strfragmentfilename = "Shaders/ShaderCopy.fragment";
 	AddShader(ShaderMemberInfo, SHADER_VERTEX, strvertexfilename, strfragmentfilename);
 	ShaderInfo *temp2 = searchShaderInfo(ShaderMemberInfo, strvertexfilename, strfragmentfilename);
-//	ShowShaderDetails(MemberInfo);
+	//	ShowShaderDetails(ShaderMemberInfo);
 	BuildShaderProgram(temp2);
 
-	// REPEATED shader loading to test the omission code from the linked list
-	// repeat these lines to load and build a shader prograrm
-	strvertexfilename = "Shaders/Shader.vertex";
-	strfragmentfilename = "Shaders/Shader.fragment";
+	// a junk shader for testing the search function
+	strvertexfilename = "Shaders/ShaderLighting.vertex";
+	strfragmentfilename = "Shaders/ShaderLighting.fragment";
 	AddShader(ShaderMemberInfo, SHADER_VERTEX, strvertexfilename, strfragmentfilename);
 	ShaderInfo *temp3 = searchShaderInfo(ShaderMemberInfo, strvertexfilename, strfragmentfilename);
-//	printf("\nShowing shader details...");
-//	ShowShaderDetails(ShaderMemberInfo);
+	//	ShowShaderDetails(ShaderMemberInfo);
 	BuildShaderProgram(temp3);
 
 	// Load Textures
@@ -236,13 +234,17 @@ int ShaderManager::Initialize()
 	AddTexture(TextureMemberInfo, strtexturefilename);
 	strtexturefilename = "Textures/Olaf.jpg";
 	AddTexture(TextureMemberInfo, strtexturefilename);
-
+	strtexturefilename = "Textures/wall.jpg";
+	AddTexture(TextureMemberInfo, strtexturefilename);
+	strtexturefilename = "Textures/steel.jpg";
+	AddTexture(TextureMemberInfo, strtexturefilename);
+	// Set the ActiveTexture to the last one loaded...this will need to change.
 	TextureInfo *ActiveTexture = searchTextureInfo(TextureMemberInfo, strtexturefilename);
-//	printf("\nActiveTexture  ID:  %i", ActiveTexture->TextureID);
-//	printf("\nActiveTexture filename:  %s", ActiveTexture->strTextureFilename.c_str());
+	//	printf("\nActiveTexture  ID:  %i", ActiveTexture->TextureID);
+	//	printf("\nActiveTexture filename:  %s", ActiveTexture->strTextureFilename.c_str());
 	BuildTextureProgram(ActiveTexture);
 
-//	ShowTextureDetails(TextureMemberInfo);
+	//	ShowTextureDetails(TextureMemberInfo);
 
 	return 0;
 }
@@ -250,7 +252,7 @@ int ShaderManager::Initialize()
 void ShaderManager::AddShader(struct ShaderInfo *head, int type, std::string strVertexFilename, std::string strFragmentFilename)
 {
 	printf("\nAdding a shader/texture to the shader manager list...");
-//	printf("\nfilename: %s", strFilename.c_str());
+	//	printf("\nfilename: %s", strFilename.c_str());
 
 	//ShaderInfo *temp = searchShaderInfo(MemberInfo, strvertexfilename, strfragmentfilename);
 	// if the shader list already has this pair of files in it, no need to add it again
@@ -279,14 +281,14 @@ void ShaderManager::AddShader(struct ShaderInfo *head, int type, std::string str
 
 	if (head->ShaderID == -1)
 	{
-//		printf("\nAdding first shader..");
+		//printf("\nAdding first shader..");
 		ShaderMemberInfo = newShader;
 		lastShaderMemberInfo = newShader;
 		return;
 	}
 	while (curShader)
 	{
-//		printf ("\nID: %i      Type:  %i     Filename: %s", curShader->ShaderID, curShader->ShaderType, curShader->strFilename.c_str());
+		//printf ("\nID: %i      Type:  %i     Filename: %s", curShader->ShaderID, curShader->ShaderType, curShader->strFilename.c_str());
 		if(curShader->next == NULL)
 		{
 			curShader->next = newShader;
@@ -441,7 +443,6 @@ struct ShaderInfo* ShaderManager::searchShaderInfo(struct ShaderInfo *head, std:
 	return NULL;
 }
 
-
 // Adds an item to the shader manager
 void ShaderManager::AddTexture(struct TextureInfo *head, std::string strTextureFilename)
 {
@@ -512,7 +513,7 @@ int ShaderManager::BuildTextureProgram(struct TextureInfo *head)
 		//////////////////
 		//  This chunk works...
 		////////////////////
-	    GLuint texture1;
+	    GLuint texture1;	// a variable to store the texture ID from loading a texture.
 	    // ====================
 	    // Texture 1
 		// ====================
@@ -535,11 +536,13 @@ int ShaderManager::BuildTextureProgram(struct TextureInfo *head)
 		glBindTexture(GL_TEXTURE_2D, 0); // Unbind texture when done, so we won't accidentily mess up our texture.
 
 		////////////////////////////////////////////////////
-		head->TextureID = texture1;
+		// 
+		//  This is not a TextureID but is a value that is created when the texture is created.  
+		// This number is the reference needed to draw the texture. If my original Texture ID is
+		// used, the textures will not render.
+		head->TextureID = texture1; 
 
 /*
-
-
 //		GLuint texture;
 //		glGenTextures(1, &texture);
 		glGenTextures(1, &head->TextureID);
@@ -563,6 +566,7 @@ int ShaderManager::BuildTextureProgram(struct TextureInfo *head)
 */
 		head->IsBuilt = true;
 		ActiveTexture = head;		// set the active texture to the one just built.
+		ShowTextureDetails(ActiveTexture);
 	}
 
 	return 0;
@@ -608,11 +612,6 @@ void ShaderManager::ShowTextureDetails(struct TextureInfo *head)
 	}
 	return;
 }
-
-
-
-
-
 
 void ShaderManager::Destroy()
 {

@@ -5,6 +5,7 @@
 #include "../Headers/Volume.h"
 #include "../Headers/Mesh.h"
 
+/*
 GLuint Volume::next_id = -1;			// set the initial value at the start of the program
 
 // A constructor for our volume class
@@ -169,7 +170,7 @@ void Volume::CreateEBO()
 	printf("\n		Creating an EBO");
 }
 
-
+*/
 
 //void Volume::Initialize(int shape_code)
 //{

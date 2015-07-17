@@ -42,6 +42,9 @@ public:
     GLfloat MouseSensitivity;
     GLfloat Zoom;
 
+	bool IsActiveCameraToggle;		// a variable to let us know if the camera toggle is active.
+
+
     // Constructor with vectors
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), GLfloat yaw = YAW, GLfloat pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVTY), Zoom(ZOOM)
     {
@@ -50,6 +53,7 @@ public:
         this->Yaw = yaw;
         this->Pitch = pitch;
         this->updateCameraVectors();
+		this->IsActiveCameraToggle = false;
     }
     // Constructor with scalar values
     Camera(GLfloat posX, GLfloat posY, GLfloat posZ, GLfloat upX, GLfloat upY, GLfloat upZ, GLfloat yaw, GLfloat pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVTY), Zoom(ZOOM)
@@ -59,6 +63,7 @@ public:
         this->Yaw = yaw;
         this->Pitch = pitch;
         this->updateCameraVectors();
+		this->IsActiveCameraToggle = false;
     }
 
     // Returns the view matrix calculated using Eular Angles and the LookAt Matrix

@@ -166,17 +166,11 @@ int AppWindow::Initialize(int width, int height, std::string strTitle, bool bFul
 void AppWindow::Destroy()
 {
 	printf ("\nDestroying a Window...");
-//	cout << "\nDestroying Window ID: " << GetWindow();
+	//	cout << "\nDestroying Window ID: " << GetWindow();
 
-//	//Close openGL window
-//	glfwDestroyWindow(GetWindow()); 
+	//	//Close openGL window
+	//	glfwDestroyWindow(GetWindow()); 
 }
-
-//int AppWindow::RenderWindow(GLFWwindow *pWindow, float background_color)
-//{
-//	cout << "\nRendering AppWindow .. not currently used...";
-//	return 0;
-//}
 
 
 

@@ -28,11 +28,6 @@
 //	frame_count++;
 //}
 
-Model::Model()
-{
-	printf("\nModel constructor...");
-}
-
 void Model::Initialize()
 {
 	printf("\nCreating a model...");

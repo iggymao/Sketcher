@@ -1,70 +1,119 @@
 #ifndef _Shader_H
 #define _Shader_H
 
-#include <string>										// Used for our STL string objects
-#include <fstream>										// Used for our ifstream object to load text files
-//#include "../Headers/Main.h"
-//#include "GL\glew.h"									// Used for the OpenGL types like GLuint, GLfloat, etc.
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <iostream>
 
+#include <GL/glew.h>  // include GLEW
 
-// This is our very basic shader class that we will use to load and turn on/off our shaders
 class Shader
 {
 public:
+    GLuint Program;
+    // Constructor generates the shader on the fly
+    Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
+    {
+        // 1. Retrieve the vertex/fragment source code from filePath
+        std::string vertexCode;
+        std::string fragmentCode;
+        std::ifstream vShaderFile;
+        std::ifstream fShaderFile;
+        // ensures ifstream objects can throw exceptions:
+        vShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
+        fShaderFile.exceptions (std::ifstream::failbit | std::ifstream::badbit);
+        try
+        {
+            // Open files
+            vShaderFile.open(vertexPath);
+            fShaderFile.open(fragmentPath);
+            std::stringstream vShaderStream, fShaderStream;
+            // Read file's buffer contents into streams
+            vShaderStream << vShaderFile.rdbuf();
+            fShaderStream << fShaderFile.rdbuf();
+            // close file handlers
+            vShaderFile.close();
+            fShaderFile.close();
+            // Convert stream into string
+            vertexCode = vShaderStream.str();
+            fragmentCode = fShaderStream.str();
+        }
+        catch (std::ifstream::failure e)
+        {
+            std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+        }
+        const GLchar* vShaderCode = vertexCode.c_str();
+        const GLchar * fShaderCode = fragmentCode.c_str();
+        // 2. Compile shaders
+		// Reset the last OpenGL error so we can check if down below
+		GLenum ErrorCheckValue = glGetError();
+        GLuint vertex, fragment;
+        GLint success;
+        GLchar infoLog[512];
+        // Vertex Shader
+        vertex = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(vertex, 1, &vShaderCode, NULL);
+        glCompileShader(vertex);
+        // Print compile errors if any
+        glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
+        if (!success)
+        {
+            glGetShaderInfoLog(vertex, 512, NULL, infoLog);
+            std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+			fprintf (stderr, "ERROR: GL shader index %i did not compile\n", vertex);
+			return; // or exit or something
+        }
+        // Fragment Shader
+        fragment = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(fragment, 1, &fShaderCode, NULL);
+        glCompileShader(fragment);
+        // Print compile errors if any
+        glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
+        if (!success)
+        {
+            glGetShaderInfoLog(fragment, 512, NULL, infoLog);
+            std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+			return; // or exit or something
+        }
+        // Shader Program
+        this->Program = glCreateProgram();
+        glAttachShader(this->Program, vertex);
+        glAttachShader(this->Program, fragment);
+        glLinkProgram(this->Program);
 
-	// Create an empty constructor and have the deconstructor release our memory.
-	Shader()	{ }
-//	~Shader()	{ Destroy(); }
-//
-//	// This loads our text file for each shader and returns it in a string
-//	std::string LoadShaderFile(std::string strFile);
-//
-//	// This loads a vertex and fragment shader from a text file (relative or full path)
-//	void Initialize(std::string strVertexFile, std::string strFragmentFile);
-//
-//	// This returns an ID for a variable in our shader, to be used with a Set*() function
-//	GLint GetVariable(std::string strVariable);
-//	GLuint GetShaderProgramID() {return ShaderProgramID;}
-//
-//	// Below are functions to set an integer, a set of floats or a matrix (float[16])
-//	void SetInt(GLint id, int newValue)											{ glUniform1i(id, newValue); }
-//	void SetFloat(GLint id, GLfloat newValue)									{ glUniform1f(id, newValue); }
-//	void SetFloat2(GLint id, GLfloat v0, GLfloat v1)							{ glUniform2f(id, v0, v1); }
-//	void SetFloat3(GLint id, GLfloat v0, GLfloat v1, GLfloat v2)				{ glUniform3f(id, v0, v1, v2); }
-//	void SetFloat4(GLint id, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)	{ glUniform4f(id, v0, v1, v2, v3); }
-//
-//	// This allows us to pass in 4x4 matrix (float array of 16) to a shader by the Id received from GetVariable()
-//	void SetMatrix4(GLint id, GLsizei count, GLboolean transpose, const GLfloat *value)
-//	{
-//		glUniformMatrix4fv(id, count, transpose, value);
-//	}
-//
-//	// Variable to store time changing parameters in our shader
-//	GLfloat timeValue;
-//	GLfloat greenValue;
-//	GLint vertexColorLocation;
-//
-//	GLint transformLocation;
-//
-//	// These 2 functions turn on and off our shader, which uses the OpenGL glUseProgram() function
-//	void TurnOn()		{ glUseProgram(ShaderProgramID); }
-//	void TurnOff()		{ glUseProgram(0); }
-//
-//	// This releases our memory for our shader
-//	void Destroy();
-//
-//private:
-//
-//	// This Id stores our vertex shader information
-//	GLuint VertexShaderID;
-//
-//	// This Id stores our fragment shader information
-//	GLuint FragmentShaderID;
-//
-//	// This Id stores our program information which encompasses our shaders
-//	GLuint ShaderProgramID;
-//
-//
+        // Print linking errors if any
+        glGetProgramiv(this->Program, GL_LINK_STATUS, &success);
+        if (!success)
+        {
+            glGetProgramInfoLog(this->Program, 512, NULL, infoLog);
+            std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+			return;
+        }
+
+		// Now check to see if any errors happened in this function
+		ErrorCheckValue = glGetError();
+
+		// If there was an error found, print it to the screen and close the OpenGL window.
+		if ( ErrorCheckValue != GL_NO_ERROR )
+		{
+			// Use gluErrorString(ErrorCheckValue) if you want to get the string value of the
+			// error, but I removed this since Mac OSX 10.9 (Mavericks) deprecated this function.
+			fprintf(stderr, "ERROR: Could not create the shader program with error Id: %d\n", ErrorCheckValue);
+			exit(-1);
+		}
+		//printf("\nShaderProgram ID:  %i",this->Program);
+
+        // Delete the shaders as they're linked into our program now and no longer necessery
+        glDeleteShader(vertex);
+        glDeleteShader(fragment);
+
+    }
+    // Uses the current shader
+    void Use() 
+    { 
+        glUseProgram(this->Program); 
+    }
 };
 
 #endif

@@ -28,19 +28,10 @@
 #define MESH_USE_TEXTURE_FALSE	1						// tells the mesh creator to ignore textures
 
 
-//class GraphicsManager; // forward declaration
-//class LogManager; // Forward declaration
-//class AppWindow;  // Forward declaration
-//class Mesh;		  // Forward declaration
-
 // This is our main application class that handles orchestrating the init, main loop and cleanup
 class Application
 {
 public:
-	// The width and height of the application
-//	static const int ScreenWidth = 1024;
-//	static const int ScreenHeight = 768;
-
 	// Create a default constructor and deconstructor which cleans up
 	Application();			//constructor
 	~Application();			// destructor
@@ -68,15 +59,6 @@ public:
 
 	ModelManager *GetModelMan() { return ModelMan;}		// get the model manager handle
 	void SetModelMan(ModelManager *p_model) {ModelMan = p_model;}	// sets the pointer to the model manager
-
-	//	vector<int> *AppModel;		// An array to store the pointers to meshes in the application.  This will include a counter to tell a particular window where the Mesh is to be drawn.
-//	Mesh *GetMeshID(int counter) {return Model[counter]; }
-//	void SetMeshID(int counter, Mesh *pMesh) { Model->g_vertex_buffer_data.push_back(pMesh); }
-//	void SetMeshID(int counter, Mesh *pMesh);
-//	Mesh *GetMeshID(int counter) { return Model[counter]; }
-
-//	vector<Mesh> Model;  // to store the meshes in the application.  This will include a counter to tell a particular window where the Mesh is to be drawn.
-//	int NumMesh;		// The number of meshes known by the Application.
 	
 	// This initializes the application
 	void Initialize();

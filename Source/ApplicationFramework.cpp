@@ -7,13 +7,11 @@
 
 using namespace System;
 
-
 int main(array<System::String ^> ^args)
 {
 	Application application;  // create the application object
 	
 	application.Initialize(); // initialize the contents to setup the different system managers
-
 
 	//Console::WriteLine(L"Hello World");			// alternate technique to write to the console
     return application.Main();						// Launches into the main application routine

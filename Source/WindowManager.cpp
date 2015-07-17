@@ -19,50 +19,50 @@ void WindowManager::Initialize()
 	return;
 }
 
-void WindowManager:: Destroy()
+void WindowManager::Destroy()
 {
 	printf("\nDestroying the WindowManager.");
 	return;
 }
 
 // adds a window to the WinInfo list
-void AddWindow()
+void WindowManager::AddWindow()
 {
 	printf("\nAdd a window to the MemberInfo list.");
 }
 
 // search for a window in the list
-void SearchWindow()
+void WindowManager::SearchWindow()
 {
 	printf("\nSearch for a window in the MemberInfo list");
 }	
 
 // deletes a window from the list
-void DeletetWindow()
+void WindowManager::DeletetWindow()
 {
 	printf("\nDelete a window from the MemberInfo list");
 }	
 
 // moves a window
-void MoveWindow()
+void WindowManager::MoveWindow()
 {
 	printf("\nMove a window");
 }
 
 // resizes a window
-void ResizeWindow()
+void WindowManager::ResizeWindow()
 {
 	printf("\nResize a window");
 }	
 
 // saves a layout
-void SaveLayout()
+void WindowManager::SaveLayout()
 {
 
 }
 
 // reads a layout
-void ReadLayout()
+void WindowManager::ReadLayout()
 {
 
 }

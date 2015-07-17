@@ -20,10 +20,10 @@ public:
 //
 	int Initialize(int width, int height, std::string strTitle, bool bFullScreen, int x_pos, int y_pos);			// Initializes the window settings
 //
-//	int RenderWindow(GLFWwindow *pWindow, float color); 									// Controls the drawing of window information 
-//	void Resize() {}																		// Controls the resizing of a window
-//	void Move() {}																			// Controls the movement of a window
-	void Destroy();																			// Destroys the windows
+//	int RenderWindow(GLFWwindow *pWindow, float color); 	// Controls the drawing of window information 
+//	void Resize() {}										// Controls the resizing of a window
+//	void Move() {}											// Controls the movement of a window
+	void Destroy();											// Destroys the windows
 //
 //protected:
 //	GLFWwindow *Window;

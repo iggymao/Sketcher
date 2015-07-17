@@ -1,4 +1,4 @@
-LogFile Created at local time Sat Jul 11 00:56:35 2015
+LogFile Created at local time Fri Jul 17 09:42:21 2015
 
 OPENGL context successfully created.
 GL Context Params:GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS 96
@@ -14,5 +14,3 @@ GL_MAX_VERTEX_UNIFORM_COMPONENTS 4096
 GL_MAX_VIEWPORT_DIMS 8192 8192
 GL_STEREO 0
 -------------------------------------
-
-Shader manager successfully created.

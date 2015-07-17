@@ -4,15 +4,12 @@
 #include <string>										// Used for our STL string objects								
 #include <GLFW/glfw3.h> 
 
-
-
-
 struct WinInfo{
 	GLFWwindow *Window;		// pointer for a window object
 	GLuint WindowID;		// an ID number for each window
 	std::string strWinTitle;	// title for the window
 	GLuint width;			// main window width
-	GLuint height;		// main width heigh
+	GLuint height;			// main width heigh
 	GLuint pos_x;			// x position of main window
 	GLuint pos_y;			// y position of main window
 	bool bFullScreen;		// boolean to indicate fullscreen mode or not.
@@ -29,7 +26,6 @@ struct WindowLayoutPattern
 	GLuint WinLayoutID;			// identifier for each WindowLayout
 	std::string strLayoutName;	// a string name to identify each layout
 	WinInfo *Members;			// members belonging to a layout pattern
-
 };
 
 // This is our class definition for managing the creation of the window, input and the
@@ -59,7 +55,7 @@ public:
 	void ReadLayout();		// reads a layout pattern --
 
 	void Destroy();
-/*
+	/*
 	// This is needed so that the class inheriting this will have it's deconstructor called
 	virtual ~WindowManager() {}
 

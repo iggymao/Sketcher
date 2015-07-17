@@ -20,6 +20,7 @@
 #include "../Headers/Volume.h"
 //#include "../Headers/Mesh.h"  // not used if forward declarations are functioning
 
+/*
 // forward declarations
 struct VertexInfo;					// found in Mesh.h
 class Mesh;							// found in Mesh.h
@@ -111,5 +112,5 @@ protected:
 //	GLuint *VolVAO_ID[MAX_VOL_MESHES];							// The VAO Id to bind when drawing
 
 };
-
+*/
 #endif

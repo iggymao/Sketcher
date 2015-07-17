@@ -13,19 +13,6 @@
 #include "../Headers/Application.h"			// Include our model header for the graphics manager
 #include "../Headers/Mesh.h"				// Include the mesh header for testing purposes
 
-//#include "../Headers/Model.h"							// Include our model header for the application
-//#include "../Headers/Main.h"							// Include our main header for the application
-//#include "../Headers/GraphicsManager.h"
-//using namespace std;
-
-//class AppWindow;		// forward declaration
-//class Mesh;				// forward declaration
-//class Model;			// forward declaration
-//class Volume;			// forward declaration
-//class GraphicsManager;	// forward declaration
-
-//char str[80];			// an array to hold small text strings (like titles of windows)
-
 // A constructor for the Application.
 Application::Application(void)
 {
@@ -72,74 +59,8 @@ void Application::Initialize()
 	StartAudioMgr();			//StartAudioMgr;
 	StartEventMgr();			//StartEventMgr
 */
-
-
-
-	// Make sure the window manager is initialized prior to calling this and creates the OpenGL context
-//	if ( !WindowManager || WindowManager->Initialize(ScreenWidth, ScreenHeight, "I Beam Sketcher - GameTutorials - Matrices", false) != 0 )
-//	{
-		// Quit the application if the window couldn't be created with an OpenGL context
-//		exit(-1);
-//	}
-
-	/*
-	// Creating the application windows
-	AppWindow *MyWin[MAX_WINDOWS];
-
-	//Create the primary model window
-	sprintf_s(str,"\nMain Model Window #%d", 1);
-	MyWin[0] = new AppWindow;
-	MyWin[0]->Initialize(600,500, str, NULL, 200, 125);
-	SetWindowID(0, MyWin[0]);
-
-	//Create the subwindow viewports
-	if(MAX_WINDOWS > 1)
-	{
-		for (int i=1;i<MAX_WINDOWS;i++)
-		{
-			sprintf_s(str, "\nTest Window #%d",i);
-			MyWin[i] = new AppWindow;
-			MyWin[i]->Initialize(300,250, str, NULL, 800, 125+(i-1
-				)*250);
-			SetWindowID(i, MyWin[i]);		
-//			MyWin[i]->RenderMesh(GetWindowID(i)->GetWindow(), float(1.0-(float (i)/ float (MAX_WINDOWS))));
-//			cout << "*MyWin[" << i << "]:" << *MyWin[i] << endl;
-//			cout << "MyWin[" << i << "]:" << MyWin[i] << endl;
-		}
-	}
-*/
-/*
-	Model *MyModel;			// creates an array to store the model
-	MyModel = new Model;
-	MyModel->Initialize();
-
-	MyModel->RenderModel(MyWin);	// renders the model
-
-
-
-	// Creating and testing Mesh ID storage structures in Application.h
-//	Mesh *MyMesh[MAX_MESH_QTY];
-//	for (int i=0;i<5;i++)
-//	{
-//		MyMesh[i] = new Mesh;
-//		SetMeshID(i, MyMesh[i]);
-//		cout << "SetMeshID(i) = " << i << endl;
-//	}
-//	cout << "===================================" << endl;
-//	cout << "Model size: " << Model.size() << endl;
-//	for (int i=0;i<5;i++)
-//	{
-
-		//GetMeshID(i);
-//		cout << "GetMeshID(i) = " << Model[i] << endl;
-//	}
-*/
-
-	// Creating a general RENDER routine for the application that will render all of the windows owned by the application
-//	RenderApplication(MyWin);
-
-
 }
+
 //// A method to set a Mesh ID into a model array
 //void Application::SetMeshID(int counter, Mesh *pMesh)
 //{
@@ -178,18 +99,6 @@ void Application::Initialize()
 // This can be used to free all of our resources in the application.
 void Application::Destroy()
 {
-//	// First destroy all of the windows in the application
-//	for (int i=0;i<MAX_WINDOWS;i++)
-//	{
-////		cout << "======================================" << endl;
-////		cout << "Array [" << i << "]:                  " << (*(p_array+i))->GetWindow() << endl;
-////		cout << "GetWindowID(" << i << ")->GetWindow():" << GetWindowID(i)->GetWindow() << endl;
-//		
-//		// cout << "GetWindowID(" << i << ")->GetWindow():" << GetWindowID(i)->GetWindow() << endl;
-//
-//		GetWindowID(i)->Destroy();
-//	}
-
 	GetLog()->Destroy();
 	printf("\nDestroy logs..");
 	GetLog()->gl_log(LOG_FILE, "\nDestroying the log manager");
@@ -254,7 +163,7 @@ int Application::StartGraphicsMgr()			//Start GraphicsMgr;
 		GetLog()->gl_log_params();
 
 	//printf("\n    Pointer to graphmgr: %d",GetGraphMan());
-
+/*
 	// Start the shader manager.  Must be done after GLEW/GLFW have been initialized and the context
 	// set to the main graphics window.
 	ShaderManager *MyShaderManager;
@@ -271,7 +180,7 @@ int Application::StartGraphicsMgr()			//Start GraphicsMgr;
 	MyShaderManager->ShowShaderDetails(MyShaderManager->ShaderMemberInfo);
 	MyShaderManager->ShowTextureDetails(MyShaderManager->TextureMemberInfo);
 	graphmgr->MyShaderManagerInfo = MyShaderManager;  // store the newly create shader manager in the graphics manager
-
+*/
 	// the main draw command
 	graphmgr->Draw();
 	return 0;
@@ -282,11 +191,11 @@ void Application::StartWindowsMgr()			//Start WindowsMgr;
 	printf("\nStart Windows Manager to create multiple windows");
 
 	// Make sure the window manager is initialized prior to calling this and creates the OpenGL context
-//	if ( !WindowManager || WindowManager->Initialize(ScreenWidth, ScreenHeight, "I Beam Sketcher - GameTutorials - Matrices", false) != 0 )
-//	{
+	//if ( !WindowManager || WindowManager->Initialize(ScreenWidth, ScreenHeight, "I Beam Sketcher - GameTutorials - Matrices", false) != 0 )
+	//{
 		// Quit the application if the window couldn't be created with an OpenGL context
-//		exit(-1);
-//	}
+		//exit(-1);
+	//}
 		// Do stuff here..
 		// Creating the application windows
 
@@ -309,8 +218,8 @@ void Application::StartWindowsMgr()			//Start WindowsMgr;
 			MyWin[i]->Initialize(300,250, str, NULL, 800, 125+(i-1
 				)*250);
 			SetWindowID(i, MyWin[i]);		
-//			cout << "*MyWin[" << i << "]:" << *MyWin[i] << endl;
-//			cout << "MyWin[" << i << "]:" << MyWin[i] << endl;
+			// cout << "*MyWin[" << i << "]:" << *MyWin[i] << endl;
+			// cout << "MyWin[" << i << "]:" << MyWin[i] << endl;
 		}
 	}
 */
@@ -320,22 +229,14 @@ void Application::StartModelMgr()			//Start the Model Managersubsystems;
 {
 	printf("\nStart Model Manager");
 
+	/*
 	ModelManager *modelmanager;
 	modelmanager = new ModelManager;
 	modelmanager->Initialize();
 	SetModelMan(modelmanager);		// store the pointer to the modelmanager
-
+    */
 	// Do stuff here..
-	/////////////////////////////////////////////////////////////////
-//	AppWindow *MyWin;
-//	MyWin = GetWindowArray();
-
-//	Model *MyModel;			// creates an array to store the model
-//	MyModel = new Model;
-//	MyModel->Initialize();
-
-//	MyModel->RenderModel(&MyWin);	// renders the model
-
+	////////////////////////////////////////////////////////////////
 
 
 	// Creating and testing Mesh ID storage structures in Application.h
@@ -355,15 +256,6 @@ void Application::StartModelMgr()			//Start the Model Managersubsystems;
 //		cout << "GetMeshID(i) = " << Model[i] << endl;
 //	}
 
-
-/*	Mesh *Model[MAX_MESH_QTY];
-	for (int i=0;i<MAX_MESH_QTY;i++)
-	{
-		printf("\nCreating Meshes...");
-		Model[i] = new Mesh;
-
-	}
-*/
 	return;
 }
 
@@ -384,7 +276,6 @@ void Application::StartAudioMgr()			//StartAudioMgr;
 	printf("\nStart Audio Manager");
 		// Do stuff here..
 	return;
-
 }
 
 void Application::StartEventMgr()			//StartEventMgr
