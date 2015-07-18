@@ -29,7 +29,7 @@ void Do_Movement();
 const GLuint WIDTH = 800, HEIGHT = 600;
 
 // Camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(-0.75f, 3.0f, 3.0f));
 bool keys[1024];
 GLfloat lastX = WIDTH / 2.0;
 GLfloat lastY = HEIGHT / 2.0;
@@ -39,6 +39,10 @@ bool firstMouse = true;
 bool IsPausedLight = true;
 glm::vec3 lightPos(0.0f, 2.0f, 0.0f);  // a default light source position
 //glm::vec3 lightPos(1.2f, 1.0f, 2.0f);  // a default light source position
+
+// Grid attributes
+bool IsActiveGridToggle = true;
+
 
 // Deltatime
 GLfloat deltaTime = 0.0f;			// time between current frame and last frame
@@ -255,7 +259,8 @@ void GraphicsManager::Draw()
 	Shader ourShader("Shaders/DefaultShader.vertex", "Shaders/DefaultShader.fragment");
 	Shader lightsourceShader("Shaders/ShaderLighting.vertex", "Shaders/ShaderLighting.fragment");
 
-	ModelManager ourModel;
+	ModelManager gridModel(MODEL_LOAD_GRID); // Loads the drawing grid
+	ModelManager ourModel(MODEL_LOAD_MODEL); // Loads the model elements
 
     // Game loop
     while (!glfwWindowShouldClose(MyWinInfo->MainWindow))
@@ -332,9 +337,26 @@ void GraphicsManager::Draw()
 		// Model
 		glm::mat4 model;  // sets an identity matrix into model
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		
-		ourModel.Draw(ourShader);
-		
+		ourModel.Draw(ourShader, GL_TRIANGLES);
+
+		// Draw the grid line structure if the the grid toggle is active
+		if(IsActiveGridToggle)
+		{
+			for (GLuint j = 0; j<2;j++)
+			{
+				for (GLuint i = 0; i < 40; i++)
+				{
+					// Calculate the model matrix for each object and pass it to shader before drawing
+					glm::mat4 model;
+					GLfloat angle = 90.0f * (3.14159 / 180.0) * j;
+					model = glm::rotate(model, angle, glm::vec3(0.0f, 1.0f, 0.0f));
+					model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.0+0.1*i));
+
+					glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+					gridModel.Draw(ourShader, GL_LINES);
+				}
+			}
+		}	
 		////////////////////////////////////////
 		//  Draws the Lighting source lamp
 		////////////////////////////////////////
@@ -357,7 +379,7 @@ void GraphicsManager::Draw()
 		model = glm::scale(model, glm::vec3(0.1f));
         glUniformMatrix4fv(lightmodelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
-		ourModel.Draw(lightsourceShader);
+		ourModel.Draw(lightsourceShader, GL_TRIANGLES);
 
         // Swap the screen buffers
         glfwSwapBuffers(MyWinInfo->MainWindow);
@@ -473,6 +495,18 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			// disable the cursor for the camera controls
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  // hide the cursor (used for the camera control)
 			camera.IsActiveCameraToggle = true;							// flag the camera as turned on
+		}
+	}
+	
+	if (key == GLFW_KEY_G && action == GLFW_PRESS)
+	{
+		if (IsActiveGridToggle)
+		{
+			printf("\nGrid is hidden...");
+			IsActiveGridToggle = false;
+		} else {
+			printf("\nGrid is visible...");
+			IsActiveGridToggle = true;
 		}
 	}
 

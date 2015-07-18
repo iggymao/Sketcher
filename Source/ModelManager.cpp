@@ -13,20 +13,171 @@
 
 class Mesh;			// forward declaration
 
-ModelManager::ModelManager()
+ModelManager::ModelManager(int model_type)
 {
 	printf("\nModel Manager constructor...");
-	loadModel();
+	switch(model_type)
+	{
+		case MODEL_LOAD_MODEL:
+		{
+			printf("\nLoading model...");
+			loadModel();
+			break;
+
+		}
+		case MODEL_LOAD_GRID:
+		{
+			loadGrid();
+			printf("\nLoading grid...");
+			break;
+		}
+		case MODEL_LOAD_COORDSYS:
+		{
+			printf("\nLoading coordinate system...");
+			break;
+		}
+		default:
+		{
+			printf("\nUnknown model type...");
+			break;
+		}
+	}
 }
 
 // Draws all the meshes known by the model
-void ModelManager::Draw(Shader ourShader)
+void ModelManager::Draw(Shader ourShader, int gl_drawtype)
 {
 	for(GLuint i=0; i < this->meshes.size(); i++)
 	{
 //		printf("\nmeshes.size(): %i",meshes.size());
-		this->meshes[i].Draw();
+		this->meshes[i].Draw(gl_drawtype);
 	}
+}
+
+// Loads the data for drawing gridlines.
+void ModelManager::loadGrid()
+{
+	// Set up vertex data (and buffer(s)) and attribute pointers
+	//        Coords			     Colors		                Texture			    Normals
+ 	//    X      Y      Z  ||  R      G      B    Alpha  ||  TextU  TextV || LightX LightY LightZ
+
+	// Note that the third data point is not used on a GL_LINE call, but is needed to avoid a seg. fault on the following routine
+	GLfloat vertex_data[] = {
+		-4.0f, 0.0f, 0.0f,		0.0f, 0.0f, 0.0f, 1.0f,		 0.0f,   0.0f,	  0.0f, 0.0f,  0.0f,
+		+4.0f, 0.0f, 0.0f,		0.0f, 0.0f, 0.0f, 1.0f,		 0.0f,   0.0f,	  0.0f, 0.0f,  0.0f,
+		 +2.0f, 0.0f, 2.0f,		0.0f, 0.0f, 0.0f, 1.0f,		 0.0f,   0.0f,	  0.0f, 0.0f,  0.0f
+	};
+
+	GLuint indexes[] =
+	{
+		0, 1, 2		// for a grid line only two points required.
+	};
+
+	string texture_files[] = {
+		 "Textures/steel.jpg",
+		 "Textures/Olaf.jpg"
+	 };
+
+	 // loop through the vertex data provided.  Note the "12" is the current number of elements in the data that
+	 // are being processed.
+	 int num_elems = 12;  // the current number of elements in the data
+
+	 // Find the nodes related to the faces based upon connectivity indexes
+	 // Loop through the index data.  Assumes three nodes per triangle for now
+ 	 int num_faceindex_elems = 3;		// the number of nodes per face
+	 int f_max = (sizeof(indexes)/(num_faceindex_elems*sizeof(GLuint))); // computes the number of faces defined
+	 printf("\nNumber of faces, f_max: %i", f_max);
+	
+	 vector<VertexData> face_vertices;			// stores the vertex data
+	 // Loop once for each defined face
+	 for(int f=0;f<f_max; f++)
+	 {
+		 //printf("\n=================================================================");
+		 //printf("\nFace #: %i",f);
+		 // =====  VERTEX DATA ========
+		 VertexData face_vertex;
+		 glm::vec3 A, B, C, vAB, vAC, normal_vec ;		// vectors for computing normals
+		 face_vertices.resize(0);						// clear existing face_vertices vector
+		 face_vertices.reserve(num_faceindex_elems);	// set the size of the vertices vector
+
+		 GLuint face_node_number0 = (indexes[f*num_faceindex_elems+0]);  // node A from index
+		 GLuint face_node_number1 = (indexes[f*num_faceindex_elems+1]);  // node B from index
+		 GLuint face_node_number2 = (indexes[f*num_faceindex_elems+2]);  // node C# from index
+		 
+		 // For nodes A-B-C -- in that order for a triangular mesh
+		 A = glm::vec3(vertex_data[(face_node_number0*num_elems+0)], vertex_data[(face_node_number0*num_elems+1)], vertex_data[(face_node_number0*num_elems+2)]);
+		 B = glm::vec3(vertex_data[(face_node_number1*num_elems+0)], vertex_data[(face_node_number1*num_elems+1)], vertex_data[(face_node_number1*num_elems+2)]);
+		 C = glm::vec3(vertex_data[(face_node_number2*num_elems+0)], vertex_data[(face_node_number2*num_elems+1)], vertex_data[(face_node_number2*num_elems+2)]);
+		 vAB = B-A;						// position vector AB
+		 vAC = C-A;						// position vector AC
+		 normal_vec = glm::normalize(glm::cross(vAB,vAC));	// now compute vector AB x AC
+		 //printf("\nCross Product --  x: %f   y: %f   z: %f",normal_vec.x, normal_vec.y, normal_vec.z);
+
+		 for(int k=0; k<num_faceindex_elems;k++) // loop through each of the index elements
+		 {
+			 GLuint face_node_number0 = (indexes[f*num_faceindex_elems+k]);  // node # from index
+	 		 // record vertices for face nodes
+			 face_vertex.Position = glm::vec3(vertex_data[(face_node_number0*num_elems+0)], vertex_data[(face_node_number0*num_elems+1)], vertex_data[(face_node_number0*num_elems+2)]);
+			 // record colors for face nodes
+			 face_vertex.Color = glm::vec4(vertex_data[(face_node_number0*num_elems+3)],vertex_data[(face_node_number0*num_elems+4)],vertex_data[(face_node_number0*num_elems+5)],vertex_data[(face_node_number0*num_elems+6)]);
+			 // record texture coords for face nodes
+			 face_vertex.TexCoords = glm::vec2(vertex_data[(face_node_number0*num_elems+7)], vertex_data[(face_node_number0*num_elems+8)]);
+			 // record normal vectors for face nodes
+//			 face_vertex.Normal = glm::vec3(vertex_data[(face_node_number0*num_elems+9)], vertex_data[(face_node_number0*num_elems+10)], vertex_data[face_node_number0*num_elems+11]);
+			 face_vertex.Normal = glm::vec3(normal_vec.x, normal_vec.y, normal_vec.z);
+
+
+			 face_vertices.push_back(face_vertex);			 // add the vertex to the end of the vertices vector
+
+			 //printf("\nNode#: %i -- Vertex.Position.x: %f",face_node_number0, face_vertex.Position.x);
+ 			// printf("\nNode#: %i -- Vertex.Position.y: %f",face_node_number0, face_vertex.Position.y);
+ 			// printf("\nNode#: %i -- Vertex.Position.z: %f",face_node_number0, face_vertex.Position.z);
+			 //printf("\nNode#: %i -- Vertex.Color.x: %f",face_node_number0, face_vertex.Color.x);
+ 			// printf("\nNode#: %i -- Vertex.Color.y: %f",face_node_number0, face_vertex.Color.y);
+ 			// printf("\nNode#: %i -- Vertex.Color.z: %f",face_node_number0, face_vertex.Color.z);
+			 //printf("\nNode#: %i -- Vertex.TexCoords.x: %f",face_node_number0, face_vertex.TexCoords.x);
+ 			// printf("\nNode#: %i -- Vertex.TexCoords.y: %f",face_node_number0, face_vertex.TexCoords.y);
+			 //printf("\nNode#: %i -- Vertex.Normal.x: %f",face_node_number0, face_vertex.Normal.x);
+ 			// printf("\nNode#: %i -- Vertex.Normal.y: %f",face_node_number0, face_vertex.Normal.y);
+	 		// printf("\nNode#: %i -- Vertex.Normal.z: %f",face_node_number0, face_vertex.Normal.z);
+			 //printf("\n-----------------------------------------");
+		 }
+
+		 // ====== INDEX DATA ======
+		 //  Indices for each mesh will be 0, 1, 2 for a triangle, based on the order of the index_data (connectivity)
+	 	 vector<GLuint> face_indices;			// stores the index data
+		 face_indices.resize(0);				// clear an existing face_indices vector
+		 face_indices.reserve(num_faceindex_elems);	// set the size of the indices
+		 //printf("\n============== FACE INDEX POSITION ==============================");
+		 for(int j=0; j<num_faceindex_elems;j++)
+		 {
+			 face_indices.push_back(j);
+			 //printf("\nFace #: %i  -- Array:  %i,  indices: %i",f,j,j);
+		 }
+
+		 // ====== FRAGMENT DATA ======
+		 // record textures
+	 	 // Loop through the texture information (if present)
+		 int k_max = (sizeof(texture_files)/sizeof(string));
+		 vector<TextureData> face_textures;		// stores the texture data
+		 face_textures.resize(0);				// clear previous face_texture arrays
+		 face_textures.reserve(k_max);			// resize the array based on the number of elements
+		 //printf("\n============== FACE TEXTURES ========================");
+		 for (int k = 0; k < k_max; k++)
+		 {
+			 TextureData face_texture;
+			 face_texture.id = k;
+			 face_texture.path = texture_files[k];
+			 face_textures.push_back(face_texture);
+
+			 //printf("\nArray:  %i,  id: %i",k,face_textures[k].id);
+			 //printf("\nArray:  %i,  path: %s",k,face_textures[k].path.c_str());
+		}
+
+
+		// Now create the mesh based on the data that has been read by calling the mesh constructor in mesh.h
+		this->meshes.push_back(Mesh(face_vertices, face_indices, face_textures));
+	 }
 }
 
 // Loads a model with supported extensions from programs such as ASSIMP (not currently installed)
@@ -99,8 +250,8 @@ void ModelManager::processMesh()
 	 // Loop once for each defined face
 	 for(int f=0;f<f_max; f++)
 	 {
-		 printf("\n=================================================================");
-		 printf("\nFace #: %i",f);
+		 //printf("\n=================================================================");
+		 //printf("\nFace #: %i",f);
 		 // =====  VERTEX DATA ========
 		 VertexData face_vertex;
 		 glm::vec3 A, B, C, vAB, vAC, normal_vec ;		// vectors for computing normals
@@ -118,7 +269,7 @@ void ModelManager::processMesh()
 		 vAB = B-A;						// position vector AB
 		 vAC = C-A;						// position vector AC
 		 normal_vec = glm::normalize(glm::cross(vAB,vAC));	// now compute vector AB x AC
-		 printf("\nCross Product --  x: %f   y: %f   z: %f",normal_vec.x, normal_vec.y, normal_vec.z);
+		 //printf("\nCross Product --  x: %f   y: %f   z: %f",normal_vec.x, normal_vec.y, normal_vec.z);
 
 		 for(int k=0; k<num_faceindex_elems;k++) // loop through each of the index elements
 		 {
@@ -155,12 +306,11 @@ void ModelManager::processMesh()
 	 	 vector<GLuint> face_indices;			// stores the index data
 		 face_indices.resize(0);				// clear an existing face_indices vector
 		 face_indices.reserve(num_faceindex_elems);	// set the size of the indices
-		 // indices
-		 printf("\n============== FACE INDEX POSITION ==============================");
+		 //printf("\n============== FACE INDEX POSITION ==============================");
 		 for(int j=0; j<num_faceindex_elems;j++)
 		 {
 			 face_indices.push_back(j);
-			 printf("\nFace #: %i  -- Array:  %i,  indices: %i",f,j,j);
+			 //printf("\nFace #: %i  -- Array:  %i,  indices: %i",f,j,j);
 		 }
 
 		 // ====== FRAGMENT DATA ======
@@ -170,7 +320,7 @@ void ModelManager::processMesh()
 		 vector<TextureData> face_textures;		// stores the texture data
 		 face_textures.resize(0);				// clear previous face_texture arrays
 		 face_textures.reserve(k_max);			// resize the array based on the number of elements
-		 printf("\n============== FACE TEXTURES ========================");
+		 //printf("\n============== FACE TEXTURES ========================");
 		 for (int k = 0; k < k_max; k++)
 		 {
 			 TextureData face_texture;
@@ -178,8 +328,8 @@ void ModelManager::processMesh()
 			 face_texture.path = texture_files[k];
 			 face_textures.push_back(face_texture);
 
-			 printf("\nArray:  %i,  id: %i",k,face_textures[k].id);
-			 printf("\nArray:  %i,  path: %s",k,face_textures[k].path.c_str());
+			 //printf("\nArray:  %i,  id: %i",k,face_textures[k].id);
+			 //printf("\nArray:  %i,  path: %s",k,face_textures[k].path.c_str());
 		}
 
 

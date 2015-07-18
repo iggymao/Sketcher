@@ -60,7 +60,7 @@ public:
 	GLuint GetMeshID() {return MeshID;}					// retrieves the Mesh's ID number
 //	void SetMeshID(GLuint id_num) {this->MeshID = id_num;}	// stores the Mesh's ID number
 
-	void Draw() 
+	void Draw(int draw_type) 
     {
 		
 		//GLuint shader_program = shader.ShaderProgramID;
@@ -90,8 +90,11 @@ public:
 
         // Draw mesh
         glBindVertexArray(this->VAO);
-        glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
+
+//		glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(draw_type, this->indices.size(), GL_UNSIGNED_INT, 0);
+
+		glBindVertexArray(0);
 
         //// Always good practice to set everything back to defaults once configured.
         //for (GLuint i = 0; i < this->textures.size(); i++)
@@ -135,15 +138,15 @@ private:
         // Vertex Colors
         glEnableVertexAttribArray(1);	
         glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(VertexData), (GLvoid*)offsetof(VertexData, Color));
-		printf("\nColor Offset: %i",offsetof(VertexData, Color));
+		//printf("\nColor Offset: %i",offsetof(VertexData, Color));
 		// Vertex Texture Coords
         glEnableVertexAttribArray(2);	
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(VertexData), (GLvoid*)offsetof(VertexData, TexCoords));
-		printf("\nColor Offset: %i",offsetof(VertexData, TexCoords));
+		//printf("\nColor Offset: %i",offsetof(VertexData, TexCoords));
 		// Vertex Normals
         glEnableVertexAttribArray(3);	
         glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(VertexData), (GLvoid*)offsetof(VertexData, Normal));
-		printf("\nColor Offset: %i",offsetof(VertexData, Normal));
+		//printf("\nColor Offset: %i",offsetof(VertexData, Normal));
 
 		glBindVertexArray(0); // clear the VAO
 	}

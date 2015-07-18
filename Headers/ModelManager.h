@@ -10,10 +10,13 @@
 
 #include "../Headers/Mesh.h"
 #include "../Headers/Shader.h"
+
+#define MODEL_LOAD_MODEL		0		// an integer to tell the model manager to load from the model
+#define MODEL_LOAD_GRID			1		// an integer to tell the model manager to create a grid system
+#define MODEL_LOAD_COORDSYS		2		// an integer to tell the model manager to create the coordinate symbols
+
 // forward declarations
-//struct VolumeInfo;			// found in Volume.h
-//class Volume;				// found in Volume.h
-//class Mesh;
+
 
 /*
 struct ModelInfo
@@ -40,8 +43,8 @@ struct ModelInfo
 class ModelManager
 {
 public:
-	ModelManager();	// constructor
-	void Draw(Shader ourShader);  // draws the model, and thus all its meshes.
+	ModelManager(int model_type);	// constructor
+	void Draw(Shader ourShader, int GL_drawtype);  // draws the model, and thus all its meshes.
 
 private:
 	/* Model Data */
@@ -53,6 +56,8 @@ private:
 	void loadModel();		// load a model from source programs / prerendered mesh info
 	void processNode();		// Processes a node in a recursive fashion.  Processes each individual mesh at the node and repeats the process.
 	void processMesh();		// Processes the mesh's data
+
+	void loadGrid();		// loads a line segment to represent the grid system
 
 	// void Destroy();		// destroy the model manager
 };
