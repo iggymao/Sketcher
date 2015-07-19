@@ -92,6 +92,7 @@
     <ClInclude Include="Headers\Application.h" />
     <ClInclude Include="Headers\AppWindow.h" />
     <ClInclude Include="Headers\Camera.h" />
+    <ClInclude Include="Headers\Cursor.h" />
     <ClInclude Include="Headers\GraphicsManager.h" />
     <ClInclude Include="Headers\LogManager.h" />
     <ClInclude Include="Headers\Main.h" />
@@ -101,6 +102,7 @@
     <ClInclude Include="Headers\ShaderManager.h" />
     <ClInclude Include="Headers\WindowManager.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="utils\MathUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc" />
@@ -109,6 +111,7 @@
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="Source\ApplicationFramework.cpp" />
     <ClCompile Include="Source\AppWindow.cpp" />
+    <ClCompile Include="Source\Cursor.cpp" />
     <ClCompile Include="Source\GraphicsManager.cpp" />
     <ClCompile Include="Source\LogManager.cpp" />
     <ClCompile Include="Source\Main.cpp" />

@@ -3,17 +3,15 @@
 
 #include <vector>
 
-
-
 #include <GL\glew.h>					// Used for the OpenGL types like GLuint  
 #include <GLFW/glfw3.h> 
 
 #include "../Headers/Mesh.h"
 #include "../Headers/Shader.h"
 
-#define MODEL_LOAD_MODEL		0		// an integer to tell the model manager to load from the model
-#define MODEL_LOAD_GRID			1		// an integer to tell the model manager to create a grid system
-#define MODEL_LOAD_COORDSYS		2		// an integer to tell the model manager to create the coordinate symbols
+const int MODEL_LOAD_MODEL		= 0;		// an integer to tell the model manager to load from the model
+const int MODEL_LOAD_GRID		= 1;		// an integer to tell the model manager to create a grid system
+const int MODEL_LOAD_COORDSYS	= 2;		// an integer to tell the model manager to create the coordinate symbols
 
 // forward declarations
 

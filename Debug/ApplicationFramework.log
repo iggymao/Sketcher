@@ -1,4 +1,4 @@
-﻿Build started 7/17/2015 10:10:45 PM.
+﻿Build started 7/19/2015 1:38:20 AM.
      1>Project "C:\Programming\ApplicationFramework\ApplicationFramework\ApplicationFramework.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\ApplicationFramework.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -8,7 +8,8 @@
          All outputs are up-to-date.
          C:\Program Files\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I"C:\opengl-wrappers\soil\lib" /IC:\Programming\ApplicationFramework\ApplicationFramework\Lib\soil\lib /I"C:\opengl-wrappers\glfw\include" /I"C:\opengl-wrappers\glew\include" /AI"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0" /Zi /clr /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D GLEW_STATIC /D _UNICODE /D UNICODE /EHa /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\ApplicationFramework.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /TP /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Core.dll" /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Data.dll" /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.dll" /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Drawing.dll" /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Windows.Forms.dll" /FU"C:\Program Files\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\System.Xml.dll" /analyze- /errorReport:prompt Source\GraphicsManager.cpp /clr:nostdlib 
          GraphicsManager.cpp
-     1>Source\GraphicsManager.cpp(351): warning C4244: 'initializing' : conversion from 'double' to 'GLfloat', possible loss of data
+         GLM: perspective function taking degrees as a parameter is deprecated. #define GLM_FORCE_RADIANS before including GLM headers to remove this message.
+         GLM: rotate function taking degrees as a parameter is deprecated. #define GLM_FORCE_RADIANS before including GLM headers to remove this message.
          All outputs are up-to-date.
        ResourceCompile:
          All outputs are up-to-date.
@@ -17,6 +18,7 @@
          Debug\AssemblyInfo.obj
          Debug\ApplicationFramework.obj
          Debug\AppWindow.obj
+         Debug\Cursor.obj
          Debug\GraphicsManager.obj
          Debug\LogManager.obj
          Debug\Main.obj
@@ -41,4 +43,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:35.17
+Time Elapsed 00:00:32.69

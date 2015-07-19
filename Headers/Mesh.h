@@ -48,7 +48,7 @@ public:
 	Mesh(vector<VertexData> vertices, vector<GLuint> indices, vector<TextureData> textures)
 	{
 		MeshID = next_mesh_id();
-		printf("\nMesh::next_id++ %i",Mesh::next_id);
+//		printf("\nMesh::next_id++ %i",Mesh::next_id);
 
 		this->vertices = vertices;
 		this->indices = indices;

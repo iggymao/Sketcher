@@ -11,29 +11,39 @@
 #include "../Headers/Shader.h"
 #include "../Headers/SOIL.h"			// include the soil image loader based on stb_image for texture loading
 
+
 // GLM Mathematics
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "../utils/MathUtils.h"
+#include "../Headers/Cursor.h"
+
+
 // forward declaration
 class GraphicsManager;  // forward declare the graphics manager class
+class Cursor;			// forward declare the cursor class
 
 // Function prototypes
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void mouse_click_callback(int b, int s, int mouse_x, int mouse_y);
 void Do_Movement();
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
 
 // Camera
-Camera camera(glm::vec3(-0.75f, 3.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 bool keys[1024];
 GLfloat lastX = WIDTH / 2.0;
 GLfloat lastY = HEIGHT / 2.0;
 bool firstMouse = true;
+
+// Cursor intialization
+Cursor cursor(glm::vec3(0.0f,0.0f,0.0f));
 
 // Light attributes
 bool IsPausedLight = true;
@@ -256,8 +266,13 @@ int GraphicsManager::LaunchOpenGL()
 }
 void GraphicsManager::Draw()
 {
+	// Create our cursor -- requires an OPENGL context for this step
+	// This is probably better suited in an intitialize function or constructor somewhere
+	cursor.loadCursor();		// initialize a cursor object for storing cursor information to be used by the graphics manager
+
 	Shader ourShader("Shaders/DefaultShader.vertex", "Shaders/DefaultShader.fragment");
 	Shader lightsourceShader("Shaders/ShaderLighting.vertex", "Shaders/ShaderLighting.fragment");
+	Shader cursorShader("Shaders/DefaultShader.vertex", "Shaders/DefaultShader.fragment");
 
 	ModelManager gridModel(MODEL_LOAD_GRID); // Loads the drawing grid
 	ModelManager ourModel(MODEL_LOAD_MODEL); // Loads the model elements
@@ -320,8 +335,12 @@ void GraphicsManager::Draw()
 		// Camera/View transformation
         glm::mat4 view;	// sets an indentity matrix in view
         view = camera.GetViewMatrix();
-		glm::mat4 projection = glm::perspective(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);  
-		
+
+	//	glm::mat4 projection = glm::perspective(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);  
+		camera.SetProjectionMatrix(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);
+		glm::mat4 projection;  
+		projection = camera.GetProjectionMatrix();
+
 		// Get the uniform locations
         GLint modelLoc = glGetUniformLocation(ourShader.Program, "model");
         GLint viewLoc  = glGetUniformLocation(ourShader.Program, "view");
@@ -344,13 +363,15 @@ void GraphicsManager::Draw()
 		{
 			for (GLuint j = 0; j<2;j++)
 			{
-				for (GLuint i = 0; i < 40; i++)
+				for (GLuint i = 0; i < 80; i++)
 				{
 					// Calculate the model matrix for each object and pass it to shader before drawing
 					glm::mat4 model;
-					GLfloat angle = 90.0f * (3.14159 / 180.0) * j;
-					model = glm::rotate(model, angle, glm::vec3(0.0f, 1.0f, 0.0f));
-					model = glm::translate(model, glm::vec3(0.0f, 0.0f, -2.0+0.1*i));
+					GLfloat angle = (GLfloat)(90.0f * (3.14159 / 180.0) * j);
+//					printf("\nAngle:  %f", angle);
+//					model = glm::rotate(model, angle, glm::vec3(0.0f, 1.0f, 0.0f));
+					model = glm::rotate(model, 90.0f*j, glm::vec3(0.0f, 1.0f, 0.0f));
+					model = glm::translate(model, glm::vec3(0.0f, 0.0f, -4.0+0.1*i));
 
 					glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 					gridModel.Draw(ourShader, GL_LINES);
@@ -380,6 +401,11 @@ void GraphicsManager::Draw()
         glUniformMatrix4fv(lightmodelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
 		ourModel.Draw(lightsourceShader, GL_TRIANGLES);
+
+		/////////////////////////////// Draw the cursor /////////////////////////////////
+		cursorShader.Use();
+		cursor.DrawCursor(MyWinInfo->main_win_width, MyWinInfo->main_win_height, cursorShader, camera, GL_TRIANGLES);
+
 
         // Swap the screen buffers
         glfwSwapBuffers(MyWinInfo->MainWindow);
@@ -544,7 +570,6 @@ void Do_Movement()
 	        camera.ProcessKeyboard(BACKWARD, deltaTime);
 		if(keys[GLFW_KEY_W])
 	        camera.ProcessKeyboard(FORWARD, deltaTime);
-
 	}
 }
 
@@ -566,6 +591,33 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	    lastY = (GLfloat) ypos;
 
 		camera.ProcessMouseMovement(xoffset, yoffset);
+	} else {
+		// set up for the ray casting calculation which projects a ray through the camera
+		// and to the point clicked in the window (specified by xpos, ypos)
+		printf("\nMouse position -- x: %f     y: %f",xpos, ypos);  // print mouse click location if the camera is disabled
+		float x = (float)((2.0f * xpos) / WIDTH - 1.0f);
+		float y = (float)(1.0f - (2.0f * ypos) / HEIGHT);
+		float z = (float)(1.0f);
+		glm::vec3 ray_nds = glm::vec3 (x, y, z);									// normalized device coords
+		glm::vec4 ray_clip = glm::vec4 (ray_nds.x, ray_nds.y, -1.0, 1.0);			// homogeneous clip coords (reverse the z-direction)
+		glm::vec4 ray_eye = glm::inverse (camera.GetProjectionMatrix()) * ray_clip;	// eye camera coordinates
+		ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0f, 0.0f);
+		glm::vec4 ray_wor_temp = (glm::inverse (camera.GetViewMatrix()) * ray_eye);	// 4D world coordinates
+		glm::vec3 ray_wor = glm::normalize(glm::vec3(ray_wor_temp.x, ray_wor_temp.y, ray_wor_temp.z));
+		printf("\nRay Cast Vector -- length: %f -- x: %f   y: %f   z: %f", glm::length(ray_wor), ray_wor.x, ray_wor.y, ray_wor.z); 
+		printf("\nCamera Position -- x: %f   y: %f   z: %f", camera.Position.x, camera.Position.y, camera.Position
+			.z); 
+
+//		glm::vec3 intersect_point = ray_intersect_plane(camera.Position, ray_wor, X_PLANE);
+//		printf("\nX-plane intersect -- x: %f   y: %f   z: %f", intersect_point.x, intersect_point.y, intersect_point.z); 
+//		intersect_point = ray_intersect_plane(camera.Position, ray_wor, Y_PLANE);
+//		printf("\nY-plane intersect -- x: %f   y: %f   z: %f", intersect_point.x, intersect_point.y, intersect_point.z); 
+		
+		// The Y-plane switch is used here to keep the curse in the XZ plane.
+		glm::vec3 intersect_point = ray_intersect_plane(camera.Position, ray_wor, Y_PLANE);
+		printf("\nZ-plane intersect -- x: %f   y: %f   z: %f", intersect_point.x, intersect_point.y, intersect_point.z); 
+		cursor.SetWorldCoords(intersect_point);  // store the intersect point with the specified plane from the ray-cast
+		cursor.SetRayCast(ray_wor);				// store the ray in the cursor
 	}
 }
 

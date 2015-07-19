@@ -1,3 +1,6 @@
+#ifndef _Camera_H
+#define _Camera_H
+
 // Std. Includes
 #include <vector>
 
@@ -5,8 +8,6 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
-
 
 // Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
 enum Camera_Movement {
@@ -72,6 +73,12 @@ public:
         return glm::lookAt(this->Position, this->Position + this->Front, this->Up);
     }
 
+	void SetProjectionMatrix(GLfloat FoV, GLfloat aspect_ratio, GLfloat near_clip, GLfloat far_clip)
+	{
+		this->projection_matrix = glm::perspective(FoV, aspect_ratio, near_clip, far_clip);
+	}
+	glm::mat4 GetProjectionMatrix() {return this->projection_matrix;}
+
     // Processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
     void ProcessKeyboard(Camera_Movement direction, GLfloat deltaTime)
     {
@@ -120,6 +127,7 @@ public:
     }
 
 private:
+	glm::mat4 projection_matrix;	// stores a current projection matrix for the current camera setting
     // Calculates the front vector from the Camera's (updated) Eular Angles
     void updateCameraVectors()
     {
@@ -134,3 +142,5 @@ private:
         this->Up    = glm::normalize(glm::cross(this->Right, this->Front));
     }
 };
+
+#endif

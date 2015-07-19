@@ -5,8 +5,16 @@
 #include <string>
 #include <GL/glew.h>   
 #include <GLFW/glfw3.h> 
-#include "../Headers/ShaderManager.h"
+// GLM Mathematics
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+//#include "../Headers/ShaderManager.h"
 #include "../Headers/ModelManager.h"
+//#include "../utils/MathUtils.h"
+
+
 
 struct MainWinInfo{
 	GLFWwindow *MainWindow;		// pointer for the main window object

@@ -11,6 +11,8 @@
 #include "../Headers/ModelManager.h"
 #include "../Headers/Mesh.h"
 
+//#include "../utils/MathUtils.h"			// generic math functions
+
 class Mesh;			// forward declaration
 
 ModelManager::ModelManager(int model_type)
@@ -112,6 +114,10 @@ void ModelManager::loadGrid()
 		 vAC = C-A;						// position vector AC
 		 normal_vec = glm::normalize(glm::cross(vAB,vAC));	// now compute vector AB x AC
 		 //printf("\nCross Product --  x: %f   y: %f   z: %f",normal_vec.x, normal_vec.y, normal_vec.z);
+
+//		 GLfloat temp_area = area_3P(A,B,C);
+//		 printf("\nArea:  %f", temp_area);
+//		 printf("\n0,0,-0.5f inside triangle? %b",point_inside_triangle(glm::vec3(0.0f,0.0f,-0.5f), A, B, C));
 
 		 for(int k=0; k<num_faceindex_elems;k++) // loop through each of the index elements
 		 {
@@ -270,6 +276,10 @@ void ModelManager::processMesh()
 		 vAC = C-A;						// position vector AC
 		 normal_vec = glm::normalize(glm::cross(vAB,vAC));	// now compute vector AB x AC
 		 //printf("\nCross Product --  x: %f   y: %f   z: %f",normal_vec.x, normal_vec.y, normal_vec.z);
+
+//		 GLfloat temp_area = area_3P(A,B,C);
+//		 printf("\nArea:  %f", temp_area);
+//		 printf("\n0,0,0.5f inside triangle? %i",point_inside_triangle(glm::vec3(0.0f,0.0f,0.5f), A, B, C));
 
 		 for(int k=0; k<num_faceindex_elems;k++) // loop through each of the index elements
 		 {
