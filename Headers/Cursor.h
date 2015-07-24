@@ -32,26 +32,26 @@ public:
 		IsActiveCursorSnap = false;
 		draw_type = GL_TRIANGLES;
 
-		MakeCursorModel(); 
-//		setMeshData();
-//		setMeshData(this->vertices, this->indices, this->textures);  // sets the mesh data and creates the VAO and VBO in Mesh2
+		MakeCursorModel();
+		CreateBoundingBox(this->meshes);
 	}
 	CCursor(const CCursor & rhs) { ;}		// copy constructor
 
 	// deconstructor
 	~CCursor() { 
 		for(GLuint i=0;i<meshes.size();i++)
+		{
+			printf("\nDestroying cursor mesh #: %i",i);
 			delete meshes[i];
+			meshes[i]=0;			// set the meshes pointer to 0;
+		}
 	}						
 
 //	GLuint draw_type;					// stores the draw_type GL_LINES, GL_TRIANGLES, etc.
 	bool IsActiveCursorSnap;			// a bool to tell us the cursor snap is active
 
 	void MakeCursorModel();				// create the data for the cursor model
-
-	//	void loadCursor();					// loads the graphic for the cursor
-	//	void setupCursor(int width, int height, Shader shader, Camera camera, int draw_type);	// loads the initial values for the cursor
-	//	void DrawCursor(int width, int height, Shader shader, Camera camera, int draw_type);  // draws the model, and thus all its meshes.
+	void CreateBoundingBox(vector<Mesh2*> temp);			// creates a bounding box for the object based on the read in vertex data
 
 	void Draw()
 	{    
@@ -78,6 +78,7 @@ public:
 	
 private:
 	vector<Mesh2*> meshes;				// stores the known face meshes for this model
+	vector<glm::vec3> boundary;			// stores the six planes that define a cube around a drawing object
 
 	GLfloat SnapValueX;					// a variable to store the snap value in X direction
 	GLfloat SnapValueY;					// a variable to store the snap value in Y direction

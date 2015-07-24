@@ -44,16 +44,20 @@ GLfloat lastY = HEIGHT / 2.0;
 bool firstMouse = true;
 
 // Cursor intialization
-//Cursor cursor(glm::vec3(0.0f,0.0f,0.0f));
+CCursor *cursor = 0;
+//CCursor *cursor = new CCursor(glm::vec3(0.0f, 0.0f, 0.0f));		// create a new cursor
+//CCursor *CursorObj = cursor;												// store the object in the graphics manager
+
+// Grid attributes
+CGrid *gridLine = 0;
+//CGrid *GridLine = new CGrid(30, 0.1f, 40, 0.1f);
+//CGrid *DrawingGridLine = GridLine;		// storing the gridline in our graphics manager
+bool IsActiveGridToggle = true;
 
 // Light attributes
 bool IsPausedLight = true;
 glm::vec3 lightPos(0.0f, 2.0f, 0.0f);  // a default light source position
 //glm::vec3 lightPos(1.2f, 1.0f, 2.0f);  // a default light source position
-
-// Grid attributes
-bool IsActiveGridToggle = true;
-
 
 // Deltatime
 GLfloat deltaTime = 0.0f;			// time between current frame and last frame
@@ -278,18 +282,15 @@ void GraphicsManager::Draw()
 
 	// Create our cursor -- requires an OPENGL context for this step
 	// This is probably better suited in an intitialize function or constructor somewhere
-	if(!IsCreatedCursor == true)
-	{
-		CCursor *cursor = new CCursor(glm::vec3(0.0f, 0.0f, 0.0f));		// create a new cursor
-		CursorObj = cursor;												// store the object in the graphics manager
-////		cursor.setupCursor(MyWinInfo->main_win_width, MyWinInfo->main_win_height, cursorShader, camera, GL_TRIANGLES);	// sets the initial cursor values
-////		cursor.loadCursor();	// initialize a cursor object for storing cursor information to be used by the graphics manager
-	}
+	cursor = new CCursor(glm::vec3(0.0f, 0.0f, 0.0f));		// create a new cursor
+	CursorObj = cursor;										// store the object in the graphics manager
 
 	// Create the main drawing grid line
-//	CGrid *GridLine = new CGrid(30, CursorObj->GetSnap().x, 40, CursorObj->GetSnap().z);
-	CGrid *GridLine = new CGrid(30, 0.1f, 40, 0.1f);
-	DrawingGridLine = GridLine;		// storing the gridline in our graphics manager
+//	if(!DrawingGridLine)
+//	{
+		gridLine = new CGrid(30, 0.1f, 40, 0.1f);
+		DrawingGridLine = gridLine;											// storing the gridline in our graphics manager
+//	}
 
     // Game loop
     while (!glfwWindowShouldClose(MyWinInfo->MainWindow))
@@ -394,7 +395,6 @@ void GraphicsManager::Draw()
 			//}
 		}	
 
-		
 		/////////////////////////////// 
 		//       Draw the cursor     //
 		///////////////////////////////
@@ -404,7 +404,7 @@ void GraphicsManager::Draw()
 
 		// cursorShader.Use();
 		model = glm::mat4();
-		model = glm::translate(model, glm::vec3(1.0f, 1.0f,1.0f));
+		model = glm::translate(model, glm::vec3(CursorObj->GetWorldCoords().x, CursorObj->GetWorldCoords().y,CursorObj->GetWorldCoords().z));
 		model = glm::scale(model, glm::vec3(0.05f));
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
@@ -523,10 +523,14 @@ void GraphicsManager::Draw()
 void GraphicsManager::Destroy()
 {
 	printf("\nINCOMPLETE:  Destroying the Graphics Manager");
+	printf("\nDeleting CursorObj in GraphicsManager class");
 	delete CursorObj;
+	printf("\nDeleting DrawingGridLine in GraphicsManager class");
 	delete DrawingGridLine;
     //Finalize and clean up GLFW  
+	printf("\nTerminating GLFW and OpenGL context");
     glfwTerminate(); 
+	printf("\nDeleting the main drawing window in GraphicsManager class");
 	delete MyWinInfo;
 }
 
@@ -566,20 +570,20 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		}
 	}
 
-/*
+
 	// Active the cursor snap
 	if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
 	{
-		if (IsActiveCursorSnap)
+		if (cursor->IsActiveCursorSnap)
 		{
 			printf("\nSnap is off...");
-			IsActiveCursorSnap = false;
+			cursor->IsActiveCursorSnap = false;
 		} else {
 			printf("\nSnap is on...");
-			IsActiveCursorSnap = true;
+			cursor->IsActiveCursorSnap = true;
 		}
 	}
-*/
+
 	// Toggle the grid display
 	if (key == GLFW_KEY_F2 && action == GLFW_PRESS)
 	{
@@ -669,27 +673,23 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 		glm::vec3 intersect_point = ray_intersect_plane(camera.Position, ray_wor, Y_PLANE);
 		printf("\nZ-plane intersect -- x: %f   y: %f   z: %f", intersect_point.x, intersect_point.y, intersect_point.z); 
 
-
-/*
-		cursor.SetRayCast(ray_wor);				// store the ray in the cursor
+		cursor->SetRayCast(ray_wor);				// store the ray in the cursor
 
 		// For a Z-Plane snap
-		if(IsActiveCursorSnap)
+		if(cursor->IsActiveCursorSnap)
 		{
 			// store the intersect point rounded down to the nearest snap value
-			GLfloat new_x = intersect_point.x-fmod(intersect_point.x, cursor.GetSnap().x);
-			GLfloat new_y = intersect_point.y-fmod(intersect_point.y, cursor.GetSnap().y);
-			GLfloat new_z = intersect_point.z-fmod(intersect_point.z, cursor.GetSnap().z);
+			GLfloat new_x = intersect_point.x-fmod(intersect_point.x, cursor->GetSnap().x);
+			GLfloat new_y = intersect_point.y-fmod(intersect_point.y, cursor->GetSnap().y);
+			GLfloat new_z = intersect_point.z-fmod(intersect_point.z, cursor->GetSnap().z);
 			//printf("\nSnapValue: x:%f	y:%f	z:%f ",cursor.GetSnap().x,cursor.GetSnap().y,cursor.GetSnap().z);   
 			//printf("-- x: %f    y: %f    z: %f", new_x, new_y, new_z);
-			cursor.SetWorldCoords(glm::vec3(new_x, new_y, new_z));
+			cursor->SetWorldCoords(glm::vec3(new_x, new_y, new_z));
 		} else 
 		{
 			// store the intersect point with the specified plane from the ray-cast
-			cursor.SetWorldCoords(intersect_point);
+			cursor->SetWorldCoords(intersect_point);
 		}
-*/
-
 	}
 }
 
