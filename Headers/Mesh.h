@@ -14,8 +14,8 @@ using namespace std;
 #include <GL\glew.h>									// Used for the OpenGL types like GLuint
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "../Headers/ShaderManager.h"					// Include the shader manager for the ShaderInfo class
-
+//#include "../Headers/ShaderManager.h"					// Include the shader manager for the ShaderInfo class
+#include "../Headers/Shader.h"
 
 // vertex data assigned to a given mesh
 struct VertexData {
@@ -27,7 +27,7 @@ struct VertexData {
 
 // texture data assigned to a given mesh
 struct TextureData {
-	GLuint id;
+	GLint id;
 	string path;
 };
 
@@ -37,6 +37,114 @@ struct TextureData {
 //	GLuint id;
 //	glm::ivec3 Index_value;
 //};
+
+class Mesh2
+{
+public:
+	static GLuint next_mesh_id(){  next_id++; 	return next_id;	} 	// to obtain the next mesh number
+
+	/* Functions */
+	// constructor
+	Mesh2() {
+		printf("\nMesh2 constructor.");
+		//MeshID = next_mesh_id();
+	}
+	Mesh2(vector<VertexData> vert, vector<GLuint> ind, vector<TextureData> tex)
+	{
+		MeshID = next_mesh_id();
+		printf("\nMesh::next_id++ %i",Mesh2::next_id);
+		printf("\nSetting mesh for cursor....");
+		this->vertices = vert;
+		this->indices = ind;
+		this->textures = tex;
+		this->setupMesh();
+	}
+
+	// copy constructor
+	Mesh2(const Mesh2 & rhs) { }
+
+	// deconstructor
+	~Mesh2() { }
+
+	void setMeshData() {
+		printf("\nSetting Data....");
+		MeshID = next_mesh_id();
+	}
+	void setMeshData(vector<VertexData> vert, vector<GLuint> ind, vector<TextureData> tex)
+	{
+		MeshID = next_mesh_id();
+		this-> vertices = vert;
+		this-> indices = ind;
+		this-> textures = tex;
+
+		this->setupMesh();
+	}
+
+	GLuint GetMeshID() {return MeshID;}					// retrieves the Mesh's ID number
+//	void SetMeshID(GLuint id_num) {this->MeshID = id_num;}	// stores the Mesh's ID number
+
+	void Draw(GLuint draw_type) {
+////		printf("\nDrawing Mesh2.");
+//        glBindVertexArray(this->VAO);
+////		glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
+//		glDrawElements(draw_type, this->indices.size(), GL_UNSIGNED_INT, 0);
+//
+//		glBindVertexArray(0);
+	}
+
+	GLuint draw_type;		// a marker for the type of opengl drawing to be done...GL_LINES, GL_TRIANGLES, etc..
+
+// need tom make this protected somehow
+public:
+	GLuint MeshID;			// A number to reference the meshID once they are created
+	static GLuint next_id;
+
+	/* Mesh Data */
+	vector<VertexData> vertices;
+	vector<GLuint> indices;
+	vector<TextureData> textures;
+	/* Render data */
+	GLuint VAO, VBO, EBO, IBO;
+	/* Functions */
+	void setupMesh() 
+	{
+//		printf("\nInside Mesh2 setupMesh.");
+			// Create buffers/arrays
+        glGenVertexArrays(1, &this->VAO);
+        glGenBuffers(1, &this->VBO);
+        glGenBuffers(1, &this->EBO);
+        glBindVertexArray(this->VAO);
+        // Load data into vertex buffers
+        glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+        // A great thing about structs is that their memory layout is sequential for all its items.
+        // The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which
+        // again translates to 3/2 floats which translates to a byte array.
+		glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(VertexData), &this->vertices[0], GL_STATIC_DRAW);  
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(GLuint), &this->indices[0], GL_STATIC_DRAW);
+        // Set the vertex attribute pointers
+        // Vertex Positions
+        glEnableVertexAttribArray(0);	
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexData), (GLvoid*)0);
+        // Vertex Colors
+        glEnableVertexAttribArray(1);	
+        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(VertexData), (GLvoid*)offsetof(VertexData, Color));
+		//printf("\nColor Offset: %i",offsetof(VertexData, Color));
+		// Vertex Texture Coords
+        glEnableVertexAttribArray(2);	
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(VertexData), (GLvoid*)offsetof(VertexData, TexCoords));
+		//printf("\nColor Offset: %i",offsetof(VertexData, TexCoords));
+		// Vertex Normals
+        glEnableVertexAttribArray(3);	
+        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(VertexData), (GLvoid*)offsetof(VertexData, Normal));
+		//printf("\nColor Offset: %i",offsetof(VertexData, Normal));
+
+		glBindVertexArray(0); // clear the VAO
+	}
+
+};  // end class
+
+
 
 // The Mesh class to handle initializing, rendering and destroying of a 3D object
 class Mesh

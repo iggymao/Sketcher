@@ -42,7 +42,8 @@ class ModelManager
 {
 public:
 	ModelManager(int model_type);	// constructor
-	void Draw(Shader ourShader, int GL_drawtype);  // draws the model, and thus all its meshes.
+
+	void Draw(Shader ourShader, int GL_drawtype);  // draws the model, and thus all its meshes
 
 private:
 	/* Model Data */
@@ -55,7 +56,7 @@ private:
 	void processNode();		// Processes a node in a recursive fashion.  Processes each individual mesh at the node and repeats the process.
 	void processMesh();		// Processes the mesh's data
 
-	void loadGrid();		// loads a line segment to represent the grid system
+//	void loadGrid();		// loads a line segment to represent the grid system
 
 	// void Destroy();		// destroy the model manager
 };

@@ -10,11 +10,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-//#include "../Headers/ShaderManager.h"
+#include "../Headers/ShaderManager.h"
 #include "../Headers/ModelManager.h"
-//#include "../utils/MathUtils.h"
-
-
+#include "../Headers/DrawingShapes.h"
+#include "../Headers/Cursor.h"
 
 struct MainWinInfo{
 	GLFWwindow *MainWindow;		// pointer for the main window object
@@ -28,11 +27,20 @@ struct MainWinInfo{
 class GraphicsManager
 {
 public:
+	GraphicsManager() {
+		IsCreatedCursor = false;
+	
+	}
+	GraphicsManager(const GraphicsManager & rhs) { ;}	// copy constructor
 	~GraphicsManager() { Destroy();}
+
 
 	MainWinInfo *MyWinInfo;				// structure containing the main window information
 	ShaderManager *MyShaderManagerInfo;	// class containing the shader manager info
 	ModelManager *MyModelManagerInfo;
+
+	CGrid *DrawingGridLine;		// The main drawing grid object
+	CCursor *CursorObj;			// The main cursor for the drawing window
 
 	void Initialize();			// Starts the graphics manager
 	void Draw();				// a basic draw routine controlled by the graphics manager
@@ -46,7 +54,9 @@ public:
 	//void Do_movement();
 
 	bool IsLoadedOpenGL;		// a variable to let us know that OpenGL has been successfully loaded.
+	bool IsCreatedCursor;				// a bool to tell us the cursor has been loaded
 
+	GLfloat snap_value;			// a variable to store the snap_value for drafting
 	void Destroy();
 };
 

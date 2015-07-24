@@ -14,7 +14,9 @@ enum Camera_Movement {
     FORWARD,
     BACKWARD,
     LEFT,
-    RIGHT
+    RIGHT,
+	UPWARD,
+	DOWNWARD
 };
 
 // Default camera values
@@ -91,6 +93,15 @@ public:
             this->Position -= this->Right * velocity;
         if (direction == RIGHT)
             this->Position += this->Right * velocity;
+		if (direction == UPWARD)
+            this->Position += this->WorldUp * velocity;
+		if (direction == DOWNWARD)
+		{
+			//printf("\nWorldUp coords -- x: %f  y: %f  z: %f",this->WorldUp.x*velocity, this->WorldUp.y*velocity, this->WorldUp.z*velocity);
+			
+			// Multipluing vector by 2.0 because the SPACEBAR also triggers an upward movement (with or without the SHIFT key)
+            this->Position -= glm::vec3(2.0f*this->WorldUp.x*velocity, 2.0f*this->WorldUp.y*velocity, 2.0f*this->WorldUp.z*velocity);
+		}
     }
 
     // Processes input received from a mouse input system. Expects the offset value in both the x and y direction.

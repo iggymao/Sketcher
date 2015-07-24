@@ -1,8 +1,9 @@
 #include "stdafx.h"
 #include <iostream>
+#include <math.h>
 // GLEW
 #include <GL/glew.h>
-
+ 
 // GLFW
 #include <GLFW/glfw3.h>
 #include "../Headers/GraphicsManager.h"
@@ -10,7 +11,7 @@
 #include "../Headers/ShaderManager.h"
 #include "../Headers/Shader.h"
 #include "../Headers/SOIL.h"			// include the soil image loader based on stb_image for texture loading
-
+#include "../Headers/DrawingShapes.h"	// include the drawing shapes definitions
 
 // GLM Mathematics
 #include <glm/glm.hpp>
@@ -23,7 +24,7 @@
 
 // forward declaration
 class GraphicsManager;  // forward declare the graphics manager class
-class Cursor;			// forward declare the cursor class
+//class Cursor;			// forward declare the cursor class
 
 // Function prototypes
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -43,7 +44,7 @@ GLfloat lastY = HEIGHT / 2.0;
 bool firstMouse = true;
 
 // Cursor intialization
-Cursor cursor(glm::vec3(0.0f,0.0f,0.0f));
+//Cursor cursor(glm::vec3(0.0f,0.0f,0.0f));
 
 // Light attributes
 bool IsPausedLight = true;
@@ -266,16 +267,29 @@ int GraphicsManager::LaunchOpenGL()
 }
 void GraphicsManager::Draw()
 {
-	// Create our cursor -- requires an OPENGL context for this step
-	// This is probably better suited in an intitialize function or constructor somewhere
-	cursor.loadCursor();		// initialize a cursor object for storing cursor information to be used by the graphics manager
-
+	// Create and load shaders
 	Shader ourShader("Shaders/DefaultShader.vertex", "Shaders/DefaultShader.fragment");
 	Shader lightsourceShader("Shaders/ShaderLighting.vertex", "Shaders/ShaderLighting.fragment");
-	Shader cursorShader("Shaders/DefaultShader.vertex", "Shaders/DefaultShader.fragment");
+	Shader cursorShader("Shaders/ShaderLighting.vertex", "Shaders/ShaderLighting.fragment");
 
-	ModelManager gridModel(MODEL_LOAD_GRID); // Loads the drawing grid
+	// Create and load shape for our model, including gridline objects and the physical assets
 	ModelManager ourModel(MODEL_LOAD_MODEL); // Loads the model elements
+//	ModelManager gridModel(MODEL_LOAD_GRID); // Create the drawing grid
+
+	// Create our cursor -- requires an OPENGL context for this step
+	// This is probably better suited in an intitialize function or constructor somewhere
+	if(!IsCreatedCursor == true)
+	{
+		CCursor *cursor = new CCursor(glm::vec3(0.0f, 0.0f, 0.0f));		// create a new cursor
+		CursorObj = cursor;												// store the object in the graphics manager
+////		cursor.setupCursor(MyWinInfo->main_win_width, MyWinInfo->main_win_height, cursorShader, camera, GL_TRIANGLES);	// sets the initial cursor values
+////		cursor.loadCursor();	// initialize a cursor object for storing cursor information to be used by the graphics manager
+	}
+
+	// Create the main drawing grid line
+//	CGrid *GridLine = new CGrid(30, CursorObj->GetSnap().x, 40, CursorObj->GetSnap().z);
+	CGrid *GridLine = new CGrid(30, 0.1f, 40, 0.1f);
+	DrawingGridLine = GridLine;		// storing the gridline in our graphics manager
 
     // Game loop
     while (!glfwWindowShouldClose(MyWinInfo->MainWindow))
@@ -320,7 +334,6 @@ void GraphicsManager::Draw()
 		lightColor.x = 1.0f;
 		lightColor.y = 1.0f;
 		lightColor.z = 1.0f;
-
         glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // Decrease the influence
         glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // Low influence
         glUniform3f(glGetUniformLocation(ourShader.Program, "light.ambient"),  ambientColor.x, ambientColor.y, ambientColor.z);
@@ -336,7 +349,7 @@ void GraphicsManager::Draw()
         glm::mat4 view;	// sets an indentity matrix in view
         view = camera.GetViewMatrix();
 
-	//	glm::mat4 projection = glm::perspective(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);  
+		//	glm::mat4 projection = glm::perspective(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);  
 		camera.SetProjectionMatrix(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);
 		glm::mat4 projection;  
 		projection = camera.GetProjectionMatrix();
@@ -345,14 +358,9 @@ void GraphicsManager::Draw()
         GLint modelLoc = glGetUniformLocation(ourShader.Program, "model");
         GLint viewLoc  = glGetUniformLocation(ourShader.Program, "view");
         GLint projLoc  = glGetUniformLocation(ourShader.Program, "projection");
-//		printf("\nourShader.Program: %i", ourShader.Program);
-//		printf("\nmodelLoc:  %i", (int)modelLoc);
-//		printf("\nviewLoc: %i", (int)viewLoc);
-//		printf("\nprojLoc: %i", (int)projLoc);
         // Pass the matrices to the shader
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
 		// Model
 		glm::mat4 model;  // sets an identity matrix into model
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
@@ -360,24 +368,48 @@ void GraphicsManager::Draw()
 
 		// Draw the grid line structure if the the grid toggle is active
 		if(IsActiveGridToggle)
-		{
-			for (GLuint j = 0; j<2;j++)
-			{
-				for (GLuint i = 0; i < 80; i++)
-				{
-					// Calculate the model matrix for each object and pass it to shader before drawing
-					glm::mat4 model;
-					GLfloat angle = (GLfloat)(90.0f * (3.14159 / 180.0) * j);
-//					printf("\nAngle:  %f", angle);
-//					model = glm::rotate(model, angle, glm::vec3(0.0f, 1.0f, 0.0f));
-					model = glm::rotate(model, 90.0f*j, glm::vec3(0.0f, 1.0f, 0.0f));
-					model = glm::translate(model, glm::vec3(0.0f, 0.0f, -4.0+0.1*i));
-
-					glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-					gridModel.Draw(ourShader, GL_LINES);
-				}
-			}
+		{					
+			glm::mat4 model;
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+			glUniform3f(glGetUniformLocation(ourShader.Program, "material.ambient"),   1.0f, 1.0f, 1.0f);
+			glUniform3f(glGetUniformLocation(ourShader.Program, "material.diffuse"),   1.0f, 1.0f, 1.0f);
+			glUniform3f(glGetUniformLocation(ourShader.Program, "material.specular"),  0.0f, 0.0f, 0.0f); // Specular doesn't have full effect on this object's material
+			glUniform1f(glGetUniformLocation(ourShader.Program, "material.shininess"), 32.0f);
+			DrawingGridLine->Draw();
+	
+			//for (GLuint j = 0; j<2;j++)
+			//{
+			//	for (GLuint i = 0; i < 80; i++)
+			//	{
+			//		// Calculate the model matrix for each object and pass it to shader before drawing
+			//		glm::mat4 model;
+			//		GLfloat angle = (GLfloat)(90.0f * (3.14159 / 180.0) * j);
+			//		//printf("\nAngle:  %f", angle);
+			//		//model = glm::rotate(model, angle, glm::vec3(0.0f, 1.0f, 0.0f));
+			//		model = glm::rotate(model, 90.0f*j, glm::vec3(0.0f, 1.0f, 0.0f));
+			//		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -4.0+0.1*i));
+			//		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+			//		gridModel.Draw(ourShader, GL_LINES);
+			//	}
+			//}
 		}	
+
+		
+		/////////////////////////////// 
+		//       Draw the cursor     //
+		///////////////////////////////
+		// WARNING!:  need to initialize this shader for it to work.
+		// Currently using existing settings for the main objects.  Cursor needs
+		// its own shader initialization
+
+		// cursorShader.Use();
+		model = glm::mat4();
+		model = glm::translate(model, glm::vec3(1.0f, 1.0f,1.0f));
+		model = glm::scale(model, glm::vec3(0.05f));
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+		CursorObj->Draw();
+
 		////////////////////////////////////////
 		//  Draws the Lighting source lamp
 		////////////////////////////////////////
@@ -401,10 +433,6 @@ void GraphicsManager::Draw()
         glUniformMatrix4fv(lightmodelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
 		ourModel.Draw(lightsourceShader, GL_TRIANGLES);
-
-		/////////////////////////////// Draw the cursor /////////////////////////////////
-		cursorShader.Use();
-		cursor.DrawCursor(MyWinInfo->main_win_width, MyWinInfo->main_win_height, cursorShader, camera, GL_TRIANGLES);
 
 
         // Swap the screen buffers
@@ -495,6 +523,8 @@ void GraphicsManager::Draw()
 void GraphicsManager::Destroy()
 {
 	printf("\nINCOMPLETE:  Destroying the Graphics Manager");
+	delete CursorObj;
+	delete DrawingGridLine;
     //Finalize and clean up GLFW  
     glfwTerminate(); 
 	delete MyWinInfo;
@@ -505,7 +535,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
-
 
 	if (key == GLFW_KEY_C && action == GLFW_PRESS)
 	{
@@ -523,8 +552,36 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			camera.IsActiveCameraToggle = true;							// flag the camera as turned on
 		}
 	}
-	
-	if (key == GLFW_KEY_G && action == GLFW_PRESS)
+
+	// Pause the moving light
+	if (key == GLFW_KEY_P && action == GLFW_PRESS)
+	{
+		if (IsPausedLight)
+		{
+			printf("\nMoving Light is unpaused...");
+			IsPausedLight = false;
+		} else {
+			printf("\nMoving Light is paused...");
+			IsPausedLight = true;
+		}
+	}
+
+/*
+	// Active the cursor snap
+	if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
+	{
+		if (IsActiveCursorSnap)
+		{
+			printf("\nSnap is off...");
+			IsActiveCursorSnap = false;
+		} else {
+			printf("\nSnap is on...");
+			IsActiveCursorSnap = true;
+		}
+	}
+*/
+	// Toggle the grid display
+	if (key == GLFW_KEY_F2 && action == GLFW_PRESS)
 	{
 		if (IsActiveGridToggle)
 		{
@@ -536,17 +593,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		}
 	}
 
-	if (key == GLFW_KEY_P && action == GLFW_PRESS)
-	{
-		if (IsPausedLight)
-		{
-			printf("\nLight is unpaused...");
-			IsPausedLight = false;
-		} else {
-			printf("\nLight is paused...");
-			IsPausedLight = true;
-		}
-	}
 	if (key >= 0 && key < 1024)
     {
         if (action == GLFW_PRESS)
@@ -570,6 +616,12 @@ void Do_Movement()
 	        camera.ProcessKeyboard(BACKWARD, deltaTime);
 		if(keys[GLFW_KEY_W])
 	        camera.ProcessKeyboard(FORWARD, deltaTime);
+		// Downward must be before upwards because both utilize the SPACE key
+		if((keys[GLFW_KEY_SPACE]&&(keys[GLFW_KEY_LEFT_SHIFT])) || (keys[GLFW_KEY_SPACE]&&(keys[GLFW_KEY_RIGHT_SHIFT])))
+			camera.ProcessKeyboard(DOWNWARD, deltaTime);
+		if(keys[GLFW_KEY_SPACE])
+			camera.ProcessKeyboard(UPWARD, deltaTime);
+
 	}
 }
 
@@ -594,7 +646,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	} else {
 		// set up for the ray casting calculation which projects a ray through the camera
 		// and to the point clicked in the window (specified by xpos, ypos)
-		printf("\nMouse position -- x: %f     y: %f",xpos, ypos);  // print mouse click location if the camera is disabled
+		printf("\nMouse position -- x: %f     y: %f",xpos, ypos);	// print mouse click location if the camera is disabled
 		float x = (float)((2.0f * xpos) / WIDTH - 1.0f);
 		float y = (float)(1.0f - (2.0f * ypos) / HEIGHT);
 		float z = (float)(1.0f);
@@ -613,11 +665,31 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 //		intersect_point = ray_intersect_plane(camera.Position, ray_wor, Y_PLANE);
 //		printf("\nY-plane intersect -- x: %f   y: %f   z: %f", intersect_point.x, intersect_point.y, intersect_point.z); 
 		
-		// The Y-plane switch is used here to keep the curse in the XZ plane.
+		// The Y-plane switch is used here to keep the cursor in the XZ plane.
 		glm::vec3 intersect_point = ray_intersect_plane(camera.Position, ray_wor, Y_PLANE);
 		printf("\nZ-plane intersect -- x: %f   y: %f   z: %f", intersect_point.x, intersect_point.y, intersect_point.z); 
-		cursor.SetWorldCoords(intersect_point);  // store the intersect point with the specified plane from the ray-cast
+
+
+/*
 		cursor.SetRayCast(ray_wor);				// store the ray in the cursor
+
+		// For a Z-Plane snap
+		if(IsActiveCursorSnap)
+		{
+			// store the intersect point rounded down to the nearest snap value
+			GLfloat new_x = intersect_point.x-fmod(intersect_point.x, cursor.GetSnap().x);
+			GLfloat new_y = intersect_point.y-fmod(intersect_point.y, cursor.GetSnap().y);
+			GLfloat new_z = intersect_point.z-fmod(intersect_point.z, cursor.GetSnap().z);
+			//printf("\nSnapValue: x:%f	y:%f	z:%f ",cursor.GetSnap().x,cursor.GetSnap().y,cursor.GetSnap().z);   
+			//printf("-- x: %f    y: %f    z: %f", new_x, new_y, new_z);
+			cursor.SetWorldCoords(glm::vec3(new_x, new_y, new_z));
+		} else 
+		{
+			// store the intersect point with the specified plane from the ray-cast
+			cursor.SetWorldCoords(intersect_point);
+		}
+*/
+
 	}
 }
 

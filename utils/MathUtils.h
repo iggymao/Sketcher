@@ -9,9 +9,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-static const int X_PLANE = 0;
-static const int Y_PLANE = 1;
-static const int Z_PLANE = 2;
+static const int X_PLANE = 0; // for the YZ plane
+static const int Y_PLANE = 1; // for the XZ plane
+static const int Z_PLANE = 2; // for the XY plane
 
 // forward declaration
 GLfloat area_3P(glm::vec3 point_1, glm::vec3 point_2, glm::vec3 point_3);

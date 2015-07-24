@@ -10,6 +10,7 @@
 #include "../Headers/Shader.h"
 #include "../Headers/ModelManager.h"
 #include "../Headers/Mesh.h"
+#include "../Headers/DrawingShapes.h"
 
 //#include "../utils/MathUtils.h"			// generic math functions
 
@@ -29,8 +30,10 @@ ModelManager::ModelManager(int model_type)
 		}
 		case MODEL_LOAD_GRID:
 		{
-			loadGrid();
-			printf("\nLoading grid...");
+			//this->meshes.push_back(GridLine.meshes);
+			//printf("\nCLine.MeshID: %i",GridLine.GetMeshID());
+//			loadGrid();
+			printf("\nNON-FUNCTIONAL: Loading grid...");
 			break;
 		}
 		case MODEL_LOAD_COORDSYS:
@@ -56,6 +59,7 @@ void ModelManager::Draw(Shader ourShader, int gl_drawtype)
 	}
 }
 
+/*
 // Loads the data for drawing gridlines.
 void ModelManager::loadGrid()
 {
@@ -185,6 +189,9 @@ void ModelManager::loadGrid()
 		this->meshes.push_back(Mesh(face_vertices, face_indices, face_textures));
 	 }
 }
+*/
+
+
 
 // Loads a model with supported extensions from programs such as ASSIMP (not currently installed)
 void ModelManager::loadModel()

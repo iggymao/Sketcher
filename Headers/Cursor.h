@@ -18,31 +18,73 @@
 class Camera;		// forward declaration for our camera class
 class Shader;		// forward declaration for our shader class
 
-class Cursor
+class CCursor : public Mesh2
 {
 public:
 	// constructor
-	Cursor(glm::vec3 world_coords){ 
-		this->SetWorldCoords(world_coords);
+	CCursor(glm::vec3 world_coords)
+	{ 
+		SetWorldCoords(world_coords);
+		SnapValueX = 0.1f;
+		SnapValueY = 0.1f;
+		SnapValueZ = 0.1f;
+
+		IsActiveCursorSnap = false;
+		draw_type = GL_TRIANGLES;
+
+		MakeCursorModel(); 
+//		setMeshData();
+//		setMeshData(this->vertices, this->indices, this->textures);  // sets the mesh data and creates the VAO and VBO in Mesh2
+	}
+	CCursor(const CCursor & rhs) { ;}		// copy constructor
+
+	// deconstructor
+	~CCursor() { 
+		for(GLuint i=0;i<meshes.size();i++)
+			delete meshes[i];
+	}						
+
+//	GLuint draw_type;					// stores the draw_type GL_LINES, GL_TRIANGLES, etc.
+	bool IsActiveCursorSnap;			// a bool to tell us the cursor snap is active
+
+	void MakeCursorModel();				// create the data for the cursor model
+
+	//	void loadCursor();					// loads the graphic for the cursor
+	//	void setupCursor(int width, int height, Shader shader, Camera camera, int draw_type);	// loads the initial values for the cursor
+	//	void DrawCursor(int width, int height, Shader shader, Camera camera, int draw_type);  // draws the model, and thus all its meshes.
+
+	void Draw()
+	{    
+		// now Draw mesh
+		for(GLuint i=0; i < this->meshes.size(); i++)
+		{
+	        glBindVertexArray(meshes[i]->VAO);			// uses the VAO stored in the Mesh2 c;ass
+			glDrawElements(GL_TRIANGLES, meshes[i]->indices.size(), GL_UNSIGNED_INT, 0);
+			glBindVertexArray(0);
+		}
+		return;
 	}
 
-	void SetRayCast(glm::vec3 ray) {ray_cast = ray;}
+	// For storing the ray cast data into the screen
+	void SetRayCast(glm::vec3 ray) {this->ray_cast = ray;}
 	glm::vec3 GetRayCast() {return this->ray_cast;}
 
+	// For handling the current coordinates of the cursor in World Space from calculations
+	// and projection / view matrix inversion.  Currently in GraphicsManager.cpp.
 	void SetWorldCoords(glm::vec3 coords) {this->WorldCoords = coords;}
 	glm::vec3 GetWorldCoords() {return this->WorldCoords;}
-
-	void loadCursor();					// loads the graphic for the cursor
-	void DrawCursor(int width, int height, Shader shader, Camera camera, int draw_type);  // draws the model, and thus all its meshes.
-
+	void SetSnapValues(glm::vec3 snap_values) {this->SnapValueX = snap_values.x, this->SnapValueY = snap_values.y, this->SnapValueZ = snap_values.z;}  
+	glm::vec3 GetSnap() {return glm::vec3(this->SnapValueX,this->SnapValueY,this->SnapValueZ);}
+	
 private:
-	vector<Mesh> meshes;				// stores the known face meshes for this model
+	vector<Mesh2*> meshes;				// stores the known face meshes for this model
+
+	GLfloat SnapValueX;					// a variable to store the snap value in X direction
+	GLfloat SnapValueY;					// a variable to store the snap value in Y direction
+	GLfloat SnapValueZ;					// a variable to store the snap value in Z direction
 
 	glm::vec3 ray_cast;					// stores a casted ray to the mouse location through the camera.
-	glm::vec3 WorldCoords;		// stores the coordinates of the cursor on he Z-plane of the drawing window
-//	ModelManager modelmanager;			// stores the model information for the cursor
-
-	
+	glm::vec3 WorldCoords;				// stores the coordinates of the cursor on he Z-plane of the drawing window
 };
 
 #endif
