@@ -10,7 +10,50 @@
 #include "../Headers/Mesh.h"
 #include "../Headers/Cursor.h"
 
+#include "../utils/MathUtils.cpp"
+
 //#include "../utils/MathUtils.h"
+
+void CCursor::SetSnapValues(GLfloat val1, GLfloat val2, int plane)
+{
+	GLfloat xval, yval, zval;
+
+	switch(plane)
+	{
+		case YZ_PLANE:
+		{
+			xval = 0.0f;
+			yval = val1;
+			zval = val2;
+			break;
+		}
+		case XZ_PLANE:
+		{
+			xval = val1;
+			yval = 0.0f;
+			zval = val2;
+			break;
+		}
+		case XY_PLANE:
+		{
+			xval = val1;
+			yval = val2;
+			zval = 0.0f;
+			break;
+		}
+		default:
+		{
+			xval = 0.1f;
+			yval = 0.1f;
+			zval = 0.1f;
+			printf("\nUndefined plane detected.  Must be XZ_PLANE, YZ_PLANE, or XY_PLANE.");
+			return;
+		}
+	}
+	this->SnapValueX = xval;
+	this->SnapValueY = yval;
+	this->SnapValueZ = zval;
+}
 
 // Creates the mesh for the cursor model.  For now it makes a cube shape, but ultimately 
 // It should be changeable with other models (such as selected shapes for moving, newly added models to screen, etc.).

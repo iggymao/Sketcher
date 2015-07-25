@@ -10,7 +10,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "../Headers/ShaderManager.h"
+//#include "../Headers/ShaderManager.h"
 #include "../Headers/ModelManager.h"
 #include "../Headers/DrawingShapes.h"
 #include "../Headers/Cursor.h"
@@ -36,7 +36,7 @@ public:
 
 
 	MainWinInfo *MyWinInfo;				// structure containing the main window information
-	ShaderManager *MyShaderManagerInfo;	// class containing the shader manager info
+//	ShaderManager *MyShaderManagerInfo;	// class containing the shader manager info
 	ModelManager *MyModelManagerInfo;
 
 	CGrid *DrawingGridLine;		// The main drawing grid object

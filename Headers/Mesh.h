@@ -15,7 +15,7 @@ using namespace std;
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 //#include "../Headers/ShaderManager.h"					// Include the shader manager for the ShaderInfo class
-#include "../Headers/Shader.h"
+//#include "../Headers/Shader.h"
 
 // vertex data assigned to a given mesh
 struct VertexData {

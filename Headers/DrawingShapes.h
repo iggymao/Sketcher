@@ -42,19 +42,20 @@ class CGrid : public CLine
 {
 public:
 	// constructor
-	//	:  qty_x = # of z-lines along the x-axis
-	//	:  qty_z = # of x-lines along the z-axis
-	//  :  space_x = spacing between z-direction lines
-	//  :  space_z = spacing between x-direction lines
-	CGrid(GLuint qty_x, GLfloat spacing_x, GLuint qty_z, GLfloat spacing_z) {
-		this->qty_x = qty_x;
-		this->qty_z = qty_z;
-		this->spacing_x = spacing_x; 
-		this->spacing_z = spacing_z;
-		this->length_x = (GLfloat)((qty_z) * spacing_x);
-		this->length_z = (GLfloat)((qty_x) * spacing_z);
+	//	:  qty_1 = # of perp-lines along the #2-axis
+	//	:  qty_2 = # of perp-lines along the #1-axis
+	//  :  space_1 = spacing between #2-direction lines
+	//  :  space_2 = spacing between #1-direction lines
+	CGrid(GLuint qty_1, GLfloat spacing_1, GLuint qty_2, GLfloat spacing_2, const int plane) {
+		this->qty_1 = qty_1;
+		this->qty_2 = qty_2;
+		this->spacing_1 = spacing_1; 
+		this->spacing_2 = spacing_2;
+		this->length_1 = (GLfloat)((qty_2) * spacing_1);
+		this->length_2 = (GLfloat)((qty_1) * spacing_2);
+		this->plane = plane;
 
-		MakeGridData();				// create the grid data
+		MakeGridData(this->GetPlane());				// create the grid data
 		setMeshData(vertices, indices, textures);	// sets the mesh data and creates the VAO and VBO in Mesh2
 	}
 	~CGrid() { ;}					// deconstructor
@@ -62,18 +63,21 @@ public:
 
 	void UpdateGrid(){printf("\nINCOMPLETE!!!  routine to update the grid dimensions");}		// routine to update an existing grid based on changed parameters
 
-	GLfloat SetQty(GLuint qty1, GLuint qty2) {this->qty_x=qty1; this->qty_z=qty2;}
-	GLfloat SetSpacing(GLfloat spacing1, GLfloat spacing2) {this->spacing_x=spacing1; this->spacing_z=spacing2;}
-	GLfloat GetSpacing() {return this->spacing_x;}
+	GLfloat SetQty(GLuint qty1, GLuint qty2) {this->qty_1=qty1; this->qty_2=qty2;}
+	GLfloat SetSpacing(GLfloat spacing1, GLfloat spacing2) {this->spacing_1=spacing1; this->spacing_2=spacing2;}
+	GLfloat GetSpacing1() {return this->spacing_1;}
+	GLfloat GetSpacing2() {return this->spacing_2;}
+	int GetPlane() {return this->plane;}
 
 	// create the vertex_data, index_data, texture_data for the grid 
 	// calculates the data for line grids a grid in the XZ plane for now
-	void MakeGridData();
+	void MakeGridData(int plane);
 
 private:
-	GLuint qty_x, qty_z;			// number of lines in grid, x- and y- direction
-	GLfloat spacing_x, spacing_z;		// spacing between grid lines, x- and y- direction
-	GLfloat length_x, length_z;		// length of grid line system
+	GLuint qty_1, qty_2;			// number of lines in grid, x- and z- direction
+	GLfloat spacing_1, spacing_2;	// spacing between grid lines, x- and z- direction
+	GLfloat length_1, length_2;		// length of grid line system
+	int plane;						// plane orientation of the grid (currently XY, YZ, or XZ as defined in MathUtils.h)
 };
 
 /*

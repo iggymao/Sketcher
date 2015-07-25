@@ -1,7 +1,7 @@
-﻿Build started 7/24/2015 1:38:54 PM.
+﻿Build started 7/24/2015 9:17:07 PM.
      1>Project "C:\Programming\ApplicationFramework\ApplicationFramework\ApplicationFramework.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
-         Touching "Debug\ApplicationFramework.unsuccessfulbuild".
+         Creating "Debug\ApplicationFramework.unsuccessfulbuild" because "AlwaysCreate" was specified.
        GenerateTargetFrameworkMonikerAttribute:
        Skipping target "GenerateTargetFrameworkMonikerAttribute" because all output files are up-to-date with respect to the input files.
        ClCompile:
@@ -43,4 +43,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:39.11
+Time Elapsed 00:00:38.02

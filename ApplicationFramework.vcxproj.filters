@@ -57,14 +57,14 @@
     <ClInclude Include="Headers\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utils\MathUtils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Headers\Cursor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Headers\DrawingShapes.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\MathUtils.cpp">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

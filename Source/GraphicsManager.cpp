@@ -3,23 +3,26 @@
 #include <math.h>
 // GLEW
 #include <GL/glew.h>
- 
 // GLFW
 #include <GLFW/glfw3.h>
+
 #include "../Headers/GraphicsManager.h"
 #include "../Headers/Camera.h"
 #include "../Headers/ShaderManager.h"
 #include "../Headers/Shader.h"
 #include "../Headers/SOIL.h"			// include the soil image loader based on stb_image for texture loading
-#include "../Headers/DrawingShapes.h"	// include the drawing shapes definitions
+
 
 // GLM Mathematics
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "../utils/MathUtils.h"
+#include "../Headers/DrawingShapes.h"	// include the drawing shapes definitions
 #include "../Headers/Cursor.h"
+
+#include "../utils/MathUtils.cpp"
+
 
 
 // forward declaration
@@ -278,20 +281,16 @@ void GraphicsManager::Draw()
 
 	// Create and load shape for our model, including gridline objects and the physical assets
 	ModelManager ourModel(MODEL_LOAD_MODEL); // Loads the model elements
-//	ModelManager gridModel(MODEL_LOAD_GRID); // Create the drawing grid
+
+	// Create the main drawing grid line -- requires an OPENGL context for this step
+	// Must use XY, XZ, or YZ plane designators....such that X < Y < Z in order of labelling
+	gridLine = new CGrid(30, 0.1f, 40, 0.1f, XZ_PLANE);
+	DrawingGridLine = gridLine;											// storing the gridline in our graphics manager
 
 	// Create our cursor -- requires an OPENGL context for this step
-	// This is probably better suited in an intitialize function or constructor somewhere
 	cursor = new CCursor(glm::vec3(0.0f, 0.0f, 0.0f));		// create a new cursor
+	cursor->SetSnapValues(DrawingGridLine->GetSpacing1(), DrawingGridLine->GetSpacing2(), DrawingGridLine->GetPlane());
 	CursorObj = cursor;										// store the object in the graphics manager
-
-	// Create the main drawing grid line
-//	if(!DrawingGridLine)
-//	{
-		gridLine = new CGrid(30, 0.1f, 40, 0.1f);
-		DrawingGridLine = gridLine;											// storing the gridline in our graphics manager
-//	}
-
     // Game loop
     while (!glfwWindowShouldClose(MyWinInfo->MainWindow))
     {
@@ -404,7 +403,7 @@ void GraphicsManager::Draw()
 
 		// cursorShader.Use();
 		model = glm::mat4();
-		model = glm::translate(model, glm::vec3(CursorObj->GetWorldCoords().x, CursorObj->GetWorldCoords().y,CursorObj->GetWorldCoords().z));
+		model = glm::translate(model, CursorObj->GetWorldCoords());
 		model = glm::scale(model, glm::vec3(0.05f));
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
@@ -625,7 +624,6 @@ void Do_Movement()
 			camera.ProcessKeyboard(DOWNWARD, deltaTime);
 		if(keys[GLFW_KEY_SPACE])
 			camera.ProcessKeyboard(UPWARD, deltaTime);
-
 	}
 }
 
@@ -669,8 +667,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 //		intersect_point = ray_intersect_plane(camera.Position, ray_wor, Y_PLANE);
 //		printf("\nY-plane intersect -- x: %f   y: %f   z: %f", intersect_point.x, intersect_point.y, intersect_point.z); 
 		
-		// The Y-plane switch is used here to keep the cursor in the XZ plane.
-		glm::vec3 intersect_point = ray_intersect_plane(camera.Position, ray_wor, Y_PLANE);
+		// The intersect plane can be converted between XY (Z=0), YZ (X=0), and XZ (Y=0) current options.
+		glm::vec3 intersect_point = ray_intersect_plane(camera.Position, ray_wor, gridLine->GetPlane());
 		printf("\nZ-plane intersect -- x: %f   y: %f   z: %f", intersect_point.x, intersect_point.y, intersect_point.z); 
 
 		cursor->SetRayCast(ray_wor);				// store the ray in the cursor
@@ -678,13 +676,30 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 		// For a Z-Plane snap
 		if(cursor->IsActiveCursorSnap)
 		{
+			GLfloat new_x;
+			GLfloat new_y;
+			GLfloat new_z;
+
+			// These checks set the new coordinate to 0.0 if its snap value is 0
+			if (cursor->GetSnap().x == 0)
+				new_x = 0.0;
+			else
+				new_x = intersect_point.x-fmod(intersect_point.x, cursor->GetSnap().x);
+
+			if (cursor->GetSnap().y == 0)
+				new_y = 0.0;
+			else
+				new_y = intersect_point.y-fmod(intersect_point.y, cursor->GetSnap().y);
+
+			if (cursor->GetSnap().z == 0)
+				new_z = 0.0;
+			else
+				new_z = intersect_point.z-fmod(intersect_point.z, cursor->GetSnap().z);
+
+			printf("\nSnapValue: x:%f	y:%f	z:%f ",cursor->GetSnap().x,cursor->GetSnap().y,cursor->GetSnap().z);   
+			printf("\n-- x: %f    y: %f    z: %f", new_x, new_y, new_z);
 			// store the intersect point rounded down to the nearest snap value
-			GLfloat new_x = intersect_point.x-fmod(intersect_point.x, cursor->GetSnap().x);
-			GLfloat new_y = intersect_point.y-fmod(intersect_point.y, cursor->GetSnap().y);
-			GLfloat new_z = intersect_point.z-fmod(intersect_point.z, cursor->GetSnap().z);
-			//printf("\nSnapValue: x:%f	y:%f	z:%f ",cursor.GetSnap().x,cursor.GetSnap().y,cursor.GetSnap().z);   
-			//printf("-- x: %f    y: %f    z: %f", new_x, new_y, new_z);
-			cursor->SetWorldCoords(glm::vec3(new_x, new_y, new_z));
+			cursor->SetWorldCoords(glm::vec3(new_x, new_y, new_z)); 
 		} else 
 		{
 			// store the intersect point with the specified plane from the ray-cast

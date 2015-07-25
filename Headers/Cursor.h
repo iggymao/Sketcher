@@ -9,14 +9,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "../Headers/ModelManager.h"
+//#include "../Headers/ModelManager.h"
 #include "../Headers/Mesh.h"
-#include "../Headers/Camera.h"
-
+//#include "../Headers/Camera.h"
 
 //forward declaration
-class Camera;		// forward declaration for our camera class
-class Shader;		// forward declaration for our shader class
+//class Camera;		// forward declaration for our camera class
+//class Shader;		// forward declaration for our shader class
 
 class CCursor : public Mesh2
 {
@@ -73,7 +72,8 @@ public:
 	// and projection / view matrix inversion.  Currently in GraphicsManager.cpp.
 	void SetWorldCoords(glm::vec3 coords) {this->WorldCoords = coords;}
 	glm::vec3 GetWorldCoords() {return this->WorldCoords;}
-	void SetSnapValues(glm::vec3 snap_values) {this->SnapValueX = snap_values.x, this->SnapValueY = snap_values.y, this->SnapValueZ = snap_values.z;}  
+
+	void SetSnapValues(GLfloat val1, GLfloat val2, int plane);  
 	glm::vec3 GetSnap() {return glm::vec3(this->SnapValueX,this->SnapValueY,this->SnapValueZ);}
 	
 private:
