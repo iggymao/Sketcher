@@ -28,7 +28,9 @@ class GraphicsManager
 {
 public:
 	GraphicsManager() {
+		IsLoadedOpenGL = false;
 		IsCreatedCursor = false;
+		//IsActivePicking = 0;
 	
 	}
 	GraphicsManager(const GraphicsManager & rhs) { ;}	// copy constructor
@@ -54,7 +56,8 @@ public:
 	//void Do_movement();
 
 	bool IsLoadedOpenGL;		// a variable to let us know that OpenGL has been successfully loaded.
-	bool IsCreatedCursor;				// a bool to tell us the cursor has been loaded
+	bool IsCreatedCursor;		// a bool to tell us the cursor has been loaded
+	//int IsActivePicking;		// a bool to tell us that picking (clicking on screen) is currently active
 
 	GLfloat snap_value;			// a variable to store the snap_value for drafting
 	void Destroy();

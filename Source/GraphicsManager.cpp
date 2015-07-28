@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include <iostream>
 #include <math.h>
+#include <string>
 // GLEW
 #include <GL/glew.h>
 // GLFW
@@ -35,6 +36,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_click_callback(int b, int s, int mouse_x, int mouse_y);
 void Do_Movement();
+GLuint generateAttachmentTexture(GLboolean depth, GLboolean stencil);
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
@@ -56,6 +58,7 @@ CGrid *gridLine = 0;
 //CGrid *GridLine = new CGrid(30, 0.1f, 40, 0.1f);
 //CGrid *DrawingGridLine = GridLine;		// storing the gridline in our graphics manager
 bool IsActiveGridToggle = true;
+bool IsActivePicking = true;
 
 // Light attributes
 bool IsPausedLight = true;
@@ -261,6 +264,7 @@ int GraphicsManager::LaunchOpenGL()
 	// Define the viewport dimensions
 	glViewport(0, 0, MyWinInfo->main_win_width, MyWinInfo->main_win_height);		
 	glEnable(GL_DEPTH_TEST);  // Must remember to clear GL_DEPTH_BUFFER_BIT in a glClear statement
+	glDepthFunc(GL_LESS);
 
 	glClearColor(0.4f, 0.5f, 0.5f, 1.0f);	// Clear the colorbuffer (set it to a grayscale)
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );			// Clear the screen
@@ -272,13 +276,17 @@ int GraphicsManager::LaunchOpenGL()
 	
 	return 0;
 }
+
+// Our main draw function
 void GraphicsManager::Draw()
 {
+	std::string message;
 	// Create and load shaders
 	Shader ourShader("Shaders/DefaultShader.vertex", "Shaders/DefaultShader.fragment");
 	Shader lightsourceShader("Shaders/ShaderLighting.vertex", "Shaders/ShaderLighting.fragment");
 	Shader cursorShader("Shaders/ShaderLighting.vertex", "Shaders/ShaderLighting.fragment");
-
+	Shader pickingShader("Shaders/ShaderPicking.vertex", "Shaders/ShaderPicking.fragment");				// shader used when picking mode is activated (not used??)
+	Shader post_process_spShader("Shaders/post_process_sp.vertex","Shaders/post_process_sp.fragment");  // shader used for making a framebuffer for picking selecting
 	// Create and load shape for our model, including gridline objects and the physical assets
 	ModelManager ourModel(MODEL_LOAD_MODEL); // Loads the model elements
 
@@ -290,10 +298,104 @@ void GraphicsManager::Draw()
 	// Create our cursor -- requires an OPENGL context for this step
 	cursor = new CCursor(glm::vec3(0.0f, 0.0f, 0.0f));		// create a new cursor
 	cursor->SetSnapValues(DrawingGridLine->GetSpacing1(), DrawingGridLine->GetSpacing2(), DrawingGridLine->GetPlane());
-	CursorObj = cursor;										// store the object in the graphics manager
-    // Game loop
+	CursorObj = cursor;		// store the object in the graphics manager
+
+	// create our framebuffer
+	// first create the framebuffer
+	GLuint framebuffer;
+	glGenFramebuffers (1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
+	// create a color attachment texture
+	GLuint textureColorbuffer = generateAttachmentTexture(false, false);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+
+	// Create a renderbuffer object for depth and stencil attachment
+	GLuint rbo;
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	// Use a single renderbuffer object for both depth AND stencil buffer.
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, WIDTH, HEIGHT);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);  // now actually attach it
+	// Now that we actually created the framebuffer andadded all attachments we want to check if it is actually complete now
+	if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		printf("\nERROR::FRAMEBUFFER:: Framebuffer is not complete!");
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// set up the screen space quad by creating two triangles to cover the entire screen, then provide
+	// mapping coords for the framebuffer we just created
+	//x, y vertex positions
+	float ss_quad_pos[] = {
+		-1.0, -1.0,
+		1.0, -1.0,
+		1.0, 1.0,
+		1.0, 1.0,
+		-1.0, 1.0,
+		-1.0, -1.0
+	};
+	// per vertex texture coordsinates
+	float ss_quad_st[] = {
+		0.0, 0.0,
+		1.0, 0.0,
+		1.0, 1.0,
+		1.0, 1.0,
+		0.0, 1.0,
+		0.0, 0.0
+	};
+	// create VBOs and VAO in the usual way
+	// Load data into vertex buffers
+	GLuint ss_quad_vbo = 0;
+    glGenBuffers(1, &ss_quad_vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, ss_quad_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(ss_quad_pos), ss_quad_pos, GL_STATIC_DRAW);
+
+	GLuint ss_quad_texvbo =0;
+	glGenBuffers(1, &ss_quad_texvbo);
+	glBindBuffer(GL_ARRAY_BUFFER, ss_quad_texvbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(ss_quad_st), ss_quad_st, GL_STATIC_DRAW);
+
+	GLuint ss_quad_vao = 0;
+	glGenVertexArrays(1, &ss_quad_vao);
+    glBindVertexArray(ss_quad_vao);
+
+	// Set the vertex attribute pointers
+    // Vertex Positions
+    glEnableVertexAttribArray(0);	
+    glBindBuffer(GL_ARRAY_BUFFER, ss_quad_vbo);
+     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+
+		// Texture Coords
+        glEnableVertexAttribArray(1);
+		glBindBuffer(GL_ARRAY_BUFFER, ss_quad_texvbo);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+		
+		glBindVertexArray(0); // clear the VAO
+		
+	// Game loop
     while (!glfwWindowShouldClose(MyWinInfo->MainWindow))
     {
+		///////////////////////////////////////////////////
+		// Bind to framebuffer and draw to color texture
+		///////////////////////////////////////////////////
+		// rebind our default framebuffer just-in-case and then clear it
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		if(IsActivePicking)
+		{
+			// bind the second (render-to-texture) framebuffer here
+			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+			//printf("\nIs active picking value: %i",IsActivePicking);
+
+			//  This line needed here? ---->  glClearColor
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		}
+		// then render scene as normal..
+		//////////////////////////////////
+		// Our normal rendering stuff
+		//////////////////////////////////
+
 		// Calculate deltatime of current frame
 		GLfloat currentFrame = (GLfloat)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
@@ -305,9 +407,11 @@ void GraphicsManager::Draw()
 
         // Render
         // Clear the colorbuffer
-        glClearColor(0.4f, 0.5f, 0.5f, 1.0f);
+        glClearColor(0.4f, 0.5f, 0.5f, 1.0f);   // a grey color
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  // Depth buffer enabled, must clear the depth buffer bit too.
-		
+		glEnable(GL_DEPTH_TEST);
+
+
 		// For a moving light source
 		if(!IsPausedLight)
 		{
@@ -433,10 +537,54 @@ void GraphicsManager::Draw()
 
 		ourModel.Draw(lightsourceShader, GL_TRIANGLES);
 
+//////////////////////////////////
+// End of normal rendering stuff
+//////////////////////////////////
 
-        // Swap the screen buffers
-        glfwSwapBuffers(MyWinInfo->MainWindow);
+		///////////////////////////////////////////////////
+		//  Bind to default framebuffer again and draw the
+		//  quad with attached screen texture
+		///////////////////////////////////////////////////
+		if(IsActivePicking)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			// Clear all relevant buffers
+			glClearColor(0.4f, 0.5f, 0.5f, 1.0f);	// Set the clear color
+			glClear(GL_COLOR_BUFFER_BIT);
+			glDisable(GL_DEPTH_TEST); // We don't care about depth information when rendering a single quad
+
+			// bind default framebuffer
+			glBindFramebuffer (GL_FRAMEBUFFER, 0);
+			// clear the framebuffer's color and depth buffers
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			// our post processing shader for the screen-space quad
+			post_process_spShader.Use();
+			// bind the quad's vao
+			glBindVertexArray(ss_quad_vao);
+			// activate the first texture slot and put texture from previous pass on it
+//			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+			// draw the quad
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+			glBindVertexArray(0);
+		}
+
+		// flip drawn framebuffer onto the display
+		// Swap the screen buffers
+	    glfwSwapBuffers(MyWinInfo->MainWindow);
+
+		/////////////////////////////////////////////////////////////////
+		//   Beginning picking subsection
+		/////////////////////////////////////////////////////////////////
+
+		/////////////////////////////////////////////////////////////////
+		//   End picking subsection
+		/////////////////////////////////////////////////////////////////
     }
+	// Clean up
+	glDeleteFramebuffers(1, &framebuffer);
+
     // Properly de-allocate all resources once they've outlived their purpose
 	// glDeleteVertexArrays(1, &VAO);
 	// glDeleteBuffers(1, &VBO);
@@ -533,6 +681,33 @@ void GraphicsManager::Destroy()
 	delete MyWinInfo;
 }
 
+// Generates a texture that is suited for attachments to a framebuffer
+GLuint generateAttachmentTexture(GLboolean depth, GLboolean stencil)
+{
+    // What enum to use?
+    GLenum attachment_type;
+    if(!depth && !stencil)
+        attachment_type = GL_RGB;
+    else if(depth && !stencil)
+        attachment_type = GL_DEPTH_COMPONENT;
+    else if(!depth && stencil)
+        attachment_type = GL_STENCIL_INDEX;
+
+    //Generate texture ID and load texture data 
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    if(!depth && !stencil)
+        glTexImage2D(GL_TEXTURE_2D, 0, attachment_type, WIDTH, HEIGHT, 0, attachment_type, GL_UNSIGNED_BYTE, NULL);
+    else // Using both a stencil and depth test, needs special format arguments
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, WIDTH, HEIGHT, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    return textureID;
+}
+
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
@@ -593,6 +768,21 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		} else {
 			printf("\nGrid is visible...");
 			IsActiveGridToggle = true;
+		}
+	}
+
+	// Picking is active toggle
+	if (key == GLFW_KEY_F3 && action == GLFW_PRESS)
+	{
+		if (IsActivePicking == true)
+		{
+			printf("\nPicking mode disabled...");
+			IsActivePicking = false;
+					//printf("\nIs active picking value: %i",IsActivePicking);
+		} else {
+			printf("\nPicking objects...");
+			IsActivePicking = true;
+					//printf("\nIs active picking value: %i",IsActivePicking);
 		}
 	}
 
@@ -696,8 +886,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 			else
 				new_z = intersect_point.z-fmod(intersect_point.z, cursor->GetSnap().z);
 
-			printf("\nSnapValue: x:%f	y:%f	z:%f ",cursor->GetSnap().x,cursor->GetSnap().y,cursor->GetSnap().z);   
-			printf("\n-- x: %f    y: %f    z: %f", new_x, new_y, new_z);
+			/*printf("\nSnapValue: x:%f	y:%f	z:%f ",cursor->GetSnap().x,cursor->GetSnap().y,cursor->GetSnap().z);   
+			printf("\n-- x: %f    y: %f    z: %f", new_x, new_y, new_z);*/
 			// store the intersect point rounded down to the nearest snap value
 			cursor->SetWorldCoords(glm::vec3(new_x, new_y, new_z)); 
 		} else 
