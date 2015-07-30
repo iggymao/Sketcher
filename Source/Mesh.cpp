@@ -14,7 +14,7 @@ using namespace std;
 #include "../Headers/Mesh.h"
 #include "../Headers/ShaderManager.h"
 
-GLuint Mesh::next_id = -1;			// set the initial value at the start of the program
+//GLuint Mesh::next_id = -1;			// set the initial value at the start of the program
 GLuint Mesh2::next_id = -1;			// set the initial value at the start of the program
 
 

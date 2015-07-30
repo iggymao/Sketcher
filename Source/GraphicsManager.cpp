@@ -15,6 +15,7 @@
 
 
 // GLM Mathematics
+#define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -36,7 +37,12 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_click_callback(int b, int s, int mouse_x, int mouse_y);
 void Do_Movement();
+void DrawNormal(Shader ourShader, Shader lightingShader, Shader cursorShader, ModelManager ourModel, CGrid gridline,  CCursor cursor);
+void DrawPicking(Shader pickingShader, ModelManager ourModel);
+
 GLuint generateAttachmentTexture(GLboolean depth, GLboolean stencil);
+void draw_picker_colours(glm::mat4 P, glm::mat4 V, glm::mat4 M[3]);
+glm::vec3 encode_id (int id);
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
@@ -59,6 +65,10 @@ CGrid *gridLine = 0;
 //CGrid *DrawingGridLine = GridLine;		// storing the gridline in our graphics manager
 bool IsActiveGridToggle = true;
 bool IsActivePicking = true;
+bool IsActivePostProcessing = false;
+
+// Model attributes
+ModelManager *ourModel = 0;
 
 // Light attributes
 bool IsPausedLight = true;
@@ -277,6 +287,179 @@ int GraphicsManager::LaunchOpenGL()
 	return 0;
 }
 
+// The routine to Draw in normal mode
+void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Shader cursorShader, ModelManager &ourModel, CGrid &gridLine,  CCursor &cursor)
+{
+	// For a moving light source
+	if(!IsPausedLight)
+	{
+	   lightPos.x = (GLfloat)(1.0f + sin(glfwGetTime()) * 2.0f);
+	   lightPos.y = (GLfloat)(sin(glfwGetTime() / 2.0f) * 1.0f);
+	   lightPos.z = (GLfloat)(cos(glfwGetTime() * 0.75f));
+	}
+	/////////////////////////
+    // Draw the objects
+	/////////////////////////
+    ourShader.Use();
+
+	GLint lightPosLoc    = glGetUniformLocation(ourShader.Program, "light.position");
+    GLint viewPosLoc     = glGetUniformLocation(ourShader.Program, "viewPos");
+    glUniform3f(lightPosLoc,    lightPos.x, lightPos.y, lightPos.z);
+    glUniform3f(viewPosLoc,     camera.Position.x, camera.Position.y, camera.Position.z);
+
+	// Set lights properties
+    glm::vec3 lightColor;
+	// Variable light Color code
+    //lightColor.x = (GLfloat)(sin(glfwGetTime() * 2.0f));
+    //lightColor.y = (GLfloat)(sin(glfwGetTime() * 0.7f));
+    //lightColor.z = (GLfloat)(sin(glfwGetTime() * 1.3f));
+	lightColor.x = 1.0f;
+	lightColor.y = 1.0f;
+	lightColor.z = 1.0f;
+    glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // Decrease the influence
+    glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // Low influence
+    glUniform3f(glGetUniformLocation(ourShader.Program, "light.ambient"),  ambientColor.x, ambientColor.y, ambientColor.z);
+    glUniform3f(glGetUniformLocation(ourShader.Program, "light.diffuse"),  diffuseColor.x, diffuseColor.y, diffuseColor.z);
+    glUniform3f(glGetUniformLocation(ourShader.Program, "light.specular"), 1.0f, 1.0f, 1.0f);
+    // Set material properties
+    glUniform3f(glGetUniformLocation(ourShader.Program, "material.ambient"),   1.0f, 0.5f, 0.31f);
+    glUniform3f(glGetUniformLocation(ourShader.Program, "material.diffuse"),   1.0f, 0.5f, 0.31f);
+    glUniform3f(glGetUniformLocation(ourShader.Program, "material.specular"),  0.5f, 0.5f, 0.5f); // Specular doesn't have full effect on this object's material
+    glUniform1f(glGetUniformLocation(ourShader.Program, "material.shininess"), 32.0f);
+
+	// Camera/View transformation
+    glm::mat4 view;	// sets an indentity matrix in view
+    view = camera.GetViewMatrix();
+	
+	//	glm::mat4 projection = glm::perspective(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);  
+	camera.SetProjectionMatrix(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);
+	glm::mat4 projection;  
+	projection = camera.GetProjectionMatrix();
+
+	// Get the uniform locations
+    GLint modelLoc = glGetUniformLocation(ourShader.Program, "model");
+    GLint viewLoc  = glGetUniformLocation(ourShader.Program, "view");
+    GLint projLoc  = glGetUniformLocation(ourShader.Program, "projection");
+    // Pass the matrices to the shader
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+	// Model
+	glm::mat4 model;  // sets an identity matrix into model
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	ourModel.Draw(ourShader, GL_TRIANGLES);
+
+	// Draw the grid line structure if the the grid toggle is active
+	if(IsActiveGridToggle)
+	{					
+		glm::mat4 model;
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		glUniform3f(glGetUniformLocation(ourShader.Program, "material.ambient"),   1.0f, 1.0f, 1.0f);
+		glUniform3f(glGetUniformLocation(ourShader.Program, "material.diffuse"),   1.0f, 1.0f, 1.0f);
+		glUniform3f(glGetUniformLocation(ourShader.Program, "material.specular"),  0.0f, 0.0f, 0.0f); // Specular doesn't have full effect on this object's material
+		glUniform1f(glGetUniformLocation(ourShader.Program, "material.shininess"), 32.0f);
+		DrawingGridLine->Draw();
+	
+		//for (GLuint j = 0; j<2;j++)
+		//{
+		//	for (GLuint i = 0; i < 80; i++)
+		//	{
+		//		// Calculate the model matrix for each object and pass it to shader before drawing
+		//		glm::mat4 model;
+		//		GLfloat angle = (GLfloat)(90.0f * (3.14159 / 180.0) * j);
+		//		//printf("\nAngle:  %f", angle);
+		//		//model = glm::rotate(model, angle, glm::vec3(0.0f, 1.0f, 0.0f));
+		//		model = glm::rotate(model, 90.0f*j, glm::vec3(0.0f, 1.0f, 0.0f));
+		//		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -4.0+0.1*i));
+		//		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		//		gridModel.Draw(ourShader, GL_LINES);
+		//	}
+		//}
+	}	
+
+	/////////////////////////////// 
+	//       Draw the cursor     //
+	///////////////////////////////
+	// WARNING!:  need to initialize this shader for it to work.
+	// Currently using existing settings for the main objects.  Cursor needs
+	// its own shader initialization
+	// cursorShader.Use();
+	model = glm::mat4();
+	model = glm::translate(model, CursorObj->GetWorldCoords());
+	model = glm::scale(model, glm::vec3(0.05f));
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+	CursorObj->Draw();
+
+	////////////////////////////////////////
+	//  Draws the Lighting source lamp
+	////////////////////////////////////////
+	// Use cooresponding shader when setting uniforms/drawing objects
+    lightsourceShader.Use();
+
+	// Get location objects for the matrices on the lamp shader
+    GLint lightmodelLoc = glGetUniformLocation(lightsourceShader.Program, "model");
+    GLint lightviewLoc  = glGetUniformLocation(lightsourceShader.Program,  "view");
+    GLint lightprojLoc  = glGetUniformLocation(lightsourceShader.Program,  "projection");
+	// Set matrices
+    // Pass the matrices to the shader
+    glUniformMatrix4fv(lightviewLoc, 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(lightprojLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+    // Draw the light (using first square of the container's vertex attributes)
+	// Need to create an additional array just for light sources
+	model = glm::mat4();
+	model = glm::translate(model, lightPos);
+	model = glm::scale(model, glm::vec3(0.1f));
+    glUniformMatrix4fv(lightmodelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+	ourModel.Draw(lightsourceShader, GL_TRIANGLES);
+
+	//////////////////////////////////
+	// End of normal rendering stuff
+	//////////////////////////////////
+}
+
+void GraphicsManager::DrawPicking(Shader pickingShader)
+{
+	for(unsigned int j = 0; j < (this->DrawingObjects.size()); j++)
+	{
+		for(unsigned int i = 0; i < (*(this->DrawingObjects[j])).meshes.size(); i++)
+		{
+			//printf("\nDrawingObject #: %i -- Mesh #: %i -- MeshID: %i", j, i, (*(this->DrawingObjects[j])).meshes[i]->GetMeshID());
+
+			pickingShader.Use();	// turns on the picking shader
+
+			// Camera/View transformation -- needed to match the original view and projection matrices for normal rendering
+		    glm::mat4 view;	// sets an indentity matrix in view
+		    view = camera.GetViewMatrix();
+	
+			//	glm::mat4 projection = glm::perspective(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);  
+			camera.SetProjectionMatrix(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);
+			glm::mat4 projection;  
+			projection = camera.GetProjectionMatrix();
+
+			// Get the uniform locations
+		    GLint modelLoc = glGetUniformLocation(pickingShader.Program, "model");
+			GLint viewLoc  = glGetUniformLocation(pickingShader.Program, "view");
+			GLint projLoc  = glGetUniformLocation(pickingShader.Program, "projection");
+			GLint pickingIDLoc  = glGetUniformLocation(pickingShader.Program, "PickingColor");
+			// sets the color based on on the MeshID of the mesh.
+			glUniform3f(pickingIDLoc, ((GLfloat)(10.0/120.0*(*(this->DrawingObjects[j])).meshes[i]->GetMeshID())), 0.0f, 0.0f);
+
+			// Pass the matrices to the shader
+			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+			// Model
+			glm::mat4 model;  // sets an identity matrix into model
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+			(*(this->DrawingObjects[j])).meshes[i]->Draw(GL_TRIANGLES);
+		}
+	}
+}
+
+
+
 // Our main draw function
 void GraphicsManager::Draw()
 {
@@ -288,7 +471,12 @@ void GraphicsManager::Draw()
 	Shader pickingShader("Shaders/ShaderPicking.vertex", "Shaders/ShaderPicking.fragment");				// shader used when picking mode is activated (not used??)
 	Shader post_process_spShader("Shaders/post_process_sp.vertex","Shaders/post_process_sp.fragment");  // shader used for making a framebuffer for picking selecting
 	// Create and load shape for our model, including gridline objects and the physical assets
-	ModelManager ourModel(MODEL_LOAD_MODEL); // Loads the model elements
+	ModelManager *ourModel = new ModelManager(MODEL_LOAD_MODEL);	// Create a model object that loads the model elements
+	DrawingObjects.push_back(ourModel);								// Adds the model to our DrawingObjects database
+
+//	// Make a duplicate box just to test, numbering, drawing, picking etc...
+//	ModelManager *ourModel2 = new ModelManager(MODEL_LOAD_MODEL);	// Create a model object that loads the model elements
+//	DrawingObjects.push_back(ourModel2);							// Adds the model to our DrawingObjects database
 
 	// Create the main drawing grid line -- requires an OPENGL context for this step
 	// Must use XY, XZ, or YZ plane designators....such that X < Y < Z in order of labelling
@@ -365,12 +553,12 @@ void GraphicsManager::Draw()
     glBindBuffer(GL_ARRAY_BUFFER, ss_quad_vbo);
      glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
 
-		// Texture Coords
-        glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, ss_quad_texvbo);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-		
-		glBindVertexArray(0); // clear the VAO
+	// Texture Coords
+    glEnableVertexAttribArray(1);
+	glBindBuffer(GL_ARRAY_BUFFER, ss_quad_texvbo);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+	
+	glBindVertexArray(0); // clear the VAO
 		
 	// Game loop
     while (!glfwWindowShouldClose(MyWinInfo->MainWindow))
@@ -382,7 +570,8 @@ void GraphicsManager::Draw()
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		if(IsActivePicking)
+		// Before drawing anything, we attach the second framebuffer so we can render to  texture for post processing if needed
+		if(IsActivePostProcessing)
 		{
 			// bind the second (render-to-texture) framebuffer here
 			glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
@@ -411,141 +600,24 @@ void GraphicsManager::Draw()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  // Depth buffer enabled, must clear the depth buffer bit too.
 		glEnable(GL_DEPTH_TEST);
 
-
-		// For a moving light source
-		if(!IsPausedLight)
+		// This toggles us between picking mode and normal drawing mode
+		if(IsActivePicking)
 		{
-		   lightPos.x = (GLfloat)(1.0f + sin(glfwGetTime()) * 2.0f);
-		   lightPos.y = (GLfloat)(sin(glfwGetTime() / 2.0f) * 1.0f);
-		   lightPos.z = (GLfloat)(cos(glfwGetTime() * 0.75f));
+			DrawPicking(pickingShader);	// DrawingPicking stuff only draws the model with the picking shader applied
+		} else {
+			DrawNormal(ourShader, lightsourceShader, cursorShader, *ourModel, *gridLine, *cursor);	// DrawNormal draws the model, cursor, and gridlines in normal mode
 		}
 
-		/////////////////////////
-        // Draw the objects
-		/////////////////////////
-        ourShader.Use();
-
-		GLint lightPosLoc    = glGetUniformLocation(ourShader.Program, "light.position");
-        GLint viewPosLoc     = glGetUniformLocation(ourShader.Program, "viewPos");
-        glUniform3f(lightPosLoc,    lightPos.x, lightPos.y, lightPos.z);
-        glUniform3f(viewPosLoc,     camera.Position.x, camera.Position.y, camera.Position.z);
-        // Set lights properties
-        glm::vec3 lightColor;
-		// Variable light Color code
-        //lightColor.x = (GLfloat)(sin(glfwGetTime() * 2.0f));
-        //lightColor.y = (GLfloat)(sin(glfwGetTime() * 0.7f));
-        //lightColor.z = (GLfloat)(sin(glfwGetTime() * 1.3f));
-		lightColor.x = 1.0f;
-		lightColor.y = 1.0f;
-		lightColor.z = 1.0f;
-        glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // Decrease the influence
-        glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // Low influence
-        glUniform3f(glGetUniformLocation(ourShader.Program, "light.ambient"),  ambientColor.x, ambientColor.y, ambientColor.z);
-        glUniform3f(glGetUniformLocation(ourShader.Program, "light.diffuse"),  diffuseColor.x, diffuseColor.y, diffuseColor.z);
-        glUniform3f(glGetUniformLocation(ourShader.Program, "light.specular"), 1.0f, 1.0f, 1.0f);
-        // Set material properties
-        glUniform3f(glGetUniformLocation(ourShader.Program, "material.ambient"),   1.0f, 0.5f, 0.31f);
-        glUniform3f(glGetUniformLocation(ourShader.Program, "material.diffuse"),   1.0f, 0.5f, 0.31f);
-        glUniform3f(glGetUniformLocation(ourShader.Program, "material.specular"),  0.5f, 0.5f, 0.5f); // Specular doesn't have full effect on this object's material
-        glUniform1f(glGetUniformLocation(ourShader.Program, "material.shininess"), 32.0f);
-
-		// Camera/View transformation
-        glm::mat4 view;	// sets an indentity matrix in view
-        view = camera.GetViewMatrix();
-
-		//	glm::mat4 projection = glm::perspective(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);  
-		camera.SetProjectionMatrix(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);
-		glm::mat4 projection;  
-		projection = camera.GetProjectionMatrix();
-
-		// Get the uniform locations
-        GLint modelLoc = glGetUniformLocation(ourShader.Program, "model");
-        GLint viewLoc  = glGetUniformLocation(ourShader.Program, "view");
-        GLint projLoc  = glGetUniformLocation(ourShader.Program, "projection");
-        // Pass the matrices to the shader
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-		// Model
-		glm::mat4 model;  // sets an identity matrix into model
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		ourModel.Draw(ourShader, GL_TRIANGLES);
-
-		// Draw the grid line structure if the the grid toggle is active
-		if(IsActiveGridToggle)
-		{					
-			glm::mat4 model;
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-			glUniform3f(glGetUniformLocation(ourShader.Program, "material.ambient"),   1.0f, 1.0f, 1.0f);
-			glUniform3f(glGetUniformLocation(ourShader.Program, "material.diffuse"),   1.0f, 1.0f, 1.0f);
-			glUniform3f(glGetUniformLocation(ourShader.Program, "material.specular"),  0.0f, 0.0f, 0.0f); // Specular doesn't have full effect on this object's material
-			glUniform1f(glGetUniformLocation(ourShader.Program, "material.shininess"), 32.0f);
-			DrawingGridLine->Draw();
-	
-			//for (GLuint j = 0; j<2;j++)
-			//{
-			//	for (GLuint i = 0; i < 80; i++)
-			//	{
-			//		// Calculate the model matrix for each object and pass it to shader before drawing
-			//		glm::mat4 model;
-			//		GLfloat angle = (GLfloat)(90.0f * (3.14159 / 180.0) * j);
-			//		//printf("\nAngle:  %f", angle);
-			//		//model = glm::rotate(model, angle, glm::vec3(0.0f, 1.0f, 0.0f));
-			//		model = glm::rotate(model, 90.0f*j, glm::vec3(0.0f, 1.0f, 0.0f));
-			//		model = glm::translate(model, glm::vec3(0.0f, 0.0f, -4.0+0.1*i));
-			//		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-			//		gridModel.Draw(ourShader, GL_LINES);
-			//	}
-			//}
-		}	
-
-		/////////////////////////////// 
-		//       Draw the cursor     //
-		///////////////////////////////
-		// WARNING!:  need to initialize this shader for it to work.
-		// Currently using existing settings for the main objects.  Cursor needs
-		// its own shader initialization
-
-		// cursorShader.Use();
-		model = glm::mat4();
-		model = glm::translate(model, CursorObj->GetWorldCoords());
-		model = glm::scale(model, glm::vec3(0.05f));
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-		CursorObj->Draw();
-
-		////////////////////////////////////////
-		//  Draws the Lighting source lamp
-		////////////////////////////////////////
-		// Use cooresponding shader when setting uniforms/drawing objects
-        lightsourceShader.Use();
-
-		// Get location objects for the matrices on the lamp shader
-        GLint lightmodelLoc = glGetUniformLocation(lightsourceShader.Program, "model");
-        GLint lightviewLoc  = glGetUniformLocation(lightsourceShader.Program,  "view");
-        GLint lightprojLoc  = glGetUniformLocation(lightsourceShader.Program,  "projection");
-		// Set matrices
-        // Pass the matrices to the shader
-        glUniformMatrix4fv(lightviewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(lightprojLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-        // Draw the light (using first square of the container's vertex attributes)
-		// Need to create an additional array just for light sources
-		model = glm::mat4();
-		model = glm::translate(model, lightPos);
-		model = glm::scale(model, glm::vec3(0.1f));
-        glUniformMatrix4fv(lightmodelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-		ourModel.Draw(lightsourceShader, GL_TRIANGLES);
-
-//////////////////////////////////
-// End of normal rendering stuff
-//////////////////////////////////
-
 		///////////////////////////////////////////////////
+		//  POST-PROCESSING -- if post-processing is 
+		//  enabled, then we grab the new framebuffer
+		//  which was enabled at the beginning of the draw loop,
+		//  and then enable the default buffer here for
+		//  post processing effects
 		//  Bind to default framebuffer again and draw the
 		//  quad with attached screen texture
 		///////////////////////////////////////////////////
-		if(IsActivePicking)
+		if(IsActivePostProcessing)
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			// Clear all relevant buffers
@@ -560,6 +632,7 @@ void GraphicsManager::Draw()
 
 			// our post processing shader for the screen-space quad
 			post_process_spShader.Use();
+
 			// bind the quad's vao
 			glBindVertexArray(ss_quad_vao);
 			// activate the first texture slot and put texture from previous pass on it
@@ -672,6 +745,12 @@ void GraphicsManager::Destroy()
 	printf("\nINCOMPLETE:  Destroying the Graphics Manager");
 	printf("\nDeleting CursorObj in GraphicsManager class");
 	delete CursorObj;
+
+	for(unsigned int i=0;i < (this->DrawingObjects.size());i++)
+	{
+		printf("\nDeleting DrawingObjects in GraphicsManager class");
+		delete this->DrawingObjects[i];
+	}
 	printf("\nDeleting DrawingGridLine in GraphicsManager class");
 	delete DrawingGridLine;
     //Finalize and clean up GLFW  
@@ -679,6 +758,22 @@ void GraphicsManager::Destroy()
     glfwTerminate(); 
 	printf("\nDeleting the main drawing window in GraphicsManager class");
 	delete MyWinInfo;
+}
+
+void draw_picker_colours(glm::mat4 P, glm::mat4 V, glm::mat4 M[3])
+{
+	
+}
+
+// encodes a unique ID into a colour with components in range of 0.0 to 1.0
+glm::vec3 encode_id (int id)
+{
+	int r = id / 65536;
+	int g = (id - r * 65536) / 256;
+	int b = (id - r * 65536 - g * 256);
+
+	// convert to floats.  Only divide by 255 because range is 0-255
+	return glm::vec3((float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f);
 }
 
 // Generates a texture that is suited for attachments to a framebuffer
@@ -778,11 +873,22 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		{
 			printf("\nPicking mode disabled...");
 			IsActivePicking = false;
-					//printf("\nIs active picking value: %i",IsActivePicking);
 		} else {
 			printf("\nPicking objects...");
 			IsActivePicking = true;
-					//printf("\nIs active picking value: %i",IsActivePicking);
+		}
+	}
+
+	// Picking is active toggle
+	if (key == GLFW_KEY_F4 && action == GLFW_PRESS)
+	{
+		if (IsActivePostProcessing == true)
+		{
+			printf("\nPostprocessing mode disabled...");
+			IsActivePostProcessing = false;
+		} else {
+			printf("\nPostprocessing mode turned on...");
+			IsActivePostProcessing = true;
 		}
 	}
 

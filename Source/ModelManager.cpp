@@ -55,7 +55,7 @@ void ModelManager::Draw(Shader ourShader, int gl_drawtype)
 	for(GLuint i=0; i < this->meshes.size(); i++)
 	{
 //		printf("\nmeshes.size(): %i",meshes.size());
-		this->meshes[i].Draw(gl_drawtype);
+		this->meshes[i]->Draw(gl_drawtype);
 	}
 }
 
@@ -349,9 +349,10 @@ void ModelManager::processMesh()
 			 //printf("\nArray:  %i,  path: %s",k,face_textures[k].path.c_str());
 		}
 
-
-		// Now create the mesh based on the data that has been read by calling the mesh constructor in mesh.h
-		this->meshes.push_back(Mesh(face_vertices, face_indices, face_textures));
+		Mesh2 *newmesh = new Mesh2(face_vertices, face_indices, face_textures);
+	    this->meshes.push_back(newmesh);
+//		// Now create the mesh based on the data that has been read by calling the mesh constructor in mesh.h
+//		this->meshes.push_back(Mesh2(face_vertices, face_indices, face_textures));
 	 }
 
 //	 //printf("\nSize of vertex data:  %i",sizeof(vertex_data));

@@ -284,7 +284,7 @@ void CCursor::CreateBoundingBox(vector<Mesh2*> temp)
 				zmax = temp_valz;
 		}
 	}
-	printf("\nxmin: %f,\t xmax: %f,\t ymin: %f,\t ymax: %f,\t zmin: %f,\t zmax: %f", xmin, xmax, ymin, ymax, zmin, zmax);
+	printf("\nBounding box:  \nxmin: %f \nxmax: %f,\nymin: %f,\nymax: %f,\nzmin: %f,\nzmax: %f", xmin, xmax, ymin, ymax, zmin, zmax);
 	boundary.push_back(glm::vec3(xmin, 0.0f, 0.0f));
 	boundary.push_back(glm::vec3(xmax, 0.0f, 0.0f));
 	boundary.push_back(glm::vec3(0.0f, ymin, 0.0f));

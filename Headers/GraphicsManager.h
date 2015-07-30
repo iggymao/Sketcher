@@ -44,8 +44,15 @@ public:
 	CGrid *DrawingGridLine;		// The main drawing grid object
 	CCursor *CursorObj;			// The main cursor for the drawing window
 
+	vector<ModelManager*> DrawingObjects;	// The main array to hold  the Drawing Objects
+
 	void Initialize();			// Starts the graphics manager
-	void Draw();				// a basic draw routine controlled by the graphics manager
+
+	void Draw();  // a basic draw routine controlled by the graphics manager -- diverts to DrawNormal and DrawPicking once inside
+	// a routine for drawing unpicked screens
+	void DrawNormal(Shader ourShader, Shader lightingShader, Shader cursorShader, ModelManager &ourModel, CGrid &gridline,  CCursor &cursor);
+	// a routine for drawing picked screens (changes the color of the objects based on IDs)
+	void DrawPicking(Shader pickingShader);			
 
 	int LaunchOpenGL();			// Launches the OpenGL routines.
 
