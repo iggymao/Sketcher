@@ -14,8 +14,22 @@
 
 #include "../Headers/Mesh.h"
 
+static const int AISC_SHAPE_UNDEFINED	= -1;
+static const int AISC_W_SHAPE			= 0;
+static const int AISC_S_SHAPE			= 1;
+static const int AISC_C_SHAPE			= 2;
+static const int AISC_MC_SHAPE			= 3;
+static const int AISC_L_SHAPE			= 4;
+static const int AISC_LL_SHAPE			= 5;
+static const int AISC_HSS_SHAPE			= 6;
+static const int AISC_RSS_SHAPE			= 7;
+
+
+
+
 // draws a line of length centered at (0,0,0)
 class CLine : public Mesh2
+//class CLine : public ModelManager
 {
 public:
 	// constructor
@@ -39,6 +53,7 @@ public:
 
 // draws a grid of lines centered at (0,0,0)
 class CGrid : public CLine
+//class CGrid : public ModelManager
 {
 public:
 	// constructor
@@ -81,42 +96,72 @@ private:
 };
 
 /*
-class CPrism: public Mesh
+class CPrism: public Mesh2
 {
 public:
 	CPrism(GLfloat length, GLfloat length);
 	const int draw_type = GL_TRIANGLES;
 };
 
-class CSphere: public Mesh
+class CSphere: public Mesh2
 {
 public:
 	CSphere(GLfloat radius);
 	const int draw_type = GL_TRIANGLES;
 };
 
-class CCone: public Mesh
+class CCone: public Mesh2
 {
 public:
 	CCone(GLfloat radius, GLfloat length);
 	const int draw_type = GL_TRIANGLES;
 };
 
-class CModelLoader: public Mesh
+class CModelLoader: public Mesh2
 {
 public:
 	CModelLoader(std::string filename) {  printf("\nINCOMPLETE MODEL LOADER");}
 	const int draw_type = GL_TRIANGLES;
 };
-
-class CAisc: public CPrism
+*/
+class CAisc
 {
 public:
-	CAisc(std::string section_name, GLfloat length, const int draw_type)
-		: CPrism(length, draw_type);
+	CAisc(std::string section_name, GLfloat length, const int draw_type) {printf("CAisc shape constructor based on strings...");}
+//		: CPrism(length, draw_type);
+	CAisc(int aisc_shape, GLfloat depth, GLfloat bf, GLfloat tf, GLfloat tw, GLfloat length)
+	{
+		this->aisc_shape = aisc_shape;
+		this->depth = depth;
+		this->bf = bf;
+		this->tf = tf; 
+		this->tw = tw;
+		this->length = length;
+
+		void MakeGridData(int aisc_shape, GLfloat depth, GLfloat bf, GLfloat tf, GLfloat tw, GLfloat length);
+	}
 	static const int draw_type = GL_TRIANGLES;
+
+	void MakeGridData(int aisc_shape, GLfloat depth, GLfloat bf, GLfloat tf, GLfloat tw, GLfloat length);
+
+	/* accessors to private data */
+	int GetShape() {return this->aisc_shape;}
+	GLfloat GetDepth() {return this->depth;}
+	GLfloat GetFlangeWidth() {return this->bf;}
+	GLfloat GetFlangeThickness() {return this->tf;}
+	GLfloat GetWebThickness() {return this->tw;}
+	GLfloat GetLength() {return this->length;}
+
+private:
+	int aisc_shape;				// a designator for the aisc shape as defined in DrawingShapes.h
+	GLfloat depth;				// depth "d"
+	GLfloat bf;					// flange width, "bf"
+	GLfloat tf;					// flange thickness, "tf"
+	GLfloat tw;					// web thickness
+	GLfloat length;				// length of the prism.  Should be moved up into the Prism abstract class?
 };
 
+/*
 class CRectangle: public CPrism
 {
 public:

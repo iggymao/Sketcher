@@ -30,6 +30,7 @@ public:
 	GraphicsManager() {
 		IsLoadedOpenGL = false;
 		IsCreatedCursor = false;
+		PickedMeshID.push_back(-1);		// set -1 into the PickedMeshID values to indicate no mesh is selected
 		//IsActivePicking = 0;
 	
 	}
@@ -46,13 +47,15 @@ public:
 
 	vector<ModelManager*> DrawingObjects;	// The main array to hold  the Drawing Objects
 
+	vector<GLint> PickedMeshID;	//	An array to store picked member ID's, used in displaying selected objects in DrawNormal
+
 	void Initialize();			// Starts the graphics manager
 
 	void Draw();  // a basic draw routine controlled by the graphics manager -- diverts to DrawNormal and DrawPicking once inside
-	// a routine for drawing unpicked screens
+	// a routine for drawing normal screens
 	void DrawNormal(Shader ourShader, Shader lightingShader, Shader cursorShader, ModelManager &ourModel, CGrid &gridline,  CCursor &cursor);
 	// a routine for drawing picked screens (changes the color of the objects based on IDs)
-	void DrawPicking(Shader pickingShader);			
+	void DrawPicking(Shader pickingShader);	
 
 	int LaunchOpenGL();			// Launches the OpenGL routines.
 

@@ -17,6 +17,12 @@ using namespace std;
 #include "../utils/MathUtils.cpp"
 // create the vertex_data, index_data, texture_data for the grid 
 // creates a grid in the XZ plane for now
+
+void CAisc::MakeGridData(int aisc_shape, GLfloat depth, GLfloat bf, GLfloat tf, GLfloat tw, GLfloat length)
+{
+	printf("\nMaking vertex and index data for CAisc");
+}
+
 void CGrid::MakeGridData(int plane)
 {
 	GLfloat x_elev1, y_elev1, z_elev1;		// for storing our plane coordinates

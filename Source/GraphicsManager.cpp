@@ -42,7 +42,7 @@ void DrawPicking(Shader pickingShader, ModelManager ourModel);
 
 GLuint generateAttachmentTexture(GLboolean depth, GLboolean stencil);
 void draw_picker_colours(glm::mat4 P, glm::mat4 V, glm::mat4 M[3]);
-glm::vec3 encode_id (int id);
+//glm::vec3 encode_id (int id);
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
@@ -78,6 +78,11 @@ glm::vec3 lightPos(0.0f, 2.0f, 0.0f);  // a default light source position
 // Deltatime
 GLfloat deltaTime = 0.0f;			// time between current frame and last frame
 GLfloat lastFrame = 0.0f;			// time of last frame
+GLfloat deltaLeftMouseTime = 0.0f;	// time between current left mouse click and the last click
+GLfloat lastLeftMouseFrame = 0.0f;	// time of the last left Mouse click
+GLfloat deltaRightMouseTime = 0.0f;	// time between current right mouse click and the last click
+GLfloat lastRightMouseFrame = 0.0f;	// time of the last right Mouse click
+const float MAX_CLICK_SPEED = 0.25f;	// sets the timer for the maximum repeated click speed
 
 /*
 const char* GL_type_to_string(GLenum type){
@@ -321,7 +326,8 @@ void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Sha
     glUniform3f(glGetUniformLocation(ourShader.Program, "light.ambient"),  ambientColor.x, ambientColor.y, ambientColor.z);
     glUniform3f(glGetUniformLocation(ourShader.Program, "light.diffuse"),  diffuseColor.x, diffuseColor.y, diffuseColor.z);
     glUniform3f(glGetUniformLocation(ourShader.Program, "light.specular"), 1.0f, 1.0f, 1.0f);
-    // Set material properties
+
+	// Set material properties
     glUniform3f(glGetUniformLocation(ourShader.Program, "material.ambient"),   1.0f, 0.5f, 0.31f);
     glUniform3f(glGetUniformLocation(ourShader.Program, "material.diffuse"),   1.0f, 0.5f, 0.31f);
     glUniform3f(glGetUniformLocation(ourShader.Program, "material.specular"),  0.5f, 0.5f, 0.5f); // Specular doesn't have full effect on this object's material
@@ -426,7 +432,6 @@ void GraphicsManager::DrawPicking(Shader pickingShader)
 		for(unsigned int i = 0; i < (*(this->DrawingObjects[j])).meshes.size(); i++)
 		{
 			//printf("\nDrawingObject #: %i -- Mesh #: %i -- MeshID: %i", j, i, (*(this->DrawingObjects[j])).meshes[i]->GetMeshID());
-
 			pickingShader.Use();	// turns on the picking shader
 
 			// Camera/View transformation -- needed to match the original view and projection matrices for normal rendering
@@ -444,7 +449,12 @@ void GraphicsManager::DrawPicking(Shader pickingShader)
 			GLint projLoc  = glGetUniformLocation(pickingShader.Program, "projection");
 			GLint pickingIDLoc  = glGetUniformLocation(pickingShader.Program, "PickingColor");
 			// sets the color based on on the MeshID of the mesh.
-			glUniform3f(pickingIDLoc, ((GLfloat)(10.0/120.0*(*(this->DrawingObjects[j])).meshes[i]->GetMeshID())), 0.0f, 0.0f);
+			int id = (*(this->DrawingObjects[j])).meshes[i]->GetMeshID();
+			int r = id / 65536;
+			int g = (id - r * 65536) / 256;
+			int b = (id - r * 65536 - g * 256);
+			glm::vec3 rgb_vec = glm::vec3((float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f);
+//			glUniform3f(pickingIDLoc, rgb_vec.x, rgb_vec.y, rgb_vec.z);
 
 			// Pass the matrices to the shader
 			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -453,7 +463,26 @@ void GraphicsManager::DrawPicking(Shader pickingShader)
 			glm::mat4 model;  // sets an identity matrix into model
 			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
-			(*(this->DrawingObjects[j])).meshes[i]->Draw(GL_TRIANGLES);
+			// Check the PickedMesh array to see if a MeshID number is stored there.  If found, then change the mesh color
+			// to our picked color (yellow).  Otherwise, if no items are selected, or the current element is not
+			// in the PickedMesh array then we draw it with a normal picking mode color based on the mesh id number
+			bool mesh_found = false;
+			for(unsigned int k=0; k<PickedMeshID.size();k++)
+			{
+				//printf("\ncurrent size of mesh:  %i ", PickedMeshID.size());
+				if((*(this->DrawingObjects[j])).meshes[i]->MeshID == PickedMeshID[k])
+				{
+					glUniform3f(pickingIDLoc, 0.8f, 0.8f, 0.0f);  // change the color of the objects that are on the highlighted list
+					mesh_found = true;
+					(*(this->DrawingObjects[j])).meshes[i]->Draw(GL_TRIANGLES); // Draws the color coded picking objects based on MeshID
+					break;
+				}
+			}
+			if((PickedMeshID[0] == -1) || (!mesh_found))  // no items picked, therefore draw the normal triangle
+			{
+				glUniform3f(pickingIDLoc, rgb_vec.x, rgb_vec.y, rgb_vec.z);
+				(*(this->DrawingObjects[j])).meshes[i]->Draw(GL_TRIANGLES); // Draws the color coded picking objects based on MeshID
+			} 
 		}
 	}
 }
@@ -468,7 +497,8 @@ void GraphicsManager::Draw()
 	Shader ourShader("Shaders/DefaultShader.vertex", "Shaders/DefaultShader.fragment");
 	Shader lightsourceShader("Shaders/ShaderLighting.vertex", "Shaders/ShaderLighting.fragment");
 	Shader cursorShader("Shaders/ShaderLighting.vertex", "Shaders/ShaderLighting.fragment");
-	Shader pickingShader("Shaders/ShaderPicking.vertex", "Shaders/ShaderPicking.fragment");				// shader used when picking mode is activated (not used??)
+	Shader pickingShader("Shaders/ShaderPicking.vertex", "Shaders/ShaderPicking.fragment");	// shader used when picking mode is activated (not used??)
+	Shader selectionShader("Shaders/ShaderSelection.vertex", "Shaders/ShaderSelection.fragment"); // used to highlight the selected elements
 	Shader post_process_spShader("Shaders/post_process_sp.vertex","Shaders/post_process_sp.fragment");  // shader used for making a framebuffer for picking selecting
 	// Create and load shape for our model, including gridline objects and the physical assets
 	ModelManager *ourModel = new ModelManager(MODEL_LOAD_MODEL);	// Create a model object that loads the model elements
@@ -588,6 +618,11 @@ void GraphicsManager::Draw()
 		// Calculate deltatime of current frame
 		GLfloat currentFrame = (GLfloat)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
+		deltaLeftMouseTime = currentFrame - lastLeftMouseFrame;			// stores the time since the last LeftMouseClick
+		deltaRightMouseTime = currentFrame - lastRightMouseFrame;		// stores the time since the last RIghtMouseClick
+
+		//printf("\nDelta time: %f", deltaTime);
+
 		lastFrame = currentFrame;
 
         // Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
@@ -595,18 +630,98 @@ void GraphicsManager::Draw()
 		Do_Movement();
 
         // Render
-        // Clear the colorbuffer
         glClearColor(0.4f, 0.5f, 0.5f, 1.0f);   // a grey color
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  // Depth buffer enabled, must clear the depth buffer bit too.
 		glEnable(GL_DEPTH_TEST);
 
+		/////////////////////////////////
+		//  Picking related stuff here //
+		/////////////////////////////////
+
 		// This toggles us between picking mode and normal drawing mode
-		if(IsActivePicking)
+		if(!IsActivePicking)
 		{
-			DrawPicking(pickingShader);	// DrawingPicking stuff only draws the model with the picking shader applied
-		} else {
 			DrawNormal(ourShader, lightsourceShader, cursorShader, *ourModel, *gridLine, *cursor);	// DrawNormal draws the model, cursor, and gridlines in normal mode
+		} else 
+		{
+			glfwSetInputMode(MyWinInfo->MainWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);  // show the cursor
+			DrawPicking(pickingShader);	// DrawingPicking stuff only draws the model with the picking shader applied
+
+			deltaRightMouseTime = currentFrame - lastRightMouseFrame;
+			if(deltaRightMouseTime > MAX_CLICK_SPEED)
+			{
+				if(glfwGetMouseButton(MyWinInfo->MainWindow, GLFW_MOUSE_BUTTON_RIGHT))
+				{				
+					lastRightMouseFrame = currentFrame;
+					PickedMeshID.clear();			// right mouse cancels the picked ID mesh so clear contents and resize to 0
+					PickedMeshID.resize(0);	
+					PickedMeshID.push_back(-1);		// set to a default meshID value of -1
+					for(unsigned int j=0; j<PickedMeshID.size();j++)
+					{
+						printf("\nSize:  %i   --  Picked ID's stored:  %i",PickedMeshID.size(),PickedMeshID[j]);
+					}
+				} 
+			}
+//IMPORTANT BUG!!!!   Presumably because of no error checking
+// in the GMDraw() function on the PickedMeshID on a missed click presenting an invalid MeshID.
+// Crash bug removed, but the PickedMeshID still can store the bad click values.  Perhaps a verifying
+// pass through a loop to clean up PickedMesh is needed now?
+			deltaLeftMouseTime = currentFrame - lastLeftMouseFrame;
+			if(deltaLeftMouseTime > MAX_CLICK_SPEED)
+			{
+				if(glfwGetMouseButton(MyWinInfo->MainWindow, GLFW_MOUSE_BUTTON_LEFT))
+				{
+					lastLeftMouseFrame = currentFrame;
+					double xpos, ypos;
+					glfwGetCursorPos(MyWinInfo->MainWindow, &xpos, &ypos);
+					int mx = (int)xpos;
+					int my = (int)ypos; 
+
+					unsigned char data[4] = {0, 0, 0, 0};
+					glReadPixels (mx, HEIGHT - my, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &data);
+					GLuint decode_number = (GLuint)data[2]+(GLuint)data[1]*256+(GLuint)data[0]*256*256;
+					printf("\n=========================================");
+					printf("\nMouse clicked.  R: %i,  G: %i,  B: %i -- Model Number %i", data[0], data[1], data[2], decode_number);
+				
+					bool found = false;
+					if(PickedMeshID[0] == -1)			// if no item currently picked,
+					{
+						//printf("===============  First entry ==================");
+						PickedMeshID.clear();
+						PickedMeshID.resize(0);			// resize the PickedID array to delete the -1 first item
+					}
+					for(unsigned int i=0; i<PickedMeshID.size();i++) 
+					{
+						GLuint temp = PickedMeshID[i];
+						printf("\nCount #: %i  ... decode #: %i", i, decode_number);
+						if (temp == decode_number)
+						{
+							//printf("\nItem already exists on list, skipping");
+							found = true;
+							break;
+						}
+					}
+
+					if (!found)
+					{
+						PickedMeshID.push_back(decode_number);
+						//for(unsigned int j=0; j<PickedMeshID.size();j++)
+						//{
+						//	printf("\nAdding to list:  --  Picked ID's stored:  %i",PickedMeshID.size(),PickedMeshID[j]);
+						//}
+					}
+					for(unsigned int j=0; j<PickedMeshID.size();j++)
+					{
+						printf("\nSize:  %i   --  Picked ID's stored:  %i",PickedMeshID.size(),PickedMeshID[j]);
+					}
+				} 
+			}
 		}
+
+		///////////////////////////////////
+		//  End picking related drawing  //
+		///////////////////////////////////
+
 
 		///////////////////////////////////////////////////
 		//  POST-PROCESSING -- if post-processing is 
@@ -636,7 +751,7 @@ void GraphicsManager::Draw()
 			// bind the quad's vao
 			glBindVertexArray(ss_quad_vao);
 			// activate the first texture slot and put texture from previous pass on it
-//			glActiveTexture(GL_TEXTURE0);
+			//glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 			// draw the quad
 			glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -646,14 +761,6 @@ void GraphicsManager::Draw()
 		// flip drawn framebuffer onto the display
 		// Swap the screen buffers
 	    glfwSwapBuffers(MyWinInfo->MainWindow);
-
-		/////////////////////////////////////////////////////////////////
-		//   Beginning picking subsection
-		/////////////////////////////////////////////////////////////////
-
-		/////////////////////////////////////////////////////////////////
-		//   End picking subsection
-		/////////////////////////////////////////////////////////////////
     }
 	// Clean up
 	glDeleteFramebuffers(1, &framebuffer);
@@ -765,16 +872,16 @@ void draw_picker_colours(glm::mat4 P, glm::mat4 V, glm::mat4 M[3])
 	
 }
 
-// encodes a unique ID into a colour with components in range of 0.0 to 1.0
-glm::vec3 encode_id (int id)
-{
-	int r = id / 65536;
-	int g = (id - r * 65536) / 256;
-	int b = (id - r * 65536 - g * 256);
-
-	// convert to floats.  Only divide by 255 because range is 0-255
-	return glm::vec3((float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f);
-}
+//// encodes a unique ID into a colour with components in range of 0.0 to 1.0
+//glm::vec3 encode_id (int id)
+//{
+//	int r = id / 65536;
+//	int g = (id - r * 65536) / 256;
+//	int b = (id - r * 65536 - g * 256);
+//
+//	// convert to floats.  Only divide by 255 because range is 0-255
+//	return glm::vec3((float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f);
+//}
 
 // Generates a texture that is suited for attachments to a framebuffer
 GLuint generateAttachmentTexture(GLboolean depth, GLboolean stencil)
@@ -816,12 +923,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			printf("\nCamera turned off...");
 			// enable the cursor
 			glfwSetCursorPos(window, WIDTH/2, HEIGHT/2);				// move the cursor to the middle of the screen
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);  // show the cursor (used for the camera control)
+			//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);  // show the cursor (used for the camera control)
 			camera.IsActiveCameraToggle = false;						// flag the camera as turned off
 		} else {		
 			printf("\nCamera turned on...");
 			// disable the cursor for the camera controls
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  // hide the cursor (used for the camera control)
+			//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  // hide the cursor (used for the camera control)
 			camera.IsActiveCameraToggle = true;							// flag the camera as turned on
 		}
 	}
@@ -925,21 +1032,21 @@ void Do_Movement()
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
+	if (firstMouse)
+	{
+	    lastX = (GLfloat) xpos;
+	    lastY = (GLfloat) ypos;
+	    firstMouse = false;
+	}
+
+	GLfloat xoffset = (GLfloat) xpos - lastX;
+	GLfloat yoffset = lastY - (GLfloat) ypos; // Reversed since y-coordinates go from bottom to top
+	lastX = (GLfloat) xpos;
+	lastY = (GLfloat) ypos;
+
 	// activate the mouse camera control only if the toggle is turned on.
 	if (camera.IsActiveCameraToggle)
 	{
-	    if (firstMouse)
-	    {
-	        lastX = (GLfloat) xpos;
-	        lastY = (GLfloat) ypos;
-	        firstMouse = false;
-	    }
-
-	    GLfloat xoffset = (GLfloat) xpos - lastX;
-	    GLfloat yoffset = lastY - (GLfloat) ypos; // Reversed since y-coordinates go from bottom to top
-	    lastX = (GLfloat) xpos;
-	    lastY = (GLfloat) ypos;
-
 		camera.ProcessMouseMovement(xoffset, yoffset);
 	} else {
 		// set up for the ray casting calculation which projects a ray through the camera

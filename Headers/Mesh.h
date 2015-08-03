@@ -81,7 +81,6 @@ public:
 		glBindVertexArray(0);
 	}
 
-
 // WARNING!!!:: need to make this protected somehow
 public:
 	GLuint MeshID;			// A number to reference the meshID once they are created

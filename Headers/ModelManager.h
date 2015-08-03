@@ -41,6 +41,7 @@ struct ModelInfo
 class ModelManager : Mesh2
 {
 public:
+	ModelManager(){;}								// default constructor
 	ModelManager(int model_type);					// constructor
 	ModelManager(const ModelManager & rhs) { ;}		// copy constructor
 	~ModelManager() { ;}							// destructor
