@@ -352,7 +352,16 @@ void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Sha
 	// Model
 	glm::mat4 model;  // sets an identity matrix into model
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-	ourModel.Draw(ourShader, GL_TRIANGLES);
+
+	// Draw the the contents of all of the DrawingObjects:
+	for(unsigned int j = 0; j < (this->DrawingObjects.size()); j++)
+	{
+		for(unsigned int i = 0; i < (*(this->DrawingObjects[j])).meshes.size(); i++)
+		{
+			(*(this->DrawingObjects[j])).meshes[i]->Draw(GL_TRIANGLES); 
+		}
+	}
+	//ourModel.Draw(ourShader, GL_TRIANGLES);
 
 	// Draw the grid line structure if the the grid toggle is active
 	if(IsActiveGridToggle)
@@ -473,8 +482,8 @@ void GraphicsManager::DrawPicking(Shader pickingShader)
 				if((*(this->DrawingObjects[j])).meshes[i]->MeshID == PickedMeshID[k])
 				{
 					glUniform3f(pickingIDLoc, 0.8f, 0.8f, 0.0f);  // change the color of the objects that are on the highlighted list
+					(*(this->DrawingObjects[j])).meshes[i]->Draw(GL_TRIANGLES); // Draws the highlight color to indicate a member has been picked
 					mesh_found = true;
-					(*(this->DrawingObjects[j])).meshes[i]->Draw(GL_TRIANGLES); // Draws the color coded picking objects based on MeshID
 					break;
 				}
 			}
@@ -503,6 +512,10 @@ void GraphicsManager::Draw()
 	// Create and load shape for our model, including gridline objects and the physical assets
 	ModelManager *ourModel = new ModelManager(MODEL_LOAD_MODEL);	// Create a model object that loads the model elements
 	DrawingObjects.push_back(ourModel);								// Adds the model to our DrawingObjects database
+
+	std::string shape("W10x33");
+	ModelManager *ourAISC = new ModelManager(shape);  // create an AISC shape 
+	DrawingObjects.push_back(ourAISC);
 
 //	// Make a duplicate box just to test, numbering, drawing, picking etc...
 //	ModelManager *ourModel2 = new ModelManager(MODEL_LOAD_MODEL);	// Create a model object that loads the model elements
