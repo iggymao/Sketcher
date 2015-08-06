@@ -39,27 +39,28 @@ public:
 
 	// constructors
 	Mesh2() { }				// default constructor
-	Mesh2(vector<VertexData> vert, vector<GLuint> ind, vector<TextureData> tex)
+	Mesh2(vector<VertexData> vert, vector<GLuint> ind, vector<TextureData> tex, GLuint draw_type)
 	{
 		MeshID = next_mesh_id();
-		printf("\nMesh::next_id++ %i",Mesh2::next_id);
-		printf("\nSetting mesh for cursor....");
+		//printf("\nMesh::next_id++ %i",Mesh2::next_id);
+		//printf("\nSetting mesh for cursor....");
 		this->vertices = vert;
 		this->indices = ind;
 		this->textures = tex;
 		this->setupMesh();
-//		this->draw_type = GL_TRIANGLES;
+		this->draw_type = GL_TRIANGLES;
 	}
 
 	Mesh2(const Mesh2 & rhs) { }				// copy constructor
 	~Mesh2() { }								// deconstructor
 
 	/* Members */
-	GLuint draw_type;		// a marker for the type of opengl drawing to be done...GL_LINES, GL_TRIANGLES, etc..
+	GLuint draw_type;		// a marker for the type of opengl drawing to be done...GL_LINES, GL_TRIANGLES, 
+							// as declared in ModelManager or other drawing item locations
 
 	/* Functions */
 	void setMeshData() {
-		printf("\nSetting Data....");
+		//printf("\nSetting Data....");
 		MeshID = next_mesh_id();
 	}
 	void setMeshData(vector<VertexData> vert, vector<GLuint> ind, vector<TextureData> tex)
@@ -75,9 +76,10 @@ public:
 	GLuint GetMeshID() {return MeshID;}					// retrieves the Mesh's ID number
 //	void SetMeshID(GLuint id_num) {this->MeshID = id_num;}	// stores the Mesh's ID number
 
-	void Draw(GLuint draw_type) {
+	void Draw() {
+		//printf("\nMesh.h -- Draw()");
 		glBindVertexArray(this->VAO);
-		glDrawElements(draw_type, this->indices.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(this->draw_type, this->indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 	}
 
@@ -91,7 +93,7 @@ public:
 	vector<GLuint> indices;
 	vector<TextureData> textures;
 	/* Render data */
-	GLuint VAO, VBO, EBO, IBO;
+	GLuint VAO, VBO, EBO;
 	/* Functions */
 	void setupMesh() 
 	{

@@ -57,7 +57,7 @@ void CCursor::SetSnapValues(GLfloat val1, GLfloat val2, int plane)
 
 // Creates the mesh for the cursor model.  For now it makes a cube shape, but ultimately 
 // It should be changeable with other models (such as selected shapes for moving, newly added models to screen, etc.).
-void CCursor::MakeCursorModel()
+void CCursor::MakeGridData()
 {
 	printf("\nMakingCursorModel...");
 		// For now, we'll load a simple cube to test
@@ -198,9 +198,11 @@ void CCursor::MakeCursorModel()
 		}
 
 		// Now create the mesh based on the data that has been read by calling the mesh constructor in mesh.h
-		Mesh2 *newmesh = new Mesh2(face_vertices, face_indices, face_textures);
+		Mesh2 *newmesh = new Mesh2(face_vertices, face_indices, face_textures, draw_type);
 	    this->meshes.push_back(newmesh);
+//		meshes.push_back(newmesh);
 	 }
+//	 return meshes;
 
 }
 
@@ -245,50 +247,52 @@ void Cursor::setupCursor(int width, int height, Shader shader, Camera camera, in
 	// plane 5 = <0.0f, 0.0f, zmin>
 	// plane 6 = <0.0f, 0.0f, zmax> 
 
+
+
 // Needs to account for a translated, rotated meshes in the rendering function somehow
-void CCursor::CreateBoundingBox(vector<Mesh2*> temp)
-{
-	GLfloat temp_valx, temp_valy, temp_valz;
-
-	GLfloat xmin = temp[0]->vertices[0].Position.x;
-	GLfloat xmax = temp[0]->vertices[0].Position.x;
-	GLfloat ymin = temp[0]->vertices[0].Position.y;
-	GLfloat ymax = temp[0]->vertices[0].Position.y;
-	GLfloat zmin = temp[0]->vertices[0].Position.z;
-	GLfloat zmax = temp[0]->vertices[0].Position.z;
-
-	// search for x-min
-	for (unsigned int i=0; i < temp.size(); i++)
-	{
-		for(int j=0; j<3; j++)  // look through each of the three nodes in a triangle mesh face
-		{
-			// For x-planes
-			temp_valx = temp[i]->vertices[j].Position.x;
-			if (temp_valx < xmin)
-				xmin = temp_valx;
-			if (temp_valx > xmax)
-				xmax = temp_valx;
-
-			// For y-planes
-			temp_valy = temp[i]->vertices[j].Position.y;
-			if (temp_valy < ymin)
-				ymin = temp_valy;	
-			if (temp_valy > ymax)
-				ymax = temp_valy;
-
-			// For y-planes
-			temp_valz = temp[i]->vertices[j].Position.z;
-			if (temp_valz < zmin)
-				zmin = temp_valz;
-			if (temp_valz > zmax)
-				zmax = temp_valz;
-		}
-	}
-	printf("\nBounding box:  \nxmin: %f \nxmax: %f,\nymin: %f,\nymax: %f,\nzmin: %f,\nzmax: %f", xmin, xmax, ymin, ymax, zmin, zmax);
-	boundary.push_back(glm::vec3(xmin, 0.0f, 0.0f));
-	boundary.push_back(glm::vec3(xmax, 0.0f, 0.0f));
-	boundary.push_back(glm::vec3(0.0f, ymin, 0.0f));
-	boundary.push_back(glm::vec3(0.0f, ymax, 0.0f));
-	boundary.push_back(glm::vec3(0.0f, 0.0f, zmin));
-	boundary.push_back(glm::vec3(0.0f, 0.0f, zmax));
-}
+//void CCursor::CreateBoundingBox(vector<Mesh2*> temp)
+//{
+//	GLfloat temp_valx, temp_valy, temp_valz;
+//
+//	GLfloat xmin = temp[0]->vertices[0].Position.x;
+//	GLfloat xmax = temp[0]->vertices[0].Position.x;
+//	GLfloat ymin = temp[0]->vertices[0].Position.y;
+//	GLfloat ymax = temp[0]->vertices[0].Position.y;
+//	GLfloat zmin = temp[0]->vertices[0].Position.z;
+//	GLfloat zmax = temp[0]->vertices[0].Position.z;
+//
+//	// search for x-min
+//	for (unsigned int i=0; i < temp.size(); i++)
+//	{
+//		for(int j=0; j<3; j++)  // look through each of the three nodes in a triangle mesh face
+//		{
+//			// For x-planes
+//			temp_valx = temp[i]->vertices[j].Position.x;
+//			if (temp_valx < xmin)
+//				xmin = temp_valx;
+//			if (temp_valx > xmax)
+//				xmax = temp_valx;
+//
+//			// For y-planes
+//			temp_valy = temp[i]->vertices[j].Position.y;
+//			if (temp_valy < ymin)
+//				ymin = temp_valy;	
+//			if (temp_valy > ymax)
+//				ymax = temp_valy;
+//
+//			// For y-planes
+//			temp_valz = temp[i]->vertices[j].Position.z;
+//			if (temp_valz < zmin)
+//				zmin = temp_valz;
+//			if (temp_valz > zmax)
+//				zmax = temp_valz;
+//		}
+//	}
+//	printf("\nBounding box:  \nxmin: %f \nxmax: %f,\nymin: %f,\nymax: %f,\nzmin: %f,\nzmax: %f", xmin, xmax, ymin, ymax, zmin, zmax);
+//	boundary.push_back(glm::vec3(xmin, 0.0f, 0.0f));
+//	boundary.push_back(glm::vec3(xmax, 0.0f, 0.0f));
+//	boundary.push_back(glm::vec3(0.0f, ymin, 0.0f));
+//	boundary.push_back(glm::vec3(0.0f, ymax, 0.0f));
+//	boundary.push_back(glm::vec3(0.0f, 0.0f, zmin));
+//	boundary.push_back(glm::vec3(0.0f, 0.0f, zmax));
+//}

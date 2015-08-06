@@ -42,10 +42,12 @@ public:
 //	ShaderManager *MyShaderManagerInfo;	// class containing the shader manager info
 	ModelManager *MyModelManagerInfo;
 
-	CGrid *DrawingGridLine;		// The main drawing grid object
-	CCursor *CursorObj;			// The main cursor for the drawing window
+	//CGrid *DrawingGridLine;			// The main drawing grid object
+	//CDrawingObjects *p_CursorObj;		// The main cursor for the drawing window
+	CDrawingObjects *DrawingGridLine;	// The main drawing grid object
+	CDrawingObjects *CursorObj;			// The main cursor for the drawing window
 
-	vector<ModelManager*> DrawingObjects;	// The main array to hold  the Drawing Objects
+	vector<CDrawingObjects*> ModelObjects;	// The main array to hold  the Drawing Objects
 
 	vector<GLint> PickedMeshID;	//	An array to store picked member ID's, used in displaying selected objects in DrawNormal
 
@@ -53,7 +55,7 @@ public:
 
 	void Draw();  // a basic draw routine controlled by the graphics manager -- diverts to DrawNormal and DrawPicking once inside
 	// a routine for drawing normal screens
-	void DrawNormal(Shader ourShader, Shader lightingShader, Shader cursorShader, ModelManager &ourModel, CGrid &gridline,  CCursor &cursor);
+	void DrawNormal(Shader ourShader, Shader lightingShader, Shader cursorShader);
 	// a routine for drawing picked screens (changes the color of the objects based on IDs)
 	void DrawPicking(Shader pickingShader);	
 

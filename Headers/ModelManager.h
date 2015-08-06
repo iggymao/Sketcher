@@ -41,16 +41,7 @@ struct ModelInfo
 };
 */
 
-struct AISCData{
-	std::string aisc_label;		// the label for the shape W10x33, C12x20.7, etc...used for lookup of data eventually
-	GLfloat depth;				// depth, d
-	GLfloat flange_width;		// flange width, bf
-	GLfloat flange_thick;		// flange thickness, tf
-	GLfloat web_thick;			// web thickness of the member,tw
-	GLfloat length;
-};
-
-class ModelManager : Mesh2
+class ModelManager : public Mesh2
 {
 public:
 	ModelManager(){;}								// default constructor
@@ -60,13 +51,16 @@ public:
 	ModelManager(const ModelManager & rhs) { ;}		// copy constructor
 	~ModelManager() { ;}							// destructor
 
-	void Initialize(int model_type);			   // to initialize data for the modelmanager
-	void Draw(Shader ourShader, int GL_drawtype);  // draws the model, and thus all its meshes
+	void Initialize(int model_type);			// to initialize data for the modelmanager
+	void Draw();								// draws the model, and thus all its meshes
+
+	void SaveModelFile() {;}					// Saves the model data
+	void ReadModelFile() {;}					// Reads a model file
+	void CreateCalculationData() {;}			// Converts the drawing data to the formats needed to perform our calculations
 
 // this needs to be private / protected
 public:
 	/* Model Data */
-	AISCData aisc_data;		// stores the AISC data (if any for the shape)
 	vector<Mesh2*> meshes;	// stores the known face meshes for this model
 	vector<TextureData> textures_loaded;		// an array to record the loaded textures
 
@@ -75,8 +69,6 @@ public:
 	void loadModel();		// load a model from source programs / prerendered mesh info
 	void processNode();		// Processes a node in a recursive fashion.  Processes each individual mesh at the node and repeats the process.
 	void processMesh();		// Processes the mesh's data
-
-	void loadAISC();		// creates an AISC mesh shape from the section data
 
 	//	void loadGrid();		// loads a line segment to represent the grid system
 	// void Destroy();		// destroy the model manager

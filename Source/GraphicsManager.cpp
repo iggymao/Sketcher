@@ -37,7 +37,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_click_callback(int b, int s, int mouse_x, int mouse_y);
 void Do_Movement();
-void DrawNormal(Shader ourShader, Shader lightingShader, Shader cursorShader, ModelManager ourModel, CGrid gridline,  CCursor cursor);
+void DrawNormal(Shader ourShader, Shader lightingShader, Shader cursorShader, ModelManager ourModel, CGrid gridline,  CDrawingObjects cursor);
 void DrawPicking(Shader pickingShader, ModelManager ourModel);
 
 GLuint generateAttachmentTexture(GLboolean depth, GLboolean stencil);
@@ -55,12 +55,13 @@ GLfloat lastY = HEIGHT / 2.0;
 bool firstMouse = true;
 
 // Cursor intialization
-CCursor *cursor = 0;
+CDrawingObjects *cursor;
+//CCursor *cursor = 0;
 //CCursor *cursor = new CCursor(glm::vec3(0.0f, 0.0f, 0.0f));		// create a new cursor
 //CCursor *CursorObj = cursor;												// store the object in the graphics manager
 
 // Grid attributes
-CGrid *gridLine = 0;
+CDrawingObjects *gridLine = 0;
 //CGrid *GridLine = new CGrid(30, 0.1f, 40, 0.1f);
 //CGrid *DrawingGridLine = GridLine;		// storing the gridline in our graphics manager
 bool IsActiveGridToggle = true;
@@ -72,7 +73,7 @@ ModelManager *ourModel = 0;
 
 // Light attributes
 bool IsPausedLight = true;
-glm::vec3 lightPos(0.0f, 2.0f, 0.0f);  // a default light source position
+glm::vec3 lightPos(10.0f, 4.0f, -10.0f);  // a default light source position
 //glm::vec3 lightPos(1.2f, 1.0f, 2.0f);  // a default light source position
 
 // Deltatime
@@ -293,14 +294,17 @@ int GraphicsManager::LaunchOpenGL()
 }
 
 // The routine to Draw in normal mode
-void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Shader cursorShader, ModelManager &ourModel, CGrid &gridLine,  CCursor &cursor)
+void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Shader cursorShader)
 {
 	// For a moving light source
 	if(!IsPausedLight)
 	{
-	   lightPos.x = (GLfloat)(1.0f + sin(glfwGetTime()) * 2.0f);
-	   lightPos.y = (GLfloat)(sin(glfwGetTime() / 2.0f) * 1.0f);
-	   lightPos.z = (GLfloat)(cos(glfwGetTime() * 0.75f));
+	   //lightPos.x = (GLfloat)(1.0f + sin(glfwGetTime()) * 2.0f);
+	   //lightPos.y = (GLfloat)(sin(glfwGetTime() / 2.0f) * 1.0f);
+	   //lightPos.z = (GLfloat)(cos(glfwGetTime() * 0.75f));
+		lightPos.x = (GLfloat)(1.0f + sin(glfwGetTime()) * 6.0f);
+	   lightPos.y = (GLfloat)(sin(glfwGetTime() / 2.0f) * 6.0f);
+	   lightPos.z = (GLfloat)(cos(glfwGetTime() * 4.0f));
 	}
 	/////////////////////////
     // Draw the objects
@@ -351,15 +355,27 @@ void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Sha
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 	// Model
 	glm::mat4 model;  // sets an identity matrix into model
-	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	//model = glm::mat4();
+	//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
-	// Draw the the contents of all of the DrawingObjects:
-	for(unsigned int j = 0; j < (this->DrawingObjects.size()); j++)
+	// Draw the the contents of all of the ModelObjects:
+	for(unsigned int j = 0; j < (this->ModelObjects.size()); j++)
 	{
-		for(unsigned int i = 0; i < (*(this->DrawingObjects[j])).meshes.size(); i++)
-		{
-			(*(this->DrawingObjects[j])).meshes[i]->Draw(GL_TRIANGLES); 
-		}
+		model = glm::mat4();
+		GLfloat theta_x = (*(this->ModelObjects[j])).GetEulerAngles().x;
+		GLfloat theta_y = (*(this->ModelObjects[j])).GetEulerAngles().y;
+		GLfloat theta_z = (*(this->ModelObjects[j])).GetEulerAngles().z;
+		glm::mat4 model;  // sets an identity matrix into model
+		if(theta_x != 0)
+			model = glm::rotate(model, theta_x, glm::vec3(1.0f, 0.0f, 0.0f));
+		if(theta_y != 0)
+			model = glm::rotate(model, theta_y, glm::vec3(0.0f, 1.0f, 0.0f));
+		if(theta_z != 0)
+			model = glm::rotate(model, theta_z, glm::vec3(0.0f, 0.0f, 1.0f));
+		
+		model = glm::translate(model, (*(this->ModelObjects[j])).GetInsertPoint());
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		(*(this->ModelObjects[j])).Draw(); 
 	}
 	//ourModel.Draw(ourShader, GL_TRIANGLES);
 
@@ -401,8 +417,7 @@ void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Sha
 	model = glm::mat4();
 	model = glm::translate(model, CursorObj->GetWorldCoords());
 	model = glm::scale(model, glm::vec3(0.05f));
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model)); 
 	CursorObj->Draw();
 
 	////////////////////////////////////////
@@ -427,7 +442,9 @@ void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Sha
 	model = glm::scale(model, glm::vec3(0.1f));
     glUniformMatrix4fv(lightmodelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
-	ourModel.Draw(lightsourceShader, GL_TRIANGLES);
+	// Uses ModelObjects[0] as the light source shape
+	(*(this->ModelObjects[0])).Draw(); 
+	//ourModel.Draw(lightsourceShader, GL_TRIANGLES);
 
 	//////////////////////////////////
 	// End of normal rendering stuff
@@ -436,11 +453,11 @@ void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Sha
 
 void GraphicsManager::DrawPicking(Shader pickingShader)
 {
-	for(unsigned int j = 0; j < (this->DrawingObjects.size()); j++)
+	for(unsigned int j = 0; j < (this->ModelObjects.size()); j++)
 	{
-		for(unsigned int i = 0; i < (*(this->DrawingObjects[j])).meshes.size(); i++)
+		for(unsigned int i = 0; i < (*(this->ModelObjects[j])).meshes.size(); i++)
 		{
-			//printf("\nDrawingObject #: %i -- Mesh #: %i -- MeshID: %i", j, i, (*(this->DrawingObjects[j])).meshes[i]->GetMeshID());
+			//printf("\nModelObjects #: %i -- Mesh #: %i -- MeshID: %i", j, i, (*(this->ModelObjects[j])).meshes[i]->GetMeshID());
 			pickingShader.Use();	// turns on the picking shader
 
 			// Camera/View transformation -- needed to match the original view and projection matrices for normal rendering
@@ -458,7 +475,7 @@ void GraphicsManager::DrawPicking(Shader pickingShader)
 			GLint projLoc  = glGetUniformLocation(pickingShader.Program, "projection");
 			GLint pickingIDLoc  = glGetUniformLocation(pickingShader.Program, "PickingColor");
 			// sets the color based on on the MeshID of the mesh.
-			int id = (*(this->DrawingObjects[j])).meshes[i]->GetMeshID();
+			int id = (*(this->ModelObjects[j])).meshes[i]->GetMeshID();
 			int r = id / 65536;
 			int g = (id - r * 65536) / 256;
 			int b = (id - r * 65536 - g * 256);
@@ -470,6 +487,21 @@ void GraphicsManager::DrawPicking(Shader pickingShader)
 			glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 			// Model
 			glm::mat4 model;  // sets an identity matrix into model
+
+			// handles the insert and rotation positions
+			model = glm::mat4(); // sets an identity matrix into model
+			GLfloat theta_x = (*(this->ModelObjects[j])).GetEulerAngles().x;
+			GLfloat theta_y = (*(this->ModelObjects[j])).GetEulerAngles().y;
+			GLfloat theta_z = (*(this->ModelObjects[j])).GetEulerAngles().z;
+ 
+			if(theta_x != 0)
+				model = glm::rotate(model, theta_x, glm::vec3(1.0f, 0.0f, 0.0f));
+			if(theta_y != 0)
+				model = glm::rotate(model, theta_y, glm::vec3(0.0f, 1.0f, 0.0f));
+			if(theta_z != 0)
+				model = glm::rotate(model, theta_z, glm::vec3(0.0f, 0.0f, 1.0f));
+			model = glm::translate(model, (*(this->ModelObjects[j])).GetInsertPoint());
+
 			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
 			// Check the PickedMesh array to see if a MeshID number is stored there.  If found, then change the mesh color
@@ -479,10 +511,10 @@ void GraphicsManager::DrawPicking(Shader pickingShader)
 			for(unsigned int k=0; k<PickedMeshID.size();k++)
 			{
 				//printf("\ncurrent size of mesh:  %i ", PickedMeshID.size());
-				if((*(this->DrawingObjects[j])).meshes[i]->MeshID == PickedMeshID[k])
+				if((*(this->ModelObjects[j])).meshes[i]->MeshID == PickedMeshID[k])
 				{
 					glUniform3f(pickingIDLoc, 0.8f, 0.8f, 0.0f);  // change the color of the objects that are on the highlighted list
-					(*(this->DrawingObjects[j])).meshes[i]->Draw(GL_TRIANGLES); // Draws the highlight color to indicate a member has been picked
+					(*(this->ModelObjects[j])).meshes[i]->Draw(); // Draws the highlight color to indicate a member has been picked
 					mesh_found = true;
 					break;
 				}
@@ -490,13 +522,12 @@ void GraphicsManager::DrawPicking(Shader pickingShader)
 			if((PickedMeshID[0] == -1) || (!mesh_found))  // no items picked, therefore draw the normal triangle
 			{
 				glUniform3f(pickingIDLoc, rgb_vec.x, rgb_vec.y, rgb_vec.z);
-				(*(this->DrawingObjects[j])).meshes[i]->Draw(GL_TRIANGLES); // Draws the color coded picking objects based on MeshID
+				(*(this->ModelObjects[j])).meshes[i]->Draw(); // Draws the color coded picking objects based on MeshID
 			} 
+
 		}
 	}
 }
-
-
 
 // Our main draw function
 void GraphicsManager::Draw()
@@ -509,25 +540,55 @@ void GraphicsManager::Draw()
 	Shader pickingShader("Shaders/ShaderPicking.vertex", "Shaders/ShaderPicking.fragment");	// shader used when picking mode is activated (not used??)
 	Shader selectionShader("Shaders/ShaderSelection.vertex", "Shaders/ShaderSelection.fragment"); // used to highlight the selected elements
 	Shader post_process_spShader("Shaders/post_process_sp.vertex","Shaders/post_process_sp.fragment");  // shader used for making a framebuffer for picking selecting
+
+	///////////////////////////////
+	//  Creating Model Stuff
+	///////////////////////////////
 	// Create and load shape for our model, including gridline objects and the physical assets
-	ModelManager *ourModel = new ModelManager(MODEL_LOAD_MODEL);	// Create a model object that loads the model elements
-	DrawingObjects.push_back(ourModel);								// Adds the model to our DrawingObjects database
 
-	std::string shape("W10x33");
-	ModelManager *ourAISC = new ModelManager(shape);  // create an AISC shape 
-	DrawingObjects.push_back(ourAISC);
+	// Creates a RectPrism  (x, y, z)
+//	CDrawingObjects *ourModel = new CRectPrism(2.5f, 4.0f, 0.125f);		// Create a model object that loads the model elements
+//	ModelObjects.push_back(ourModel);								// Adds the model to our ModelObjects database
+	for(int j = 0; j<4; j++)
+	{
+		for(int i = 0; i<4; i++)
+		{
+			// model_pos is in local coords after a rotation has been applied
+			//columns
+			glm::vec3 model_pos = glm::vec3(i*6.0f, j*6.0f, 0.0f);  // note Y and Z are reversed because of the rotation
+			glm::vec3 model_unit_rot = glm::vec3(1.0f, 0.0f, 0.0f);
+			glm::vec3 model_euler = glm::vec3(90.0f, 0.0f, 0.0f);
+			std::string shape("W10x33");
+			CDrawingObjects *ourAISC = new CAisc(shape, model_pos, model_unit_rot, model_euler);			// create an AISC shape
+			ModelObjects.push_back(ourAISC);
 
-//	// Make a duplicate box just to test, numbering, drawing, picking etc...
-//	ModelManager *ourModel2 = new ModelManager(MODEL_LOAD_MODEL);	// Create a model object that loads the model elements
-//	DrawingObjects.push_back(ourModel2);							// Adds the model to our DrawingObjects database
+			//beams
+			model_pos = glm::vec3(i*6.0f, 8.0f, -j*6.0f);
+			model_unit_rot = glm::vec3(0.0f, 1.0f, 0.0f);
+			model_euler = glm::vec3(0.0f, -90.0f, 0.0f);
+			std::string shape2("W10x33");
+			CDrawingObjects *ourAISC2 = new CAisc(shape2, model_pos, model_unit_rot, model_euler);			// create an AISC shape
+			ModelObjects.push_back(ourAISC2);
 
+			//beams
+			model_pos = glm::vec3(i*6.0f, 8.0f, j*6.0f);
+			model_unit_rot = glm::vec3(0.0f, 1.0f, 0.0f);
+			model_euler = glm::vec3(0.0f, 0.0f, 0.0f);
+			std::string shape3("W10x33");
+			CDrawingObjects *ourAISC3 = new CAisc(shape3, model_pos, model_unit_rot, model_euler);			// create an AISC shape
+			ModelObjects.push_back(ourAISC3);
+		}
+	}
 	// Create the main drawing grid line -- requires an OPENGL context for this step
 	// Must use XY, XZ, or YZ plane designators....such that X < Y < Z in order of labelling
-	gridLine = new CGrid(30, 0.1f, 40, 0.1f, XZ_PLANE);
+	gridLine = new CGrid(50, 1.0f, 50, 1.0f, XZ_PLANE);
 	DrawingGridLine = gridLine;											// storing the gridline in our graphics manager
 
 	// Create our cursor -- requires an OPENGL context for this step
-	cursor = new CCursor(glm::vec3(0.0f, 0.0f, 0.0f));		// create a new cursor
+	//CCursor cursor2(glm::vec3(0.0f, 0.0f, 0.0f));		// method1 creation
+	//CDrawingObjects * p_CursorObj = &cursor2;			// method1 creation
+	//CDrawingObjects * p2 = new CCursor(glm::vec3(0.0f, 0.0f, 0.0f));	// method2 creation
+	cursor = new CCursor(glm::vec3(0.0f, 0.0f, 0.0f));
 	cursor->SetSnapValues(DrawingGridLine->GetSpacing1(), DrawingGridLine->GetSpacing2(), DrawingGridLine->GetPlane());
 	CursorObj = cursor;		// store the object in the graphics manager
 
@@ -654,7 +715,9 @@ void GraphicsManager::Draw()
 		// This toggles us between picking mode and normal drawing mode
 		if(!IsActivePicking)
 		{
-			DrawNormal(ourShader, lightsourceShader, cursorShader, *ourModel, *gridLine, *cursor);	// DrawNormal draws the model, cursor, and gridlines in normal mode
+//			DrawNormal(ourShader, lightsourceShader, cursorShader, *ourModel, *gridLine, *cursor);	// DrawNormal draws the model, cursor, and gridlines in normal mode
+			DrawNormal(ourShader, lightsourceShader, cursorShader);	// DrawNormal draws the model, cursor, and gridlines in normal mode
+
 		} else 
 		{
 			glfwSetInputMode(MyWinInfo->MainWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);  // show the cursor
@@ -863,13 +926,13 @@ void GraphicsManager::Draw()
 void GraphicsManager::Destroy()
 {
 	printf("\nINCOMPLETE:  Destroying the Graphics Manager");
-	printf("\nDeleting CursorObj in GraphicsManager class");
-	delete CursorObj;
+	printf("\nINCOMPLETE:  Deleting CursorObj in GraphicsManager class");
+//	delete CursorObj;
 
-	for(unsigned int i=0;i < (this->DrawingObjects.size());i++)
+	for(unsigned int i=0;i < (this->ModelObjects.size());i++)
 	{
-		printf("\nDeleting DrawingObjects in GraphicsManager class");
-		delete this->DrawingObjects[i];
+		printf("\nINCOMPLETE: Deleting ModelObjects[%i] in GraphicsManager class",i);
+//		delete this->ModelObjects[i];
 	}
 	printf("\nDeleting DrawingGridLine in GraphicsManager class");
 	delete DrawingGridLine;

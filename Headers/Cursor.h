@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "../Headers/DrawingShapes.h"
 //#include "../Headers/ModelManager.h"
 #include "../Headers/Mesh.h"
 //#include "../Headers/Camera.h"
@@ -17,7 +18,7 @@
 //class Camera;		// forward declaration for our camera class
 //class Shader;		// forward declaration for our shader class
 
-class CCursor : public Mesh2
+class CCursor : public CDrawingObjects
 {
 public:
 	// constructor
@@ -31,8 +32,9 @@ public:
 		IsActiveCursorSnap = false;
 		draw_type = GL_TRIANGLES;
 
-		MakeCursorModel();
-		CreateBoundingBox(this->meshes);
+		MakeGridData();
+		//meshes.push_back(MakeGridData());
+		//CreateBoundingBox(this->meshes);
 	}
 	CCursor(const CCursor & rhs) { ;}		// copy constructor
 
@@ -49,8 +51,10 @@ public:
 //	GLuint draw_type;					// stores the draw_type GL_LINES, GL_TRIANGLES, etc.
 	bool IsActiveCursorSnap;			// a bool to tell us the cursor snap is active
 
-	void MakeCursorModel();				// create the data for the cursor model
-	void CreateBoundingBox(vector<Mesh2*> temp);			// creates a bounding box for the object based on the read in vertex data
+	void MakeGridData();				// create the data for the cursor model
+	
+	//void CreateBoundingBox(vector<Mesh2*> temp);			// creates a bounding box for the object based on the read in vertex data
+
 
 	void Draw()
 	{    
@@ -58,7 +62,7 @@ public:
 		for(GLuint i=0; i < this->meshes.size(); i++)
 		{
 	        glBindVertexArray(meshes[i]->VAO);			// uses the VAO stored in the Mesh2 c;ass
-			glDrawElements(GL_TRIANGLES, meshes[i]->indices.size(), GL_UNSIGNED_INT, 0);
+			glDrawElements(draw_type, meshes[i]->indices.size(), GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
 		}
 		return;
@@ -76,9 +80,9 @@ public:
 	void SetSnapValues(GLfloat val1, GLfloat val2, int plane);  
 	glm::vec3 GetSnap() {return glm::vec3(this->SnapValueX,this->SnapValueY,this->SnapValueZ);}
 	
-private:
-	vector<Mesh2*> meshes;				// stores the known face meshes for this model
-	vector<glm::vec3> boundary;			// stores the six planes that define a cube around a drawing object
+protected:
+	//vector<Mesh2*> meshes;				// stores the known face meshes for this model
+	//vector<glm::vec3> boundary;			// stores the six planes that define a cube around a drawing object
 
 	GLfloat SnapValueX;					// a variable to store the snap value in X direction
 	GLfloat SnapValueY;					// a variable to store the snap value in Y direction

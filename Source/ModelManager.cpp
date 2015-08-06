@@ -22,12 +22,16 @@ void ModelManager::Initialize(int type)
 	//if(type == MODEL_LOAD_AISC)
 	//	return;
 
+	/*
 	this->aisc_data.aisc_label = "Undefined";
 	this->aisc_data.depth = -1;						
 	this->aisc_data.flange_width = -1;				
 	this->aisc_data.flange_thick = -1;				
 	this->aisc_data.web_thick = -1;
 	this->aisc_data.length = 0;
+
+	Mesh2::draw_type = GL_TRIANGLES; 
+	*/
 }
 
 ModelManager::ModelManager(int model_type)
@@ -70,6 +74,7 @@ ModelManager::ModelManager(int model_type)
 // for AISC shapes.  Will read the aisc_shape string and then lookup the relevant dimensions.  For now it just loads a default set of data
 ModelManager::ModelManager(std::string aisc_shape)
 {
+	/*
 	// we'll need to rewrite this function to load data from a database...but to test for now
 	this->aisc_data.aisc_label = aisc_shape;
 	this->aisc_data.depth = 10.0f/12.0f;						
@@ -79,15 +84,17 @@ ModelManager::ModelManager(std::string aisc_shape)
 	this->aisc_data.length = 96.0f/12.0f;
 
 	loadAISC();  // calls the aisc shape creation function now that the aisc_shape is declared and the data is loaded
+	*/
 }
 
 // Draws all the meshes known by the model
-void ModelManager::Draw(Shader ourShader, int gl_drawtype)
+void ModelManager::Draw()
 {
+	//printf("\nDrawing from within ModelManager");
 	for(GLuint i=0; i < this->meshes.size(); i++)
 	{
 //		printf("\nmeshes.size(): %i",meshes.size());
-		this->meshes[i]->Draw(gl_drawtype);
+		this->meshes[i]->Draw();
 	}
 }
 
@@ -247,7 +254,7 @@ void ModelManager::processMesh()
 			 //printf("\nArray:  %i,  path: %s",k,face_textures[k].path.c_str());
 		}
 
-		Mesh2 *newmesh = new Mesh2(face_vertices, face_indices, face_textures);
+		Mesh2 *newmesh = new Mesh2(face_vertices, face_indices, face_textures, draw_type);
 	    this->meshes.push_back(newmesh);
 	 }
 
@@ -355,16 +362,23 @@ void ModelManager::processMesh()
 // routine to create a standard AISC shape.  For now it does a simple I-beam shape.
 // With a quick swap of vertices, Z, C, WT, and other sections can be quickly drawn.
 // As of 8/3/15, routine does not draw fillets or allow for more detailed refinement.
+/*
 void ModelManager::loadAISC() 
 {
 	printf("\nLoading the AISC data");
 	
-	GLfloat len = this->aisc_data.length;
-	GLfloat d = this->aisc_data.depth;
-	GLfloat bf = this->aisc_data.flange_width;
-	GLfloat tf = this->aisc_data.flange_thick;
-	GLfloat tw = this->aisc_data.web_thick;
+	GLfloat len = 1;
+	GLfloat d = 1;
+	GLfloat bf = .1;
+	GLfloat tf = .1;
+	GLfloat tw = .1;
 	GLfloat web_ht = (GLfloat)(d-2.0*tf);
+	//GLfloat len = this->aisc_data.length;
+	//GLfloat d = this->aisc_data.depth;
+	//GLfloat bf = this->aisc_data.flange_width;
+	//GLfloat tf = this->aisc_data.flange_thick;
+	//GLfloat tw = this->aisc_data.web_thick;
+	//GLfloat web_ht = (GLfloat)(d-2.0*tf);
 
 	GLfloat red = 0.5f;
 	GLfloat green = 0.5f;
@@ -611,7 +625,8 @@ void ModelManager::loadAISC()
 			 //printf("\nArray:  %i,  id: %i",k,face_textures[k].id);
 			 //printf("\nArray:  %i,  path: %s",k,face_textures[k].path.c_str());
 		
-		Mesh2 *newmesh = new Mesh2(face_vertices, face_indices, face_textures);
+		Mesh2 *newmesh = new Mesh2(face_vertices, face_indices, face_textures, draw_type);
 	    this->meshes.push_back(newmesh);
 	 }
 }
+*/
