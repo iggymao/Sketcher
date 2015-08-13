@@ -199,6 +199,7 @@ void CCursor::MakeGridData()
 
 		// Now create the mesh based on the data that has been read by calling the mesh constructor in mesh.h
 		Mesh2 *newmesh = new Mesh2(face_vertices, face_indices, face_textures, draw_type);
+		newmesh->parentID = this->GetDrawingObjID();
 	    this->meshes.push_back(newmesh);
 //		meshes.push_back(newmesh);
 	 }

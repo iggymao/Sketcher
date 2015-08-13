@@ -95,6 +95,7 @@
     <ClInclude Include="Headers\Cursor.h" />
     <ClInclude Include="Headers\DrawingShapes.h" />
     <ClInclude Include="Headers\GraphicsManager.h" />
+    <ClInclude Include="Headers\GUIElements.h" />
     <ClInclude Include="Headers\LogManager.h" />
     <ClInclude Include="Headers\Main.h" />
     <ClInclude Include="Headers\Mesh.h" />
@@ -104,6 +105,7 @@
     <ClInclude Include="Headers\WindowManager.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="utils\MathUtils.cpp" />
+    <ClInclude Include="utils\Quaternion.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="app.rc" />
@@ -126,6 +128,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="utils\Quaternion.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

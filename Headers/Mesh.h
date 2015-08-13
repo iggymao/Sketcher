@@ -17,6 +17,9 @@ using namespace std;
 #include <glm/gtc/matrix_transform.hpp>
 //#include "../Headers/ShaderManager.h"					// Include the shader manager for the ShaderInfo class
 //#include "../Headers/Shader.h"
+//#include "../Headers/DrawingShapes.h"
+
+class CDrawingObjects;		// forward declaration
 
 // vertex data assigned to a given mesh
 struct VertexData {
@@ -38,7 +41,7 @@ public:
 	static GLuint next_mesh_id(){  next_id++; 	return next_id;	} 	// to obtain the next mesh number
 
 	// constructors
-	Mesh2() { }				// default constructor
+	Mesh2() {this->parentID = -1; }				// default constructor
 	Mesh2(vector<VertexData> vert, vector<GLuint> ind, vector<TextureData> tex, GLuint draw_type)
 	{
 		MeshID = next_mesh_id();
@@ -49,10 +52,12 @@ public:
 		this->textures = tex;
 		this->setupMesh();
 		this->draw_type = GL_TRIANGLES;
+
+		this->parentID = -1;					// a defaul unassigned ID for the parent.  Must be set by manually by the parent
 	}
 
-	Mesh2(const Mesh2 & rhs) { }				// copy constructor
-	~Mesh2() { }								// deconstructor
+	Mesh2(const Mesh2 & rhs) {; }				// copy constructor
+	~Mesh2() {; }								// deconstructor
 
 	/* Members */
 	GLuint draw_type;		// a marker for the type of opengl drawing to be done...GL_LINES, GL_TRIANGLES, 
@@ -73,8 +78,11 @@ public:
 		this->setupMesh();
 	}
 
-	GLuint GetMeshID() {return MeshID;}					// retrieves the Mesh's ID number
-//	void SetMeshID(GLuint id_num) {this->MeshID = id_num;}	// stores the Mesh's ID number
+	// ID handlers
+	GLint GetMeshID() {return MeshID;}					// retrieves the Mesh's ID number
+	GLint parentID;									// to hold a link to the parent DrawingObjectID.  So that a mesh knows who it's parent is.
+	GLint GetParentMeshID() {return parentID;}			// retrieves the parent's model number
+	//	void SetMeshID(GLuint id_num) {this->MeshID = id_num;}	// stores the Mesh's ID number
 
 	void Draw() {
 		//printf("\nMesh.h -- Draw()");
@@ -85,7 +93,7 @@ public:
 
 // WARNING!!!:: need to make this protected somehow
 public:
-	GLuint MeshID;			// A number to reference the meshID once they are created
+	GLint MeshID;			// A number to reference the meshID once they are created
 	static GLuint next_id;
 
 	/* Mesh Data */

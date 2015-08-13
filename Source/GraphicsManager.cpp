@@ -13,7 +13,6 @@
 #include "../Headers/Shader.h"
 #include "../Headers/SOIL.h"			// include the soil image loader based on stb_image for texture loading
 
-
 // GLM Mathematics
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -22,10 +21,9 @@
 
 #include "../Headers/DrawingShapes.h"	// include the drawing shapes definitions
 #include "../Headers/Cursor.h"
+#include "../Headers/GUIElements.h"		// the class for our HUD
 
 #include "../utils/MathUtils.cpp"
-
-
 
 // forward declaration
 class GraphicsManager;  // forward declare the graphics manager class
@@ -41,11 +39,10 @@ void DrawNormal(Shader ourShader, Shader lightingShader, Shader cursorShader, Mo
 void DrawPicking(Shader pickingShader, ModelManager ourModel);
 
 GLuint generateAttachmentTexture(GLboolean depth, GLboolean stencil);
-void draw_picker_colours(glm::mat4 P, glm::mat4 V, glm::mat4 M[3]);
-//glm::vec3 encode_id (int id);
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
+GLfloat aspect = (GLfloat)WIDTH/(GLfloat)HEIGHT;  // aspect ratio needed to preserve dimension of drawing
 
 // Camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -70,6 +67,9 @@ bool IsActivePostProcessing = false;
 
 // Model attributes
 ModelManager *ourModel = 0;
+
+// Our HUD GUI layout
+CGUILayoutHUD *layout = 0;
 
 // Light attributes
 bool IsPausedLight = true;
@@ -195,8 +195,8 @@ void GraphicsManager::Initialize()
 	printf("\n       Initializing Graphics Manager");
 	// Do stuff here
 	std::string strTitle = "OpenGL Window";
-	GLuint width = 800;
-	GLuint height = 600;
+	GLuint width = WIDTH;
+	GLuint height = HEIGHT;
 	GLuint x = 300;
 	GLuint y = 100;
 
@@ -257,7 +257,6 @@ int GraphicsManager::LaunchOpenGL()
 	}
 
 	glfwSetWindowPos(Window, MyWinInfo->main_pos_x, MyWinInfo->main_pos_y);	// size and relocate the window
-
 	glfwMakeContextCurrent(Window); // make the context current
 
     // Set the required callback functions
@@ -281,6 +280,8 @@ int GraphicsManager::LaunchOpenGL()
 	glViewport(0, 0, MyWinInfo->main_win_width, MyWinInfo->main_win_height);		
 	glEnable(GL_DEPTH_TEST);  // Must remember to clear GL_DEPTH_BUFFER_BIT in a glClear statement
 	glDepthFunc(GL_LESS);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 
 	glClearColor(0.4f, 0.5f, 0.5f, 1.0f);	// Clear the colorbuffer (set it to a grayscale)
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );			// Clear the screen
@@ -293,18 +294,18 @@ int GraphicsManager::LaunchOpenGL()
 	return 0;
 }
 
-// The routine to Draw in normal mode
+// The routine to Draw in normal mode (Renders our normal scene without picking or HUD consideration)
 void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Shader cursorShader)
 {
 	// For a moving light source
 	if(!IsPausedLight)
 	{
-	   //lightPos.x = (GLfloat)(1.0f + sin(glfwGetTime()) * 2.0f);
-	   //lightPos.y = (GLfloat)(sin(glfwGetTime() / 2.0f) * 1.0f);
-	   //lightPos.z = (GLfloat)(cos(glfwGetTime() * 0.75f));
+		//lightPos.x = (GLfloat)(1.0f + sin(glfwGetTime()) * 2.0f);
+		//lightPos.y = (GLfloat)(sin(glfwGetTime() / 2.0f) * 1.0f);
+		//lightPos.z = (GLfloat)(cos(glfwGetTime() * 0.75f));
 		lightPos.x = (GLfloat)(1.0f + sin(glfwGetTime()) * 6.0f);
-	   lightPos.y = (GLfloat)(sin(glfwGetTime() / 2.0f) * 6.0f);
-	   lightPos.z = (GLfloat)(cos(glfwGetTime() * 4.0f));
+		lightPos.y = (GLfloat)(sin(glfwGetTime() / 2.0f) * 6.0f);
+		lightPos.z = (GLfloat)(cos(glfwGetTime() * 4.0f));
 	}
 	/////////////////////////
     // Draw the objects
@@ -362,6 +363,9 @@ void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Sha
 	for(unsigned int j = 0; j < (this->ModelObjects.size()); j++)
 	{
 		model = glm::mat4();
+///////////////////////////////////////////////
+// BUG:  NEED TO INSERT QUATERNION CALCS HERE??
+///////////////////////////////////////////////
 		GLfloat theta_x = (*(this->ModelObjects[j])).GetEulerAngles().x;
 		GLfloat theta_y = (*(this->ModelObjects[j])).GetEulerAngles().y;
 		GLfloat theta_z = (*(this->ModelObjects[j])).GetEulerAngles().z;
@@ -451,80 +455,133 @@ void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Sha
 	//////////////////////////////////
 }
 
+// Controls the drawing of objects that have been left-clicked, determining the parent
+// object ID number, and using that to draw the entire parent object.
 void GraphicsManager::DrawPicking(Shader pickingShader)
 {
+	glm::vec3 rgb_vec;
+
+	//printf("\nModelObjects #: %i -- Mesh #: %i -- MeshID: %i", j, i, (*(this->ModelObjects[j])).meshes[i]->GetMeshID());
+	pickingShader.Use();	// turns on the picking shader
+
+	// Camera/View transformation -- needed to match the original view and projection matrices for normal rendering
+	glm::mat4 view;	// sets an indentity matrix in view
+	view = camera.GetViewMatrix();
+	
+	//	glm::mat4 projection = glm::perspective(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);  
+	camera.SetProjectionMatrix(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);
+	glm::mat4 projection;  
+	projection = camera.GetProjectionMatrix();
+
+	// Get the uniform locations
+	GLint modelLoc = glGetUniformLocation(pickingShader.Program, "model");
+	GLint viewLoc  = glGetUniformLocation(pickingShader.Program, "view");
+	GLint projLoc  = glGetUniformLocation(pickingShader.Program, "projection");
+	GLint pickingIDLoc  = glGetUniformLocation(pickingShader.Program, "PickingColor");
+
+	// Pass the matrices to the shader
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
 	for(unsigned int j = 0; j < (this->ModelObjects.size()); j++)
 	{
+		// Model
+		glm::mat4 model;  // sets an identity matrix into model
+
+		// handles the insert and rotation positions
+		model = glm::mat4(); // sets an identity matrix into model
+
+///////////////////////////////////////////////
+// BUG:  NEED TO INSERT QUATERNION CALCS HERE??
+///////////////////////////////////////////////
+		GLfloat theta_x = (*(this->ModelObjects[j])).GetEulerAngles().x;
+		GLfloat theta_y = (*(this->ModelObjects[j])).GetEulerAngles().y;
+		GLfloat theta_z = (*(this->ModelObjects[j])).GetEulerAngles().z;
+ 
+		if(theta_x != 0)
+			model = glm::rotate(model, theta_x, glm::vec3(1.0f, 0.0f, 0.0f));
+		if(theta_y != 0)
+			model = glm::rotate(model, theta_y, glm::vec3(0.0f, 1.0f, 0.0f));
+		if(theta_z != 0)
+			model = glm::rotate(model, theta_z, glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::translate(model, (*(this->ModelObjects[j])).GetInsertPoint());
+
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
 		for(unsigned int i = 0; i < (*(this->ModelObjects[j])).meshes.size(); i++)
 		{
-			//printf("\nModelObjects #: %i -- Mesh #: %i -- MeshID: %i", j, i, (*(this->ModelObjects[j])).meshes[i]->GetMeshID());
-			pickingShader.Use();	// turns on the picking shader
-
-			// Camera/View transformation -- needed to match the original view and projection matrices for normal rendering
-		    glm::mat4 view;	// sets an indentity matrix in view
-		    view = camera.GetViewMatrix();
-	
-			//	glm::mat4 projection = glm::perspective(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);  
-			camera.SetProjectionMatrix(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);
-			glm::mat4 projection;  
-			projection = camera.GetProjectionMatrix();
-
-			// Get the uniform locations
-		    GLint modelLoc = glGetUniformLocation(pickingShader.Program, "model");
-			GLint viewLoc  = glGetUniformLocation(pickingShader.Program, "view");
-			GLint projLoc  = glGetUniformLocation(pickingShader.Program, "projection");
-			GLint pickingIDLoc  = glGetUniformLocation(pickingShader.Program, "PickingColor");
 			// sets the color based on on the MeshID of the mesh.
 			int id = (*(this->ModelObjects[j])).meshes[i]->GetMeshID();
 			int r = id / 65536;
 			int g = (id - r * 65536) / 256;
 			int b = (id - r * 65536 - g * 256);
-			glm::vec3 rgb_vec = glm::vec3((float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f);
-//			glUniform3f(pickingIDLoc, rgb_vec.x, rgb_vec.y, rgb_vec.z);
+			rgb_vec = glm::vec3((float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f);
+			//glUniform3f(pickingIDLoc, rgb_vec.x, rgb_vec.y, rgb_vec.z);
 
-			// Pass the matrices to the shader
-			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-			glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-			// Model
-			glm::mat4 model;  // sets an identity matrix into model
-
-			// handles the insert and rotation positions
-			model = glm::mat4(); // sets an identity matrix into model
-			GLfloat theta_x = (*(this->ModelObjects[j])).GetEulerAngles().x;
-			GLfloat theta_y = (*(this->ModelObjects[j])).GetEulerAngles().y;
-			GLfloat theta_z = (*(this->ModelObjects[j])).GetEulerAngles().z;
- 
-			if(theta_x != 0)
-				model = glm::rotate(model, theta_x, glm::vec3(1.0f, 0.0f, 0.0f));
-			if(theta_y != 0)
-				model = glm::rotate(model, theta_y, glm::vec3(0.0f, 1.0f, 0.0f));
-			if(theta_z != 0)
-				model = glm::rotate(model, theta_z, glm::vec3(0.0f, 0.0f, 1.0f));
-			model = glm::translate(model, (*(this->ModelObjects[j])).GetInsertPoint());
-
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
+			//////////////////////////////////////////////////////////////////////////////////////
+			//  OPTIMIZATION NEEDED for individual mesh highlighting:
+			//  This needs to be better sorted.  Sort the Picked Array, then can search versus the 
+			//  current interation of the main loop, instead of having to search the entire loop
+			// every frame.
+			//////////////////////////////////////////////////////////////////////////////////////
 			// Check the PickedMesh array to see if a MeshID number is stored there.  If found, then change the mesh color
 			// to our picked color (yellow).  Otherwise, if no items are selected, or the current element is not
 			// in the PickedMesh array then we draw it with a normal picking mode color based on the mesh id number
-			bool mesh_found = false;
+			///////////////////////////////////////////////////////////
+			//// For clicking individual triangles of a ModelObject:
+			////////////////////////////////////////////////////////////
+			//bool mesh_found = false;
+			//for(unsigned int k=0; k<PickedMeshID.size();k++)
+			//{
+			//	//printf("\ncurrent size of mesh:  %i ", PickedMeshID.size());
+			//	if((*(this->ModelObjects[j])).meshes[i]->MeshID == PickedMeshID[k])
+			//	{
+			//		glUniform3f(pickingIDLoc, 0.8f, 0.8f, 0.0f);  // change the color of the objects that are on the highlighted list
+			//		(*(this->ModelObjects[j])).meshes[i]->Draw(); // Draws the highlight color to indicate a member has been picked
+			//		mesh_found = true;
+			//		break;
+			//	}
+			//}
+			//if((PickedMeshID[0] == -1) || (!mesh_found))  // no items picked, therefore draw the normal triangle
+			//{
+			//	glUniform3f(pickingIDLoc, rgb_vec.x, rgb_vec.y, rgb_vec.z);
+			//	(*(this->ModelObjects[j])).meshes[i]->Draw(); // Draws the color coded picking objects based on MeshID
+			//} 
+
+			/////////////////////////////////////////////////
+			// For highlighting all meshes in a ModelObject
+			/////////////////////////////////////////////////
 			for(unsigned int k=0; k<PickedMeshID.size();k++)
 			{
 				//printf("\ncurrent size of mesh:  %i ", PickedMeshID.size());
 				if((*(this->ModelObjects[j])).meshes[i]->MeshID == PickedMeshID[k])
 				{
-					glUniform3f(pickingIDLoc, 0.8f, 0.8f, 0.0f);  // change the color of the objects that are on the highlighted list
-					(*(this->ModelObjects[j])).meshes[i]->Draw(); // Draws the highlight color to indicate a member has been picked
-					mesh_found = true;
+					(*(this->ModelObjects[j])).IsPicked = true;
 					break;
+
+					//// We found a mesh and now know the object it cam from ModelObjects[j].
+					//// Now use the <vector> functions to get the ID of the first and last elements of the meshes of the member
+					//CDrawingObjects * parentObject = this->ModelObjects[j];
+					//GLuint firstMeshID = (*(parentObject)->meshes.front()).MeshID;
+					//GLuint lastMeshID = (*(parentObject)->meshes.back()).MeshID;
+					//GLuint firstparentID = (*(parentObject)->meshes.front()).parentID;
+					//GLuint lastparentID = (*(parentObject)->meshes.back()).parentID;
+					//printf("\nFirst meshID #: %i      Last meshID #: %i", firstMeshID, lastMeshID);
+					//printf("\nParentID #: %i      ParentID #: %i", firstparentID, lastparentID);
+
+					//glUniform3f(pickingIDLoc, 0.8f, 0.8f, 0.0f);  // change the color of the objects that are on the highlighted list
+					//(*(this->ModelObjects[j])).Draw(); // Draws the highlight color to indicate a member has been picked
 				}
 			}
-			if((PickedMeshID[0] == -1) || (!mesh_found))  // no items picked, therefore draw the normal triangle
-			{
-				glUniform3f(pickingIDLoc, rgb_vec.x, rgb_vec.y, rgb_vec.z);
-				(*(this->ModelObjects[j])).meshes[i]->Draw(); // Draws the color coded picking objects based on MeshID
-			} 
-
+		}
+		if((*(this->ModelObjects[j])).IsPicked)
+		{
+			glUniform3f(pickingIDLoc, 0.8f, 0.8f, 0.0f);	// change the color of the objects that are on the highlighted list
+			(*(this->ModelObjects[j])).Draw();				// Draws the member that is Picked
+					
+		} else {
+			glUniform3f(pickingIDLoc, rgb_vec.x, rgb_vec.y, rgb_vec.z);
+			(*(this->ModelObjects[j])).Draw(); // Draws the color coded picking objects based on MeshID
 		}
 	}
 }
@@ -540,21 +597,28 @@ void GraphicsManager::Draw()
 	Shader pickingShader("Shaders/ShaderPicking.vertex", "Shaders/ShaderPicking.fragment");	// shader used when picking mode is activated (not used??)
 	Shader selectionShader("Shaders/ShaderSelection.vertex", "Shaders/ShaderSelection.fragment"); // used to highlight the selected elements
 	Shader post_process_spShader("Shaders/post_process_sp.vertex","Shaders/post_process_sp.fragment");  // shader used for making a framebuffer for picking selecting
+	Shader HUDShader("Shaders/ShaderHUD.vertex","Shaders/ShaderHUD.fragment");  // shader used for making a framebuffer for picking selecting
 
 	///////////////////////////////
+	// Create the HUD
+	///////////////////////////////
+	layout = new CGUILayoutHUD;
+	GUILayout = layout;
+
+	/////////////////////////////////////////////////////////////////////////////////////////////
 	//  Creating Model Stuff
-	///////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////
 	// Create and load shape for our model, including gridline objects and the physical assets
-
-	// Creates a RectPrism  (x, y, z)
-//	CDrawingObjects *ourModel = new CRectPrism(2.5f, 4.0f, 0.125f);		// Create a model object that loads the model elements
-//	ModelObjects.push_back(ourModel);								// Adds the model to our ModelObjects database
+	// This needs to be relocated to another subroutine somewhere.
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	// Adds the model to our ModelObjects database
+	int i=0;
 	for(int j = 0; j<4; j++)
 	{
-		for(int i = 0; i<4; i++)
-		{
+		 //for(int i = 0; i<4; i++)
+		 //{
 			// model_pos is in local coords after a rotation has been applied
-			//columns
+			// columns
 			glm::vec3 model_pos = glm::vec3(i*6.0f, j*6.0f, 0.0f);  // note Y and Z are reversed because of the rotation
 			glm::vec3 model_unit_rot = glm::vec3(1.0f, 0.0f, 0.0f);
 			glm::vec3 model_euler = glm::vec3(90.0f, 0.0f, 0.0f);
@@ -562,23 +626,24 @@ void GraphicsManager::Draw()
 			CDrawingObjects *ourAISC = new CAisc(shape, model_pos, model_unit_rot, model_euler);			// create an AISC shape
 			ModelObjects.push_back(ourAISC);
 
-			//beams
-			model_pos = glm::vec3(i*6.0f, 8.0f, -j*6.0f);
-			model_unit_rot = glm::vec3(0.0f, 1.0f, 0.0f);
-			model_euler = glm::vec3(0.0f, -90.0f, 0.0f);
-			std::string shape2("W10x33");
-			CDrawingObjects *ourAISC2 = new CAisc(shape2, model_pos, model_unit_rot, model_euler);			// create an AISC shape
-			ModelObjects.push_back(ourAISC2);
+			////beams
+			//model_pos = glm::vec3(i*6.0f, 8.0f, -j*6.0f);
+			//model_unit_rot = glm::vec3(0.0f, 1.0f, 0.0f);
+			//model_euler = glm::vec3(0.0f, -90.0f, 0.0f);
+			//std::string shape2("W10x33");
+			//CDrawingObjects *ourAISC2 = new CAisc(shape2, model_pos, model_unit_rot, model_euler);			// create an AISC shape
+			//ModelObjects.push_back(ourAISC2);
 
-			//beams
-			model_pos = glm::vec3(i*6.0f, 8.0f, j*6.0f);
-			model_unit_rot = glm::vec3(0.0f, 1.0f, 0.0f);
-			model_euler = glm::vec3(0.0f, 0.0f, 0.0f);
-			std::string shape3("W10x33");
-			CDrawingObjects *ourAISC3 = new CAisc(shape3, model_pos, model_unit_rot, model_euler);			// create an AISC shape
-			ModelObjects.push_back(ourAISC3);
-		}
-	}
+			////beams
+			//model_pos = glm::vec3(i*6.0f, 8.0f, j*6.0f);
+			//model_unit_rot = glm::vec3(0.0f, 1.0f, 0.0f);
+			//model_euler = glm::vec3(0.0f, 0.0f, 0.0f);
+			//std::string shape3("W10x33");
+			//CDrawingObjects *ourAISC3 = new CAisc(shape3, model_pos, model_unit_rot, model_euler);			// create an AISC shape
+			//ModelObjects.push_back(ourAISC3);
+		 //}			// end for i
+	}					// end for j
+
 	// Create the main drawing grid line -- requires an OPENGL context for this step
 	// Must use XY, XZ, or YZ plane designators....such that X < Y < Z in order of labelling
 	gridLine = new CGrid(50, 1.0f, 50, 1.0f, XZ_PLANE);
@@ -592,7 +657,9 @@ void GraphicsManager::Draw()
 	cursor->SetSnapValues(DrawingGridLine->GetSpacing1(), DrawingGridLine->GetSpacing2(), DrawingGridLine->GetPlane());
 	CursorObj = cursor;		// store the object in the graphics manager
 
-	// create our framebuffer
+	//////////////////////////////////////////////////////////////////////
+	// create our framebuffer -- used in post processing filters
+	//////////////////////////////////////////////////////////////////////
 	// first create the framebuffer
 	GLuint framebuffer;
 	glGenFramebuffers (1, &framebuffer);
@@ -667,6 +734,7 @@ void GraphicsManager::Draw()
 	// Game loop
     while (!glfwWindowShouldClose(MyWinInfo->MainWindow))
     {
+
 		///////////////////////////////////////////////////
 		// Bind to framebuffer and draw to color texture
 		///////////////////////////////////////////////////
@@ -684,22 +752,21 @@ void GraphicsManager::Draw()
 			//  This line needed here? ---->  glClearColor
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		}
+
 		// then render scene as normal..
 		//////////////////////////////////
 		// Our normal rendering stuff
 		//////////////////////////////////
-
 		// Calculate deltatime of current frame
 		GLfloat currentFrame = (GLfloat)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		deltaLeftMouseTime = currentFrame - lastLeftMouseFrame;			// stores the time since the last LeftMouseClick
 		deltaRightMouseTime = currentFrame - lastRightMouseFrame;		// stores the time since the last RIghtMouseClick
-
 		//printf("\nDelta time: %f", deltaTime);
 
 		lastFrame = currentFrame;
 
-        // Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
+	// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
         glfwPollEvents();
 		Do_Movement();
 
@@ -715,9 +782,7 @@ void GraphicsManager::Draw()
 		// This toggles us between picking mode and normal drawing mode
 		if(!IsActivePicking)
 		{
-//			DrawNormal(ourShader, lightsourceShader, cursorShader, *ourModel, *gridLine, *cursor);	// DrawNormal draws the model, cursor, and gridlines in normal mode
 			DrawNormal(ourShader, lightsourceShader, cursorShader);	// DrawNormal draws the model, cursor, and gridlines in normal mode
-
 		} else 
 		{
 			glfwSetInputMode(MyWinInfo->MainWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);  // show the cursor
@@ -729,13 +794,20 @@ void GraphicsManager::Draw()
 				if(glfwGetMouseButton(MyWinInfo->MainWindow, GLFW_MOUSE_BUTTON_RIGHT))
 				{				
 					lastRightMouseFrame = currentFrame;
+					//clear the individual mesh list
 					PickedMeshID.clear();			// right mouse cancels the picked ID mesh so clear contents and resize to 0
 					PickedMeshID.resize(0);	
 					PickedMeshID.push_back(-1);		// set to a default meshID value of -1
-					for(unsigned int j=0; j<PickedMeshID.size();j++)
+					//clear the parent object list
+					for(unsigned int i =0; i < ModelObjects.size(); i++)
 					{
-						printf("\nSize:  %i   --  Picked ID's stored:  %i",PickedMeshID.size(),PickedMeshID[j]);
+						(*(ModelObjects[i])).IsPicked = false;	// turn off the picking flag
 					}
+
+					//for(unsigned int j=0; j<PickedMeshID.size();j++)
+					//{
+					//	printf("\nSize:  %i   --  Picked ID's stored:  %i",PickedMeshID.size(),PickedMeshID[j]);
+					//}		// end for j
 				} 
 			}
 //IMPORTANT BUG!!!!   Presumably because of no error checking
@@ -758,8 +830,10 @@ void GraphicsManager::Draw()
 					GLuint decode_number = (GLuint)data[2]+(GLuint)data[1]*256+(GLuint)data[0]*256*256;
 					printf("\n=========================================");
 					printf("\nMouse clicked.  R: %i,  G: %i,  B: %i -- Model Number %i", data[0], data[1], data[2], decode_number);
-				
-					bool found = false;
+
+					bool foundmesh = false;
+
+					// First add to the meshes list
 					if(PickedMeshID[0] == -1)			// if no item currently picked,
 					{
 						//printf("===============  First entry ==================");
@@ -773,12 +847,11 @@ void GraphicsManager::Draw()
 						if (temp == decode_number)
 						{
 							//printf("\nItem already exists on list, skipping");
-							found = true;
+							foundmesh = true;
 							break;
 						}
 					}
-
-					if (!found)
+					if (!foundmesh)
 					{
 						PickedMeshID.push_back(decode_number);
 						//for(unsigned int j=0; j<PickedMeshID.size();j++)
@@ -790,9 +863,9 @@ void GraphicsManager::Draw()
 					{
 						printf("\nSize:  %i   --  Picked ID's stored:  %i",PickedMeshID.size(),PickedMeshID[j]);
 					}
-				} 
-			}
-		}
+				}			// end if Left Mouse Button
+			}				// end if MaxClick Speed	
+		}					// end if IsActivePicking
 
 		///////////////////////////////////
 		//  End picking related drawing  //
@@ -832,15 +905,25 @@ void GraphicsManager::Draw()
 			// draw the quad
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 			glBindVertexArray(0);
-		}
+		}		// end if IsActiveProcessing
+
+		////////////////////////////////////////////
+		//  Now Draw the HUD
+		////////////////////////////////////////////
+		//HUDShader.Use();
+		glDisable(GL_DEPTH_TEST);		// for drawing the hud, turn off depth testing so the HUD items are now on top
+		GUILayout->Draw(aspect, HUDShader);
+		glEnable(GL_DEPTH_TEST);	// reenable now that the HUD is drawn
 
 		// flip drawn framebuffer onto the display
 		// Swap the screen buffers
 	    glfwSwapBuffers(MyWinInfo->MainWindow);
-    }
+    }  // end while loop
+
 	// Clean up
 	glDeleteFramebuffers(1, &framebuffer);
-
+	
+	printf("\nCleanup stuff still needed...");
     // Properly de-allocate all resources once they've outlived their purpose
 	// glDeleteVertexArrays(1, &VAO);
 	// glDeleteBuffers(1, &VBO);
@@ -850,6 +933,9 @@ void GraphicsManager::Draw()
     return;
 }
 
+////////////////////////////////////////////////////////////////
+//  Snippets of Misc.  Saved for features not used at this time
+////////////////////////////////////////////////////////////////
 //	GLuint shader_program;				// program number for our main shader
 //	GLuint lightingshader_program;		// program number for our lighting shader
 //	ShaderInfo *temp;
@@ -941,11 +1027,6 @@ void GraphicsManager::Destroy()
     glfwTerminate(); 
 	printf("\nDeleting the main drawing window in GraphicsManager class");
 	delete MyWinInfo;
-}
-
-void draw_picker_colours(glm::mat4 P, glm::mat4 V, glm::mat4 M[3])
-{
-	
 }
 
 //// encodes a unique ID into a colour with components in range of 0.0 to 1.0

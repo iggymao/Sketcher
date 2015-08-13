@@ -1,4 +1,4 @@
-﻿Build started 8/6/2015 12:39:23 AM.
+﻿Build started 8/13/2015 2:36:39 PM.
      1>Project "C:\Programming\ApplicationFramework\ApplicationFramework\ApplicationFramework.vcxproj" on node 2 (build target(s)).
      1>InitializeBuildStatus:
          Creating "Debug\ApplicationFramework.unsuccessfulbuild" because "AlwaysCreate" was specified.
@@ -29,6 +29,7 @@
          Debug\ShaderManager.obj
          Debug\WindowManager.obj
          Debug\stdafx.obj
+         Debug\Quaternion.obj
          "Debug\.NETFramework,Version=v4.0.AssemblyAttributes.obj"
      1>SOIL.lib(SOIL.obj) : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/INCREMENTAL:NO' specification
      1>GraphicsManager.obj : warning LNK4248: unresolved typeref token (01000017) for 'GLFWwindow'; image may not run
@@ -44,4 +45,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:45.72
+Time Elapsed 00:00:47.63

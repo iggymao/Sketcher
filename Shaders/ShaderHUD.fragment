@@ -1,0 +1,15 @@
+// Fragment shader for picking objects
+// In this, PickingColor is passed a value based on the meshID
+#version 330 core
+
+// Ouput data
+out vec4 color;
+
+// Values that stay constant for the whole mesh.
+//uniform vec3 HUDColor;
+
+void main()
+{	
+//	color = vec4(HUDColor, 1.0);
+	color = vec4(0.0, 1.0, 0.0, 1.0);
+}

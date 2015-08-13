@@ -116,6 +116,7 @@ void ModelManager::processNode()
 // For now it just loads a cube.
 void ModelManager::processMesh()
 {
+	/*
 	GLfloat red = 1.0f;
 	GLfloat green = 0.67f;
 	GLfloat blue = 0.33f;
@@ -255,8 +256,10 @@ void ModelManager::processMesh()
 		}
 
 		Mesh2 *newmesh = new Mesh2(face_vertices, face_indices, face_textures, draw_type);
+		newmesh->parentID = this->GetDrawingObjID();
 	    this->meshes.push_back(newmesh);
 	 }
+*/
 
 //	 //printf("\nSize of vertex data:  %i",sizeof(vertex_data));
 //	 //printf("\nnum_elems:  %i", num_elems);

@@ -39,6 +39,7 @@ struct AISCData{
 class CDrawObjLocData
 {
 public:
+	
 	// constructor
 	CDrawObjLocData() 
 	{
@@ -63,7 +64,6 @@ public:
 	void SetEulerAngles(glm::vec3 euler) {this->euler_angles = euler;}
 	glm::vec3 GetEulerAngles() {return this->euler_angles;}
 
-
 private:
 	glm::vec3 insert_point;			// insertion coordinates (vector from world coords origin to insertion)
 	glm::vec3 insert_unit_rotation;	// rotation unit vector relative to <0,0,0> local access
@@ -74,19 +74,38 @@ private:
 class CDrawingObjects : public ModelManager, public CDrawObjLocData
 {
 public:
+	static GLuint next_drawingobj_id(){ next_id++; return next_id; }   // to obtain the next drawing object id
+
 	// constructor
-	CDrawingObjects() {printf("\nDefault constructor for CDrawingObjects..");}
+	CDrawingObjects() 
+	{
+//		printf("\nDefault constructor for CDrawingObjects..");
+		DrawingObjID = next_drawingobj_id();
+		this->IsVisible = true;
+		this->IsActiveCursorSnap = false;
+		this->IsPicked = false;
+	}
 	CDrawingObjects(GLfloat length) {
 //		printf("\nLine length: %f",length);
+		DrawingObjID = next_drawingobj_id();
+		this->IsVisible = true;
+		this->IsActiveCursorSnap = false;
+		this->IsPicked = false;
 	}
 	CDrawingObjects(glm::vec3 model_loc, glm::vec3 model_rot, glm::vec3 model_euler)
 		: CDrawObjLocData(model_loc, model_rot, model_euler) 
-	{;}
+	{
+		DrawingObjID = next_drawingobj_id();
+		this->IsVisible = true;
+		this->IsActiveCursorSnap = false;
+		this->IsPicked = false;
+	}
 	~CDrawingObjects() { ;}								// deconstructor
 	CDrawingObjects(const CDrawingObjects & rhs) { ;}	// copy constructor
 
 	glm::vec3 bounding_planes[6];
-	bool IsVisible;				// should the object be drawn?
+	bool IsVisible;										// should the object be drawn?
+	bool IsPicked;										// has the object been selected by clicked?
 
 	/* Virtual methods from the CCursor class */
 	virtual void SetRayCast(glm::vec3 ray) {;}
@@ -107,9 +126,18 @@ public:
 	/* General virtual methods */
 	virtual void Draw() {;}
 	virtual void MakeGridData(){;}
+
+	/* class specific methods */
 	void RotateObjectData() {;}
-	void TranslateObjectData() {;}
+	void TranslateObjectData(glm::vec3 trans_amt);
 	void ScaleObjectData() {;}
+
+	GLint GetDrawingObjID() {return DrawingObjID;}
+
+private:
+	GLint DrawingObjID;			// a number to reference this DrawingObjID
+	static GLuint next_id;
+
 };
 
 
@@ -195,11 +223,49 @@ private:
 	int plane;						// plane orientation of the grid (currently XY, YZ, or XZ as defined in MathUtils.h)
 };
 
+// For drawing a rectangle area
+class CRectangle: public CDrawingObjects
+{
+public:
+	CRectangle(GLfloat x_len, GLfloat y_len, glm::vec3 model_pos, glm::vec3 model_unit_rot, glm::vec3 model_euler)
+		: CDrawingObjects(model_pos, model_unit_rot, model_euler)		// constructor
+	{
+		this->x_len = x_len;
+		this->y_len = y_len;
+
+		draw_type = GL_TRIANGLES;
+
+		MakeGridData();
+	}
+	~CRectangle() { ;}					// deconstructor
+	CRectangle(const CRectangle & rhs) { ;}	// copy constructor
+
+	void MakeGridData();
+
+	void Draw()
+	{    
+		// now Draw mesh
+		for(GLuint i=0; i < this->meshes.size(); i++)
+		{
+	        glBindVertexArray(meshes[i]->VAO);			// uses the VAO stored in the Mesh2 c;ass
+			glDrawElements(draw_type, meshes[i]->indices.size(), GL_UNSIGNED_INT, 0);
+			glBindVertexArray(0);
+		}
+		return;
+	}
+
+private:
+	GLfloat x_len;		// x-direction length
+	GLfloat y_len;		// y-direction length
+};
+
+
 // For drawing a rectangular right prism
 class CRectPrism: public CDrawingObjects
 {
 public:
-	CRectPrism(GLfloat x_len, GLfloat y_len, GLfloat z_len)		// constructor
+	CRectPrism(GLfloat x_len, GLfloat y_len, GLfloat z_len, glm::vec3 model_pos, glm::vec3 model_unit_rot, glm::vec3 model_euler) 
+		: CDrawingObjects(model_pos, model_unit_rot, model_euler)		// constructor
 	{
 		this->x_len = x_len;
 		this->y_len = y_len;
