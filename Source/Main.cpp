@@ -147,7 +147,6 @@ int Application::StartGraphicsMgr()			//Start GraphicsMgr;
 
 	GraphicsManager *graphmgr;
 	graphmgr = new GraphicsManager(800,600);  // create a new GraphicsManager for a MainWindow size off width = 800 and height 600
-//	graphmgr->Initialize();
 
 	GetLog()->gl_log(LOG_FILE, "\nStarting the OPENGL launcher...");
 
@@ -162,6 +161,9 @@ int Application::StartGraphicsMgr()			//Start GraphicsMgr;
 
 	if(graphmgr->IsLoadedOpenGL)		// if the graphics manager successfully loads, then we'll report the context settings for the OPENGL case
 		GetLog()->gl_log_params();
+
+	graphmgr->Initialize();		// once the OPENGL context is created, now set up the features of the GraphicsManager
+
 
 	//printf("\n    Pointer to graphmgr: %d",GetGraphMan());
 /*

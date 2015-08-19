@@ -25,9 +25,9 @@ public:
 	CCursor(glm::vec3 world_coords)
 	{ 
 		SetWorldCoords(world_coords);
-		SnapValueX = 0.1f;
-		SnapValueY = 0.1f;
-		SnapValueZ = 0.1f;
+		SnapValueX = 0.5f;
+		SnapValueY = 0.5f;
+		SnapValueZ = 0.5f;
 
 		IsActiveCursorSnap = false;
 		draw_type = GL_TRIANGLES;

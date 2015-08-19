@@ -55,6 +55,7 @@ public:
 	GLfloat GetButtonWidth() {return this->button_width;}
 	glm::vec4 GetColor() {return this->Color;}
 	void SetColor(glm::vec4 color) {this->Color = color;}
+
 	GLint GetGUIElementID() {return GUIElementID;}					// retrieves the Mesh's ID number
 
 	/* Members */
@@ -67,7 +68,7 @@ public:
 	GLfloat ymax;
 
 private:
-	GLint GUIElementID;			// A number to reference the meshID once they are created
+	GLint GUIElementID;			// A number to reference the elementID once they are created
 	static GLuint next_id;
 
 	static const GLuint element_type = GUI_CONTROL_BUTTON;		// type of element
@@ -87,6 +88,7 @@ public:
 	/* Methods */
 	void Draw(Shader shader);
 	void OnClick(GLuint button_id, GLfloat mouse_x, GLfloat mouse_y);
+	void ParseGUIHUDButton(GLuint button_id);
 //	glm::vec3 PixeltoScreenCoords(glm::ivec3 pixel_coords, GLuint width, GLuint height);
 //	glm::ivec3 ScreentoPixelCoords(glm::vec3 screen_coords, GLuint width, GLuint height);
 

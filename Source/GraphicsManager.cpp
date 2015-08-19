@@ -34,9 +34,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void mouse_click_callback(int b, int s, int mouse_x, int mouse_y);
-void Do_Movement();
-void DrawNormal(Shader ourShader, Shader lightingShader, Shader cursorShader, ModelManager ourModel, CGrid gridline,  CDrawingObjects cursor);
-void DrawPicking(Shader pickingShader, ModelManager ourModel);
+void Do_Movement(GLFWwindow* window);
+void DrawNormal(Shader ourShader, Shader lightingShader, Shader cursorShader);
+void DrawPicking(Shader pickingShader);
 
 GLuint generateAttachmentTexture(GLboolean depth, GLboolean stencil, GLuint width, GLuint height);
 
@@ -48,7 +48,7 @@ GLuint generateAttachmentTexture(GLboolean depth, GLboolean stencil, GLuint widt
 //GLfloat aspect = (GLfloat)WIDTH/(GLfloat)HEIGHT;  // aspect ratio needed to preserve dimension of drawing
 
 // Camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+//Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 bool keys[1024];
 //GLfloat lastX = WIDTH / 2.0;
 //GLfloat lastY = HEIGHT / 2.0;
@@ -59,24 +59,24 @@ GLfloat lastY;
 bool firstMouse = true;
 
 // Cursor intialization
-CDrawingObjects *cursor;
+//CDrawingObjects *cursor;
 //CCursor *cursor = 0;
 //CCursor *cursor = new CCursor(glm::vec3(0.0f, 0.0f, 0.0f));		// create a new cursor
 //CCursor *CursorObj = cursor;												// store the object in the graphics manager
 
 // Grid attributes
-CDrawingObjects *gridLine = 0;
+//CDrawingObjects *gridLine = 0;
 //CGrid *GridLine = new CGrid(30, 0.1f, 40, 0.1f);
 //CGrid *DrawingGridLine = GridLine;		// storing the gridline in our graphics manager
-bool IsActiveGridToggle = true;
-bool IsActivePicking = true;
-bool IsActivePostProcessing = false;
+//bool IsActiveGridToggle = true;
+//bool IsActivePicking = true;
+//bool IsActivePostProcessing = false;
 
 // Model attributes
-ModelManager *ourModel = 0;
+//ModelManager *ourModel = 0;
 
 // Our HUD GUI layout
-CGUILayoutHUD *layout = 0;
+//CGUILayoutHUD *layout = 0;
 
 // Light attributes
 bool IsPausedLight = true;
@@ -200,6 +200,37 @@ void print_all(GLuint programme) {
 void GraphicsManager::Initialize()
 {
 	printf("\n       Initializing Graphics Manager");
+
+	// Create the main camera object
+	this->CameraObj = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+
+	// Create the main drawing grid line -- requires an OPENGL context for this step
+	// Must use XY, XZ, or YZ plane designators....such that X < Y < Z in order of labelling
+	this->DrawingGridLine = new CGrid(50, 1.0f, 50, 1.0f, XZ_PLANE);
+//	gridLine = new CGrid(50, 1.0f, 50, 1.0f, XZ_PLANE);
+//	DrawingGridLine = gridLine;											// storing the gridline in our graphics manager
+
+	// Create our cursor -- requires an OPENGL context for this step
+	//CCursor cursor2(glm::vec3(0.0f, 0.0f, 0.0f));		// method1 creation
+	//CDrawingObjects * p_CursorObj = &cursor2;			// method1 creation
+	//CDrawingObjects * p2 = new CCursor(glm::vec3(0.0f, 0.0f, 0.0f));	// method2 creation
+	this->CursorObj = new CCursor(glm::vec3(0.0f, 0.0f, 0.0f));
+	//cursor = new CCursor(glm::vec3(0.0f, 0.0f, 0.0f));
+	//cursor->SetSnapValues(DrawingGridLine->GetSpacing1(), DrawingGridLine->GetSpacing2(), DrawingGridLine->GetPlane());
+	//CursorObj = cursor;		// store the object in the graphics manager
+
+
+	/////////////////////////////// 
+	// Create the HUD
+	///////////////////////////////
+	this->GUILayout = new CGUILayoutHUD(this->GetWinWidth(), this->GetWinHt());
+//	layout = new CGUILayoutHUD(this->GetWinWidth(), this->GetWinHt());
+//	GUILayout = layout;			//store the object in our graphics manager
+
+	this->IsActivePicking = true;
+	this->IsActivePostProcessing = false;
+	this->IsActiveGridToggle = true;
+
 	//Window = this->MyWinInfo->MainWindow;
 	//HEIGHT = (this->GetWinHt());
 	//WIDTH = (this->GetWinWidth());
@@ -277,7 +308,8 @@ int GraphicsManager::LaunchOpenGL()
 	glfwSetCursorPosCallback(this->MyWinInfo->MainWindow, mouse_callback);
 	glfwSetScrollCallback(this->MyWinInfo->MainWindow, scroll_callback);
 
-	glfwSetWindowUserPointer(this->MyWinInfo->MainWindow, this->MyWinInfo);   // set a user point to our window information
+//	glfwSetWindowUserPointer(this->MyWinInfo->MainWindow, this->MyWinInfo);   // set a user point to our window information
+	glfwSetWindowUserPointer(this->MyWinInfo->MainWindow, this);   // set a user pointer to our graphics manager information
 
 	// GLFW options
 	glfwSetCursorPos(this->MyWinInfo->MainWindow, this->GetWinWidth() / 2, this->GetWinHt() / 2);				// move the cursor to the middle of the screen
@@ -313,6 +345,9 @@ int GraphicsManager::LaunchOpenGL()
 // The routine to Draw in normal mode (Renders our normal scene without picking or HUD consideration)
 void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Shader cursorShader)
 {
+	//Camera *camera = this->CameraObj;
+	//CDrawingObjects *gridline = this->DrawingGridLine;
+
 	// For a moving light source
 	if(!IsPausedLight)
 	{
@@ -331,7 +366,7 @@ void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Sha
 	GLint lightPosLoc    = glGetUniformLocation(ourShader.Program, "light.position");
     GLint viewPosLoc     = glGetUniformLocation(ourShader.Program, "viewPos");
     glUniform3f(lightPosLoc,    lightPos.x, lightPos.y, lightPos.z);
-    glUniform3f(viewPosLoc,     camera.Position.x, camera.Position.y, camera.Position.z);
+    glUniform3f(viewPosLoc,     this->CameraObj->Position.x, this->CameraObj->Position.y, this->CameraObj->Position.z);
 
 	// Set lights properties
     glm::vec3 lightColor;
@@ -356,12 +391,12 @@ void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Sha
 
 	// Camera/View transformation
     glm::mat4 view;	// sets an indentity matrix in view
-    view = camera.GetViewMatrix();
+    view = this->CameraObj->GetViewMatrix();
 	
 	//	glm::mat4 projection = glm::perspective(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);  
-	camera.SetProjectionMatrix(camera.Zoom, (GLfloat)(this->GetWinWidth()/this->GetWinHt()), 0.1f, 100.0f);
+	this->CameraObj->SetProjectionMatrix(this->CameraObj->Zoom, (GLfloat)(this->GetWinWidth()/this->GetWinHt()), 0.1f, 100.0f);
 	glm::mat4 projection;  
-	projection = camera.GetProjectionMatrix();
+	projection = this->CameraObj->GetProjectionMatrix();
 
 	// Get the uniform locations
     GLint modelLoc = glGetUniformLocation(ourShader.Program, "model");
@@ -400,7 +435,7 @@ void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Sha
 	//ourModel.Draw(ourShader, GL_TRIANGLES);
 
 	// Draw the grid line structure if the the grid toggle is active
-	if(IsActiveGridToggle)
+	if(this->IsActiveGridToggle)
 	{					
 		glm::mat4 model;
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
@@ -408,7 +443,7 @@ void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Sha
 		glUniform3f(glGetUniformLocation(ourShader.Program, "material.diffuse"),   1.0f, 1.0f, 1.0f);
 		glUniform3f(glGetUniformLocation(ourShader.Program, "material.specular"),  0.0f, 0.0f, 0.0f); // Specular doesn't have full effect on this object's material
 		glUniform1f(glGetUniformLocation(ourShader.Program, "material.shininess"), 32.0f);
-		DrawingGridLine->Draw();
+		this->DrawingGridLine->Draw();
 	
 		//for (GLuint j = 0; j<2;j++)
 		//{
@@ -475,6 +510,7 @@ void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Sha
 // object ID number, and using that to draw the entire parent object.
 void GraphicsManager::DrawPicking(Shader pickingShader)
 {
+	//Camera *camera = this->CameraObj;
 	glm::vec3 rgb_vec;
 
 	//printf("\nModelObjects #: %i -- Mesh #: %i -- MeshID: %i", j, i, (*(this->ModelObjects[j])).meshes[i]->GetMeshID());
@@ -482,12 +518,12 @@ void GraphicsManager::DrawPicking(Shader pickingShader)
 
 	// Camera/View transformation -- needed to match the original view and projection matrices for normal rendering
 	glm::mat4 view;	// sets an indentity matrix in view
-	view = camera.GetViewMatrix();
+	view = this->CameraObj->GetViewMatrix();
 	
 	//	glm::mat4 projection = glm::perspective(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);  
-	camera.SetProjectionMatrix(camera.Zoom, (GLfloat)(this->GetWinWidth()/this->GetWinHt()), 0.1f, 100.0f);
+	this->CameraObj->SetProjectionMatrix(this->CameraObj->Zoom, (GLfloat)(this->GetWinWidth()/this->GetWinHt()), 0.1f, 100.0f);
 	glm::mat4 projection;  
-	projection = camera.GetProjectionMatrix();
+	projection = this->CameraObj->GetProjectionMatrix();
 
 	// Get the uniform locations
 	GLint modelLoc = glGetUniformLocation(pickingShader.Program, "model");
@@ -605,6 +641,8 @@ void GraphicsManager::DrawPicking(Shader pickingShader)
 // Our main draw function
 void GraphicsManager::Draw()
 {
+	//Camera *camera = this->CameraObj;
+
 	std::string message;
 	// Create and load shaders
 	Shader ourShader("Shaders/DefaultShader.vertex", "Shaders/DefaultShader.fragment");
@@ -615,11 +653,7 @@ void GraphicsManager::Draw()
 	Shader post_process_spShader("Shaders/post_process_sp.vertex","Shaders/post_process_sp.fragment");  // shader used for making a framebuffer for picking selecting
 	Shader HUDShader("Shaders/ShaderHUD.vertex","Shaders/ShaderHUD.fragment");  // shader used for making a framebuffer for picking selecting
 
-	/////////////////////////////// 
-	// Create the HUD
-	///////////////////////////////
-	layout = new CGUILayoutHUD(this->GetWinWidth(), this->GetWinHt());
-	GUILayout = layout;			//store the object in our graphics manager
+
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	//  Creating Model Stuff
@@ -663,18 +697,7 @@ void GraphicsManager::Draw()
 		 //}			// end for i
 	}					// end for j
 
-	// Create the main drawing grid line -- requires an OPENGL context for this step
-	// Must use XY, XZ, or YZ plane designators....such that X < Y < Z in order of labelling
-	gridLine = new CGrid(50, 1.0f, 50, 1.0f, XZ_PLANE);
-	DrawingGridLine = gridLine;											// storing the gridline in our graphics manager
 
-	// Create our cursor -- requires an OPENGL context for this step
-	//CCursor cursor2(glm::vec3(0.0f, 0.0f, 0.0f));		// method1 creation
-	//CDrawingObjects * p_CursorObj = &cursor2;			// method1 creation
-	//CDrawingObjects * p2 = new CCursor(glm::vec3(0.0f, 0.0f, 0.0f));	// method2 creation
-	cursor = new CCursor(glm::vec3(0.0f, 0.0f, 0.0f));
-	cursor->SetSnapValues(DrawingGridLine->GetSpacing1(), DrawingGridLine->GetSpacing2(), DrawingGridLine->GetPlane());
-	CursorObj = cursor;		// store the object in the graphics manager
 
 	//////////////////////////////////////////////////////////////////////
 	// create our framebuffer -- used in post processing filters
@@ -787,7 +810,7 @@ void GraphicsManager::Draw()
 
 	// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
         //glfwPollEvents();
-		Do_Movement();
+		Do_Movement(this->MyWinInfo->MainWindow);
 
         // Render
         glClearColor(0.4f, 0.5f, 0.5f, 1.0f);   // a grey color
@@ -1049,7 +1072,7 @@ void GraphicsManager::Destroy()
 //		delete this->ModelObjects[i];
 	}
 	printf("\nDeleting DrawingGridLine in GraphicsManager class");
-	delete DrawingGridLine;
+	delete this->DrawingGridLine;
     //Finalize and clean up GLFW  
 	printf("\nTerminating GLFW and OpenGL context");
     glfwTerminate(); 
@@ -1098,9 +1121,15 @@ GLuint generateAttachmentTexture(GLboolean depth, GLboolean stencil, GLuint widt
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
-	CWindow *WindowInfo = static_cast<CWindow *>(glfwGetWindowUserPointer(window));
-	GLuint HEIGHT = WindowInfo->main_win_height;
-	GLuint WIDTH = WindowInfo->main_win_width;
+	GraphicsManager *GraphicsManagerInfo = static_cast<GraphicsManager *>(glfwGetWindowUserPointer(window));
+//	CWindow *WindowInfo = static_cast<CWindow *>(glfwGetWindowUserPointer(window));
+	GLuint HEIGHT = GraphicsManagerInfo->MyWinInfo->main_win_height;
+	GLuint WIDTH = GraphicsManagerInfo->MyWinInfo->main_win_width;
+	Camera *camera = GraphicsManagerInfo->CameraObj;
+	//CDrawingObjects *cursor = GraphicsManagerInfo->CursorObj;
+
+	//GLuint HEIGHT = WindowInfo->main_win_height;
+	//GLuint WIDTH = WindowInfo->main_win_width;
 	//printf("\nWIDTH: %i		HEIGHT:  %i", WIDTH, HEIGHT);
 
 	// 'ESC' -- terminate the drawing loop
@@ -1110,18 +1139,18 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	// 'C' -- Camera Mode toggle
 	if (key == GLFW_KEY_C && action == GLFW_PRESS)
 	{
-		if (camera.IsActiveCameraToggle)
+		if (GraphicsManagerInfo->CameraObj->IsActiveCameraToggle)
 		{
 			printf("\nCamera turned off...");
 			// enable the cursor
 			glfwSetCursorPos(window, WIDTH/2, HEIGHT/2);				// move the cursor to the middle of the screen
 			//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);  // show the cursor (used for the camera control)
-			camera.IsActiveCameraToggle = false;						// flag the camera as turned off
+			GraphicsManagerInfo->CameraObj->IsActiveCameraToggle = false;		// flag the camera as turned off
 		} else {		
 			printf("\nCamera turned on...");
 			// disable the cursor for the camera controls
 			//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);  // hide the cursor (used for the camera control)
-			camera.IsActiveCameraToggle = true;							// flag the camera as turned on
+			GraphicsManagerInfo->CameraObj->IsActiveCameraToggle = true;	// flag the camera as turned on
 		}
 	}
 
@@ -1141,59 +1170,59 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 	// F1 -- Active the cursor snap
 	if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
 	{
-		if (cursor->IsActiveCursorSnap)
+		if (GraphicsManagerInfo->CursorObj->IsActiveCursorSnap)
 		{
 			printf("\nSnap is off...");
-			cursor->IsActiveCursorSnap = false;
+			GraphicsManagerInfo->CursorObj->IsActiveCursorSnap = false;
 		} else {
 			printf("\nSnap is on...");
-			cursor->IsActiveCursorSnap = true;
+			GraphicsManagerInfo->CursorObj->IsActiveCursorSnap = true;
 		}
 	}
 
 	// F2 -- Toggle the grid display
 	if (key == GLFW_KEY_F2 && action == GLFW_PRESS)
 	{
-		if (IsActiveGridToggle)
+		if (GraphicsManagerInfo->IsActiveGridToggle)
 		{
 			printf("\nGrid is hidden...");
-			IsActiveGridToggle = false;
+			GraphicsManagerInfo->IsActiveGridToggle = false;
 		} else {
 			printf("\nGrid is visible...");
-			IsActiveGridToggle = true;
+			GraphicsManagerInfo->IsActiveGridToggle = true;
 		}
 	}
 
 	// F3 -- Picking is active toggle
 	if (key == GLFW_KEY_F3 && action == GLFW_PRESS)
 	{
-		if (IsActivePicking == true)
+		if (GraphicsManagerInfo->IsActivePicking == true)
 		{
 			printf("\nPicking mode disabled...");
-			IsActivePicking = false;
+			GraphicsManagerInfo->IsActivePicking = false;
 		} else {
 			printf("\nPicking objects...");
-			IsActivePicking = true;
+			GraphicsManagerInfo->IsActivePicking = true;
 		}
 	}
 
 	// F4 -- Post processing shader effect toggle
 	if (key == GLFW_KEY_F4 && action == GLFW_PRESS)
 	{
-		if (IsActivePostProcessing == true)
+		if (GraphicsManagerInfo->IsActivePostProcessing == true)
 		{
 			printf("\nPostprocessing mode disabled...");
-			IsActivePostProcessing = false;
+			GraphicsManagerInfo->IsActivePostProcessing = false;
 		} else {
 			printf("\nPostprocessing mode turned on...");
-			IsActivePostProcessing = true;
+			GraphicsManagerInfo->IsActivePostProcessing = true;
 		}
 	}
 
 	// F10 -- A temporary test key to test work functions
 	if (key == GLFW_KEY_F10 && action == GLFW_PRESS)
 	{
-		printf("\nReading pixels on HUD...%i", layout->GUIMembers[0]->GetButtonHt());
+		printf("\nReading pixels on HUD...%i", GraphicsManagerInfo->GUILayout->GUIMembers[0]->GetButtonHt());
 
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
@@ -1208,8 +1237,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		printf("\nScreen coords clicked:  x:  %i      y:  %i", mx, my);
 
 		// Now we have coordinates of screen click.  Check to see if top button is clicked...
-		layout->GUIMembers[0]->ShowButtonCornerPts();		// display the know corner points (test)
-		layout->OnClick(0, (GLfloat)mx, (GLfloat)my);   // tests the first GUIMember ([0] for testing)
+		GraphicsManagerInfo->GUILayout->GUIMembers[0]->ShowButtonCornerPts();		// display the know corner points (test)
+		GraphicsManagerInfo->GUILayout->OnClick(0, (GLfloat)mx, (GLfloat)my);   // tests the first GUIMember ([0] for testing)
 	}
 
 	if (key >= 0 && key < 1024)
@@ -1221,33 +1250,47 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
 }
 
-void Do_Movement()
+void Do_Movement(GLFWwindow* window)
 {
+	GraphicsManager *GraphicsManagerInfo = static_cast<GraphicsManager *>(glfwGetWindowUserPointer(window));
+//	CWindow *WindowInfo = static_cast<CWindow *>(glfwGetWindowUserPointer(window));
+	GLuint HEIGHT = GraphicsManagerInfo->MyWinInfo->main_win_height;
+	GLuint WIDTH = GraphicsManagerInfo->MyWinInfo->main_win_width;
+	//Camera *camera = GraphicsManagerInfo->CameraObj;
+	//GLuint HEIGHT = WindowInfo->main_win_height;
+	//GLuint WIDTH = WindowInfo->main_win_width;
 	// actions possible only if the camera toggle is active
-	if(camera.IsActiveCameraToggle)
+
+	if(GraphicsManagerInfo->CameraObj->IsActiveCameraToggle)
 	{
 	    // Camera controls
 	    if(keys[GLFW_KEY_A])
-	        camera.ProcessKeyboard(LEFT, deltaTime);
+	        GraphicsManagerInfo->CameraObj->ProcessKeyboard(LEFT, deltaTime);
 	    if(keys[GLFW_KEY_D])
-	        camera.ProcessKeyboard(RIGHT, deltaTime);
+	        GraphicsManagerInfo->CameraObj->ProcessKeyboard(RIGHT, deltaTime);
 		if(keys[GLFW_KEY_S])
-	        camera.ProcessKeyboard(BACKWARD, deltaTime);
+	        GraphicsManagerInfo->CameraObj->ProcessKeyboard(BACKWARD, deltaTime);
 		if(keys[GLFW_KEY_W])
-	        camera.ProcessKeyboard(FORWARD, deltaTime);
+	        GraphicsManagerInfo->CameraObj->ProcessKeyboard(FORWARD, deltaTime);
 		// Downward must be before upwards because both utilize the SPACE key
 		if((keys[GLFW_KEY_SPACE]&&(keys[GLFW_KEY_LEFT_SHIFT])) || (keys[GLFW_KEY_SPACE]&&(keys[GLFW_KEY_RIGHT_SHIFT])))
-			camera.ProcessKeyboard(DOWNWARD, deltaTime);
+			GraphicsManagerInfo->CameraObj->ProcessKeyboard(DOWNWARD, deltaTime);
 		if(keys[GLFW_KEY_SPACE])
-			camera.ProcessKeyboard(UPWARD, deltaTime);
+			GraphicsManagerInfo->CameraObj->ProcessKeyboard(UPWARD, deltaTime);
 	}
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	CWindow *WindowInfo = static_cast<CWindow *>(glfwGetWindowUserPointer(window));
-	GLuint HEIGHT = WindowInfo->main_win_height;
-	GLuint WIDTH = WindowInfo->main_win_width;
+	GraphicsManager *GraphicsManagerInfo = static_cast<GraphicsManager *>(glfwGetWindowUserPointer(window));
+//	CWindow *WindowInfo = static_cast<CWindow *>(glfwGetWindowUserPointer(window));
+	GLuint HEIGHT = GraphicsManagerInfo->MyWinInfo->main_win_height;
+	GLuint WIDTH = GraphicsManagerInfo->MyWinInfo->main_win_width;
+//	Camera *camera = GraphicsManagerInfo->CameraObj;
+//	CDrawingObjects *gridLine = GraphicsManagerInfo->DrawingGridLine;
+	//CDrawingObjects *cursor = GraphicsManagerInfo->CursorObj;
+	//GLuint HEIGHT = WindowInfo->main_win_height;
+	//GLuint WIDTH = WindowInfo->main_win_width;
 
 	if (firstMouse)
 	{
@@ -1262,9 +1305,9 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	lastY = (GLfloat) ypos;
 
 	// activate the mouse camera control only if the toggle is turned on.
-	if (camera.IsActiveCameraToggle)
+	if (GraphicsManagerInfo->CameraObj->IsActiveCameraToggle)
 	{
-		camera.ProcessMouseMovement(xoffset, yoffset);
+		GraphicsManagerInfo->CameraObj->ProcessMouseMovement(xoffset, yoffset);
 	} else {
 		// set up for the ray casting calculation which projects a ray through the camera
 		// and to the point clicked in the window (specified by xpos, ypos)
@@ -1274,13 +1317,12 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 		float z = (float)(1.0f);
 		glm::vec3 ray_nds = glm::vec3 (x, y, z);									// normalized device coords
 		glm::vec4 ray_clip = glm::vec4 (ray_nds.x, ray_nds.y, -1.0, 1.0);			// homogeneous clip coords (reverse the z-direction)
-		glm::vec4 ray_eye = glm::inverse (camera.GetProjectionMatrix()) * ray_clip;	// eye camera coordinates
+		glm::vec4 ray_eye = glm::inverse (GraphicsManagerInfo->CameraObj->GetProjectionMatrix()) * ray_clip;	// eye camera coordinates
 		ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0f, 0.0f);
-		glm::vec4 ray_wor_temp = (glm::inverse (camera.GetViewMatrix()) * ray_eye);	// 4D world coordinates
+		glm::vec4 ray_wor_temp = (glm::inverse (GraphicsManagerInfo->CameraObj->GetViewMatrix()) * ray_eye);	// 4D world coordinates
 		glm::vec3 ray_wor = glm::normalize(glm::vec3(ray_wor_temp.x, ray_wor_temp.y, ray_wor_temp.z));
 		printf("\nRay Cast Vector -- length: %f -- x: %f   y: %f   z: %f", glm::length(ray_wor), ray_wor.x, ray_wor.y, ray_wor.z); 
-		printf("\nCamera Position -- x: %f   y: %f   z: %f", camera.Position.x, camera.Position.y, camera.Position
-			.z); 
+		printf("\nCamera Position -- x: %f   y: %f   z: %f", GraphicsManagerInfo->CameraObj->Position.x, GraphicsManagerInfo->CameraObj->Position.y, GraphicsManagerInfo->CameraObj->Position.z); 
 
 //		glm::vec3 intersect_point = ray_intersect_plane(camera.Position, ray_wor, X_PLANE);
 //		printf("\nX-plane intersect -- x: %f   y: %f   z: %f", intersect_point.x, intersect_point.y, intersect_point.z); 
@@ -1288,53 +1330,59 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 //		printf("\nY-plane intersect -- x: %f   y: %f   z: %f", intersect_point.x, intersect_point.y, intersect_point.z); 
 		
 		// The intersect plane can be converted between XY (Z=0), YZ (X=0), and XZ (Y=0) current options.
-		glm::vec3 intersect_point = ray_intersect_plane(camera.Position, ray_wor, gridLine->GetPlane());
+		glm::vec3 intersect_point = ray_intersect_plane(GraphicsManagerInfo->CameraObj->Position, ray_wor, GraphicsManagerInfo->DrawingGridLine->GetPlane());
 		printf("\nZ-plane intersect -- x: %f   y: %f   z: %f", intersect_point.x, intersect_point.y, intersect_point.z); 
 
-		cursor->SetRayCast(ray_wor);				// store the ray in the cursor
+		GraphicsManagerInfo->CursorObj->SetRayCast(ray_wor);				// store the ray in the cursor
 
 		// For a Z-Plane snap
-		if(cursor->IsActiveCursorSnap)
+		if(GraphicsManagerInfo->CursorObj->IsActiveCursorSnap)
 		{
 			GLfloat new_x;
 			GLfloat new_y;
 			GLfloat new_z;
 
 			// These checks set the new coordinate to 0.0 if its snap value is 0
-			if (cursor->GetSnap().x == 0)
+			if (GraphicsManagerInfo->CursorObj->GetSnap().x == 0)
 				new_x = 0.0;
 			else
-				new_x = intersect_point.x-fmod(intersect_point.x, cursor->GetSnap().x);
+				new_x = intersect_point.x-fmod(intersect_point.x, GraphicsManagerInfo->CursorObj->GetSnap().x);
 
-			if (cursor->GetSnap().y == 0)
+			if (GraphicsManagerInfo->CursorObj->GetSnap().y == 0)
 				new_y = 0.0;
 			else
-				new_y = intersect_point.y-fmod(intersect_point.y, cursor->GetSnap().y);
+				new_y = intersect_point.y-fmod(intersect_point.y, GraphicsManagerInfo->CursorObj->GetSnap().y);
 
-			if (cursor->GetSnap().z == 0)
+			if (GraphicsManagerInfo->CursorObj->GetSnap().z == 0)
 				new_z = 0.0;
 			else
-				new_z = intersect_point.z-fmod(intersect_point.z, cursor->GetSnap().z);
+				new_z = intersect_point.z-fmod(intersect_point.z, GraphicsManagerInfo->CursorObj->GetSnap().z);
 
-			/*printf("\nSnapValue: x:%f	y:%f	z:%f ",cursor->GetSnap().x,cursor->GetSnap().y,cursor->GetSnap().z);   
-			printf("\n-- x: %f    y: %f    z: %f", new_x, new_y, new_z);*/
+			printf("\nSnapValue: x:%f	y:%f	z:%f ",GraphicsManagerInfo->CursorObj->GetSnap().x,GraphicsManagerInfo->CursorObj->GetSnap().y, GraphicsManagerInfo->CursorObj->GetSnap().z);   
+			printf("\n-- x: %f    y: %f    z: %f", new_x, new_y, new_z);
+
 			// store the intersect point rounded down to the nearest snap value
-			cursor->SetWorldCoords(glm::vec3(new_x, new_y, new_z)); 
+			GraphicsManagerInfo->CursorObj->SetWorldCoords(glm::vec3(new_x, new_y, new_z)); 
 		} else 
 		{
 			// store the intersect point with the specified plane from the ray-cast
-			cursor->SetWorldCoords(intersect_point);
+			GraphicsManagerInfo->CursorObj->SetWorldCoords(intersect_point);
 		}
 	}
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	CWindow *WindowInfo = static_cast<CWindow *>(glfwGetWindowUserPointer(window));
-	GLuint HEIGHT = WindowInfo->main_win_height;
-	GLuint WIDTH = WindowInfo->main_win_width;
+	GraphicsManager *GraphicsManagerInfo = static_cast<GraphicsManager *>(glfwGetWindowUserPointer(window));
+//	CWindow *WindowInfo = static_cast<CWindow *>(glfwGetWindowUserPointer(window));
+	GLuint HEIGHT = GraphicsManagerInfo->MyWinInfo->main_win_height;
+	GLuint WIDTH = GraphicsManagerInfo->MyWinInfo->main_win_width;
+	//Camera *camera = GraphicsManagerInfo->CameraObj;
+
+	//GLuint HEIGHT = WindowInfo->main_win_height;
+	//GLuint WIDTH = WindowInfo->main_win_width;
 
 	// activate the mouse camera control only if the toggle is turned on.
-	if (camera.IsActiveCameraToggle)
-	    camera.ProcessMouseScroll((GLfloat)yoffset);
+	if (GraphicsManagerInfo->CameraObj->IsActiveCameraToggle)
+	    GraphicsManagerInfo->CameraObj->ProcessMouseScroll((GLfloat)yoffset);
 }

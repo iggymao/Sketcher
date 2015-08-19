@@ -16,6 +16,7 @@
 #include "../Headers/DrawingShapes.h"
 #include "../Headers/Cursor.h"
 #include "../Headers/GUIElements.h"
+#include "../Headers/Camera.h"
 
 //struct MainWinInfo{
 //	GLFWwindow *MainWindow;		// pointer for the main window object
@@ -56,6 +57,7 @@ public:
 	CDrawingObjects *DrawingGridLine;	// The main drawing grid object
 	CDrawingObjects *CursorObj;			// The main cursor for the drawing window
 	CGUILayoutHUD *GUILayout;			// the HUD for our GUI
+	Camera *CameraObj;					// The camera object associated with the graphics manager window
 
 	vector<CDrawingObjects*> ModelObjects;	// The main array to hold  the Drawing Objects
 
@@ -98,7 +100,9 @@ public:
 	/* Data members and flags */
 	bool IsLoadedOpenGL;		// a variable to let us know that OpenGL has been successfully loaded.
 	bool IsCreatedCursor;		// a bool to tell us the cursor has been loaded
-	//int IsActivePicking;		// a bool to tell us that picking (clicking on screen) is currently active
+	bool IsActiveGridToggle;	// a bool to tell us that the main gridline is visibile
+	bool IsActivePicking;		// a bool to tell us that picking (clicking on screen) is currently active
+	bool IsActivePostProcessing; // a bool to tell us that post processing is currently active
 
 	GLfloat snap_value;			// a variable to store the snap_value for drafting
 	

@@ -7,12 +7,13 @@
 
 //#include "../Headers/DrawingShapes.h"					// includes our drawing shape information
 
-// forward declaration
-//glm::vec3 PixeltoScreenCoords(glm::ivec3 pixel_coords, GLuint width, GLuint height);		// convert pixel coords to screen coords
-//glm::ivec3 ScreentoPixelCoords(glm::vec3 pixel_coords, GLuint width, GLuint height);		// convert screen coords to pixel coords
-
 GLuint CGUIElementButton::next_id = -1;			// set the initial value at the start of the program
 
+
+// forward declaration
+void ParseGUIHUDButton(GLuint button_id);
+//glm::vec3 PixeltoScreenCoords(glm::ivec3 pixel_coords, GLuint width, GLuint height);		// convert pixel coords to screen coords
+//glm::ivec3 ScreentoPixelCoords(glm::vec3 pixel_coords, GLuint width, GLuint height);		// convert screen coords to pixel coords
 
 // Draws the button
 void CGUIElementButton::Draw()
@@ -148,9 +149,9 @@ CGUILayoutHUD::CGUILayoutHUD(GLuint win_width, GLuint win_height)
 		glm::vec3 model_unit_rot = glm::vec3(0.0f, 0.0f, 0.0f);
 		glm::vec3 model_euler = glm::vec3(0.0f, 0.0f, 0.0f);
 		CGUIElementButton *element = new CGUIElementButton(this->button_dims, model_pos, model_unit_rot, model_euler);
-		element->TranslateObjectData(model_pos);
-		element->SetButtonCornerPts();   // Must follow the TranslateObjectData function once the coords are set for button, store the corner points in the element
-		element->ShowButtonCornerPts();
+		element->TranslateObjectData(model_pos);  // alter the mesh information of the generalized element to locate its true position in pixel space.
+		element->SetButtonCornerPts();		// Must follow the TranslateObjectData function once the coords are set for button, store the corner points in the element
+		//element->ShowButtonCornerPts();	// Display the corner points of the element button
 		GUIMembers.push_back(element);
 	}
 }
@@ -202,12 +203,14 @@ void CGUILayoutHUD::Draw(Shader shader)
 void CGUILayoutHUD::OnClick(GLuint GUIMember_num, GLfloat pixel_mouse_x, GLfloat pixel_mouse_y)
 {
 	bool click = false;
+	GLuint button_ID_counter = -1;
 
 	GLfloat mouse_x = (-1.0f + 2.0f*(pixel_mouse_x / (GLfloat)(this->WinWidth)));
 	GLfloat mouse_y = ( 1.0f - 2.0f*(pixel_mouse_y / (GLfloat)(this->WinHt)));
 
 	for(unsigned int i = 0; i < this->GUIMembers.size(); i++)
 	{
+		button_ID_counter = i;
 		// find coords of button -- xmin, xmax, ymin, ymax
 		GLfloat x_lower = (this->GUIMembers[i]->xmin);
 		GLfloat x_upper = (this->GUIMembers[i]->xmax);
@@ -229,14 +232,33 @@ void CGUILayoutHUD::OnClick(GLuint GUIMember_num, GLfloat pixel_mouse_x, GLfloat
 		if((mouse_x > x_lower) && (mouse_x < x_upper) && (mouse_y > y_lower) && (mouse_y < y_upper))
 		{
 			click = true;
+
 			break;
 		} 
 	}  // end for
-	if(click)
+	if((click) && (button_ID_counter != -1))
+	{
+		GLint GUIButtonID = GUIMembers[button_ID_counter]->GetGUIElementID(); // retrieve the ID of the button
+		printf("\nRetrieving GUIElementID: %i",GUIButtonID);
+		ParseGUIHUDButton(GUIButtonID);		// parse the action related to the ElementButton
 		printf("\nButton successfully clicked");
+	}
 	else
 		printf("\nButton missed");
 }
+
+void CGUILayoutHUD::ParseGUIHUDButton(GLuint button_id)
+{
+	switch(button_id)
+	{
+
+	}
+}
+
+
+/////////////////////////////////
+// SNIPPETS for later use??
+/////////////////////////////////
 //
 //// Conversions for pixel to screen coords
 //// Screen coords:  -1.0 < x < +1.0 , -1.0 < y < +1.0 -- origin (0,0) at center of window
