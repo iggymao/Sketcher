@@ -11,34 +11,45 @@
 #include <glm/gtc/type_ptr.hpp>
 
 //#include "../Headers/ShaderManager.h"
+#include "../Headers/CWindow.h"
 #include "../Headers/ModelManager.h"
 #include "../Headers/DrawingShapes.h"
 #include "../Headers/Cursor.h"
 #include "../Headers/GUIElements.h"
 
-struct MainWinInfo{
-	GLFWwindow *MainWindow;		// pointer for the main window object
-	std::string strWinTitle;	// title for the window
-	GLuint main_win_width;			// main window width
-	GLuint main_win_height;		// main width heigh
-	GLuint main_pos_x;			// x position of main window
-	GLuint main_pos_y;			// y position of main window
-};
+//struct MainWinInfo{
+//	GLFWwindow *MainWindow;		// pointer for the main window object
+//	std::string strWinTitle;	// title for the window
+//	GLuint main_win_width;			// main window width
+//	GLuint main_win_height;		// main width heigh
+//	GLuint main_pos_x;			// x position of main window
+//	GLuint main_pos_y;			// y position of main window
+//};
 
-class GraphicsManager
+class GraphicsManager : public CWindow
 {
 public:
-	GraphicsManager()									// default constructor
+	GraphicsManager(GLuint win_width, GLuint win_height)	// default constructor
 	{
 		IsLoadedOpenGL = false;
 		IsCreatedCursor = false;
 		PickedMeshID.push_back(-1);						// set -1 into the PickedMeshID values to indicate no mesh is selected
 		//IsActivePicking = 0;
+
+		this->MyWinInfo = new CWindow;
+//		MyWinInfo = new MainWinInfo;
+		// set the window properties
+		this->SetWinWidth(win_width);
+		this->SetWinHt(win_height);
+		(*(this->MyWinInfo)).strWinTitle = "GraphicsManager title";
+		(*(this->MyWinInfo)).main_pos_x = 300;  // x-position (pixels)
+		(*(this->MyWinInfo)).main_pos_y = 100;  // y-position (pixels)
 	}
 	GraphicsManager(const GraphicsManager & rhs) { ;}	// copy constructor
 	~GraphicsManager() { Destroy();}					// destructor
 
-	MainWinInfo *MyWinInfo;								// structure containing the main window information
+	CWindow *MyWinInfo;									// structure containing the main window information
+	//MainWinInfo *MyWinInfo;								// structure containing the main window information
 	//ModelManager *MyModelManagerInfo;
 
 	// Entities used by GraphicsManager
@@ -69,6 +80,13 @@ public:
 	void DrawNormal(Shader ourShader, Shader lightingShader, Shader cursorShader);		// a routine for drawing normal screens
 	void DrawPicking(Shader pickingShader);		// a routine for drawing picked screens (changes the color of the objects based on IDs)
 	int LaunchOpenGL();			// Launches the OpenGL routines and established the main context.
+
+	GLuint GetWinHt() {return (*(this->MyWinInfo)).main_win_height;}
+	void SetWinHt(GLuint height) {(*(this->MyWinInfo)).main_win_height = height;}
+	GLuint GetWinWidth() {return (*(this->MyWinInfo)).main_win_width;}
+	void SetWinWidth(GLuint width) {(*(this->MyWinInfo)).main_win_width = width;}
+
+public:
 	void Destroy();
 
 	////View controls for our windows interactions, currently local to GraphicsManager.cpp

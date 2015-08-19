@@ -93,6 +93,7 @@
     <ClInclude Include="Headers\AppWindow.h" />
     <ClInclude Include="Headers\Camera.h" />
     <ClInclude Include="Headers\Cursor.h" />
+    <ClInclude Include="Headers\CWindow.h" />
     <ClInclude Include="Headers\DrawingShapes.h" />
     <ClInclude Include="Headers\GraphicsManager.h" />
     <ClInclude Include="Headers\GUIElements.h" />
@@ -117,6 +118,7 @@
     <ClCompile Include="Source\Cursor.cpp" />
     <ClCompile Include="Source\DrawingShapes.cpp" />
     <ClCompile Include="Source\GraphicsManager.cpp" />
+    <ClCompile Include="Source\GUIElements.cpp" />
     <ClCompile Include="Source\LogManager.cpp" />
     <ClCompile Include="Source\Main.cpp" />
     <ClCompile Include="Source\Mesh.cpp" />

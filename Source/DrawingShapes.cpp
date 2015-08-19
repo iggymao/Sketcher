@@ -719,6 +719,7 @@ void CRectangle::MakeGridData()
 	 }
 }
 
+// should trans_amt be in pixels instead?  requiring a conversion to screen distance?
 void CDrawingObjects::TranslateObjectData(glm::vec3 trans_amt)
 {
 	for(unsigned int i = 0; i < this->meshes.size();i++)

@@ -146,8 +146,8 @@ int Application::StartGraphicsMgr()			//Start GraphicsMgr;
 	// Do stuff here..
 
 	GraphicsManager *graphmgr;
-	graphmgr = new GraphicsManager;
-	graphmgr->Initialize();
+	graphmgr = new GraphicsManager(800,600);  // create a new GraphicsManager for a MainWindow size off width = 800 and height 600
+//	graphmgr->Initialize();
 
 	GetLog()->gl_log(LOG_FILE, "\nStarting the OPENGL launcher...");
 

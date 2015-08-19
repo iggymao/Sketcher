@@ -38,17 +38,24 @@ void Do_Movement();
 void DrawNormal(Shader ourShader, Shader lightingShader, Shader cursorShader, ModelManager ourModel, CGrid gridline,  CDrawingObjects cursor);
 void DrawPicking(Shader pickingShader, ModelManager ourModel);
 
-GLuint generateAttachmentTexture(GLboolean depth, GLboolean stencil);
+GLuint generateAttachmentTexture(GLboolean depth, GLboolean stencil, GLuint width, GLuint height);
 
-// Window dimensions
-const GLuint WIDTH = 800, HEIGHT = 600;
-GLfloat aspect = (GLfloat)WIDTH/(GLfloat)HEIGHT;  // aspect ratio needed to preserve dimension of drawing
+//// Window dimensions
+//GLFWwindow *Window;
+//GLuint WIDTH;		// declare a global for the window width
+//GLuint HEIGHT;		// declare a global for the window height
+
+//GLfloat aspect = (GLfloat)WIDTH/(GLfloat)HEIGHT;  // aspect ratio needed to preserve dimension of drawing
 
 // Camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 bool keys[1024];
-GLfloat lastX = WIDTH / 2.0;
-GLfloat lastY = HEIGHT / 2.0;
+//GLfloat lastX = WIDTH / 2.0;
+//GLfloat lastY = HEIGHT / 2.0;
+GLfloat lastX;
+GLfloat lastY;
+
+
 bool firstMouse = true;
 
 // Cursor intialization
@@ -193,25 +200,29 @@ void print_all(GLuint programme) {
 void GraphicsManager::Initialize()
 {
 	printf("\n       Initializing Graphics Manager");
-	// Do stuff here
-	std::string strTitle = "OpenGL Window";
-	GLuint width = WIDTH;
-	GLuint height = HEIGHT;
-	GLuint x = 300;
-	GLuint y = 100;
+	//Window = this->MyWinInfo->MainWindow;
+	//HEIGHT = (this->GetWinHt());
+	//WIDTH = (this->GetWinWidth());
+	lastX =(GLfloat)this->GetWinHt() / 2.0f;
+	lastY = (GLfloat)this->GetWinWidth() / 2.0f;
+	//// Do stuff here
+	//std::string strTitle = "OpenGL Window";
+	//GLuint width = WIDTH;
+	//GLuint height = HEIGHT;
+	//GLuint x = 300;
+	//GLuint y = 100;
 
-	MainWinInfo *meminfo;
-	meminfo = new MainWinInfo;
-	meminfo->MainWindow = NULL;
-	meminfo->strWinTitle = "OpenGL Window";
-	meminfo->main_win_width = width;
-	meminfo->main_win_height = height;
-	meminfo->main_pos_x = x;
-	meminfo->main_pos_y = y;
+	//MainWinInfo *meminfo;
+	//meminfo = new MainWinInfo;
+	//meminfo->MainWindow = NULL;
+	//meminfo->strWinTitle = "OpenGL Window";
+	//meminfo->main_win_width = width;
+	//meminfo->main_win_height = height;
+	//meminfo->main_pos_x = x;
+	//meminfo->main_pos_y = y;
 
-	MyWinInfo = meminfo;
-
-	IsLoadedOpenGL = false;
+	//MyWinInfo = meminfo;
+	//IsLoadedOpenGL = false;
 }
 
 int GraphicsManager::LaunchOpenGL()
@@ -246,27 +257,31 @@ int GraphicsManager::LaunchOpenGL()
 
 	//This creates the main window, needed to launch the OpenGL context
 	// Create the window.  Still need to consider full screen mode options here.
-	Window = glfwCreateWindow(MyWinInfo->main_win_width, MyWinInfo->main_win_height, MyWinInfo->strWinTitle.c_str(), nullptr, nullptr);
+	Window = glfwCreateWindow(this->GetWinWidth(), this->GetWinHt(), MyWinInfo->strWinTitle.c_str(), nullptr, nullptr);
+	this->MyWinInfo->MainWindow = Window;			// store the pointer to the MainWindow so we can retrieve it later
 
 	// Make sure the window is valid, if not, throw an error.
-	if ( Window == nullptr )
+	if ( this->MyWinInfo->MainWindow == nullptr )
 	{
 		fprintf(stderr, "Failed to create a GLFW window, you might need to download the latest drivers or change the OpenGL version to 3\n");
 		glfwTerminate();
 		return -1;
 	}
 
-	glfwSetWindowPos(Window, MyWinInfo->main_pos_x, MyWinInfo->main_pos_y);	// size and relocate the window
-	glfwMakeContextCurrent(Window); // make the context current
+	glfwSetWindowPos(this->MyWinInfo->MainWindow, this->MyWinInfo->main_pos_x, this->MyWinInfo->main_pos_y);	// size and relocate the window
+	glfwMakeContextCurrent(this->MyWinInfo->MainWindow); // make the context current
 
     // Set the required callback functions
-    glfwSetKeyCallback(Window, key_callback);
-	glfwSetCursorPosCallback(Window, mouse_callback);
-	glfwSetScrollCallback(Window, scroll_callback);
+    glfwSetKeyCallback(this->MyWinInfo->MainWindow, key_callback);
+//    glfwSetKeyCallback(this->MyWinInfo->MainWindow, &GraphicsManager::test);
+	glfwSetCursorPosCallback(this->MyWinInfo->MainWindow, mouse_callback);
+	glfwSetScrollCallback(this->MyWinInfo->MainWindow, scroll_callback);
+
+	glfwSetWindowUserPointer(this->MyWinInfo->MainWindow, this->MyWinInfo);   // set a user point to our window information
 
 	// GLFW options
-	glfwSetCursorPos(Window, WIDTH/2, HEIGHT/2);				// move the cursor to the middle of the screen
-	glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);  // show the cursor (toggled off when camera is active)
+	glfwSetCursorPos(this->MyWinInfo->MainWindow, this->GetWinWidth() / 2, this->GetWinHt() / 2);				// move the cursor to the middle of the screen
+	glfwSetInputMode(this->MyWinInfo->MainWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);  // show the cursor (toggled off when camera is active)
 
 	// Initialize GLEW
 	glewExperimental = true; // Needed for core profile
@@ -277,20 +292,21 @@ int GraphicsManager::LaunchOpenGL()
 	}
 
 	// Define the viewport dimensions
-	glViewport(0, 0, MyWinInfo->main_win_width, MyWinInfo->main_win_height);		
+	glViewport(0, 0, this->GetWinWidth(), this->GetWinHt());		
 	glEnable(GL_DEPTH_TEST);  // Must remember to clear GL_DEPTH_BUFFER_BIT in a glClear statement
 	glDepthFunc(GL_LESS);
-	glEnable(GL_CULL_FACE);
+// If you enable cull faces, you need to to ensure that the HUD winding direction on the elements is still acceptable.
+// or force the HUD to disable the CULL_FACE parameter, draw the items, and then reenable it
+	glEnable(GL_CULL_FACE); 
 	glCullFace(GL_BACK);
 
 	glClearColor(0.4f, 0.5f, 0.5f, 1.0f);	// Clear the colorbuffer (set it to a grayscale)
 	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );			// Clear the screen
-	glfwSwapBuffers(Window);				// Swap the buffer to create an initial colored screen
+	glfwSwapBuffers(this->MyWinInfo->MainWindow);				// Swap the buffer to create an initial colored screen
 
 	// at this point the context is active, so store a variable to tell the main application
 	IsLoadedOpenGL = true;	
-	MyWinInfo->MainWindow = Window;			// store the pointer to the MainWindow so we can retrieve it later
-	
+		
 	return 0;
 }
 
@@ -343,7 +359,7 @@ void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Sha
     view = camera.GetViewMatrix();
 	
 	//	glm::mat4 projection = glm::perspective(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);  
-	camera.SetProjectionMatrix(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);
+	camera.SetProjectionMatrix(camera.Zoom, (GLfloat)(this->GetWinWidth()/this->GetWinHt()), 0.1f, 100.0f);
 	glm::mat4 projection;  
 	projection = camera.GetProjectionMatrix();
 
@@ -469,7 +485,7 @@ void GraphicsManager::DrawPicking(Shader pickingShader)
 	view = camera.GetViewMatrix();
 	
 	//	glm::mat4 projection = glm::perspective(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);  
-	camera.SetProjectionMatrix(camera.Zoom, (GLfloat)(MyWinInfo->main_win_width/MyWinInfo->main_win_height), 0.1f, 100.0f);
+	camera.SetProjectionMatrix(camera.Zoom, (GLfloat)(this->GetWinWidth()/this->GetWinHt()), 0.1f, 100.0f);
 	glm::mat4 projection;  
 	projection = camera.GetProjectionMatrix();
 
@@ -599,11 +615,11 @@ void GraphicsManager::Draw()
 	Shader post_process_spShader("Shaders/post_process_sp.vertex","Shaders/post_process_sp.fragment");  // shader used for making a framebuffer for picking selecting
 	Shader HUDShader("Shaders/ShaderHUD.vertex","Shaders/ShaderHUD.fragment");  // shader used for making a framebuffer for picking selecting
 
-	///////////////////////////////
+	/////////////////////////////// 
 	// Create the HUD
 	///////////////////////////////
-	layout = new CGUILayoutHUD;
-	GUILayout = layout;
+	layout = new CGUILayoutHUD(this->GetWinWidth(), this->GetWinHt());
+	GUILayout = layout;			//store the object in our graphics manager
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	//  Creating Model Stuff
@@ -626,6 +642,9 @@ void GraphicsManager::Draw()
 			CDrawingObjects *ourAISC = new CAisc(shape, model_pos, model_unit_rot, model_euler);			// create an AISC shape
 			ModelObjects.push_back(ourAISC);
 
+			/////////////////////////////
+			//  Draw more test members
+			/////////////////////////////
 			////beams
 			//model_pos = glm::vec3(i*6.0f, 8.0f, -j*6.0f);
 			//model_unit_rot = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -666,7 +685,7 @@ void GraphicsManager::Draw()
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
 	// create a color attachment texture
-	GLuint textureColorbuffer = generateAttachmentTexture(false, false);
+	GLuint textureColorbuffer = generateAttachmentTexture(false, false, this->GetWinWidth(), this->GetWinHt());
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
 
 	// Create a renderbuffer object for depth and stencil attachment
@@ -674,7 +693,7 @@ void GraphicsManager::Draw()
 	glGenRenderbuffers(1, &rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
 	// Use a single renderbuffer object for both depth AND stencil buffer.
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, WIDTH, HEIGHT);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, this->GetWinWidth(), this->GetWinHt());
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);  // now actually attach it
 	// Now that we actually created the framebuffer andadded all attachments we want to check if it is actually complete now
@@ -732,7 +751,7 @@ void GraphicsManager::Draw()
 	glBindVertexArray(0); // clear the VAO
 		
 	// Game loop
-    while (!glfwWindowShouldClose(MyWinInfo->MainWindow))
+    while (!glfwWindowShouldClose(this->MyWinInfo->MainWindow))
     {
 
 		///////////////////////////////////////////////////
@@ -767,7 +786,7 @@ void GraphicsManager::Draw()
 		lastFrame = currentFrame;
 
 	// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
-        glfwPollEvents();
+        //glfwPollEvents();
 		Do_Movement();
 
         // Render
@@ -785,14 +804,15 @@ void GraphicsManager::Draw()
 			DrawNormal(ourShader, lightsourceShader, cursorShader);	// DrawNormal draws the model, cursor, and gridlines in normal mode
 		} else 
 		{
-			glfwSetInputMode(MyWinInfo->MainWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);  // show the cursor
+			glfwSetInputMode(this->MyWinInfo->MainWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);  // show the cursor
 			DrawPicking(pickingShader);	// DrawingPicking stuff only draws the model with the picking shader applied
 
 			deltaRightMouseTime = currentFrame - lastRightMouseFrame;
 			if(deltaRightMouseTime > MAX_CLICK_SPEED)
 			{
-				if(glfwGetMouseButton(MyWinInfo->MainWindow, GLFW_MOUSE_BUTTON_RIGHT))
+				if(glfwGetMouseButton(this->MyWinInfo->MainWindow, GLFW_MOUSE_BUTTON_RIGHT))
 				{				
+					printf("\nClearing picked objects.");
 					lastRightMouseFrame = currentFrame;
 					//clear the individual mesh list
 					PickedMeshID.clear();			// right mouse cancels the picked ID mesh so clear contents and resize to 0
@@ -801,13 +821,14 @@ void GraphicsManager::Draw()
 					//clear the parent object list
 					for(unsigned int i =0; i < ModelObjects.size(); i++)
 					{
+						printf("\nClearing PickedID array");
 						(*(ModelObjects[i])).IsPicked = false;	// turn off the picking flag
 					}
 
-					//for(unsigned int j=0; j<PickedMeshID.size();j++)
-					//{
-					//	printf("\nSize:  %i   --  Picked ID's stored:  %i",PickedMeshID.size(),PickedMeshID[j]);
-					//}		// end for j
+					for(unsigned int j=0; j<PickedMeshID.size();j++)
+					{
+						printf("\nSize:  %i   --  Picked ID's stored:  %i",PickedMeshID.size(),PickedMeshID[j]);
+					}		// end for j
 				} 
 			}
 //IMPORTANT BUG!!!!   Presumably because of no error checking
@@ -817,16 +838,17 @@ void GraphicsManager::Draw()
 			deltaLeftMouseTime = currentFrame - lastLeftMouseFrame;
 			if(deltaLeftMouseTime > MAX_CLICK_SPEED)
 			{
-				if(glfwGetMouseButton(MyWinInfo->MainWindow, GLFW_MOUSE_BUTTON_LEFT))
+				if(glfwGetMouseButton(this->MyWinInfo->MainWindow, GLFW_MOUSE_BUTTON_LEFT))
 				{
+					//printf("\nSelecting objects.");
 					lastLeftMouseFrame = currentFrame;
 					double xpos, ypos;
-					glfwGetCursorPos(MyWinInfo->MainWindow, &xpos, &ypos);
+					glfwGetCursorPos(this->MyWinInfo->MainWindow, &xpos, &ypos);
 					int mx = (int)xpos;
 					int my = (int)ypos; 
 
 					unsigned char data[4] = {0, 0, 0, 0};
-					glReadPixels (mx, HEIGHT - my, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &data);
+					glReadPixels (mx, this->GetWinHt() - my, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &data);
 					GLuint decode_number = (GLuint)data[2]+(GLuint)data[1]*256+(GLuint)data[0]*256*256;
 					printf("\n=========================================");
 					printf("\nMouse clicked.  R: %i,  G: %i,  B: %i -- Model Number %i", data[0], data[1], data[2], decode_number);
@@ -836,14 +858,14 @@ void GraphicsManager::Draw()
 					// First add to the meshes list
 					if(PickedMeshID[0] == -1)			// if no item currently picked,
 					{
-						//printf("===============  First entry ==================");
+						//printf("\n===============  First entry ==================");
 						PickedMeshID.clear();
 						PickedMeshID.resize(0);			// resize the PickedID array to delete the -1 first item
 					}
 					for(unsigned int i=0; i<PickedMeshID.size();i++) 
 					{
 						GLuint temp = PickedMeshID[i];
-						printf("\nCount #: %i  ... decode #: %i", i, decode_number);
+						//printf("\nCount #: %i  ... decode #: %i", i, decode_number);
 						if (temp == decode_number)
 						{
 							//printf("\nItem already exists on list, skipping");
@@ -853,16 +875,17 @@ void GraphicsManager::Draw()
 					}
 					if (!foundmesh)
 					{
+						//printf("\nPicked item not found.  Adding to list.");
 						PickedMeshID.push_back(decode_number);
 						//for(unsigned int j=0; j<PickedMeshID.size();j++)
 						//{
 						//	printf("\nAdding to list:  --  Picked ID's stored:  %i",PickedMeshID.size(),PickedMeshID[j]);
 						//}
 					}
-					for(unsigned int j=0; j<PickedMeshID.size();j++)
-					{
-						printf("\nSize:  %i   --  Picked ID's stored:  %i",PickedMeshID.size(),PickedMeshID[j]);
-					}
+					//for(unsigned int j=0; j<PickedMeshID.size();j++)
+					//{
+					//	printf("\nSize:  %i   --  Picked ID's stored:  %i",PickedMeshID.size(),PickedMeshID[j]);
+					//}
 				}			// end if Left Mouse Button
 			}				// end if MaxClick Speed	
 		}					// end if IsActivePicking
@@ -910,14 +933,19 @@ void GraphicsManager::Draw()
 		////////////////////////////////////////////
 		//  Now Draw the HUD
 		////////////////////////////////////////////
-		//HUDShader.Use();
-		glDisable(GL_DEPTH_TEST);		// for drawing the hud, turn off depth testing so the HUD items are now on top
-		GUILayout->Draw(aspect, HUDShader);
+		////HUDShader.Use();
+		glDisable(GL_CULL_FACE);	// Disable the face culling in the event we get a Clockwise winding order on the GUI HUD buttons.
+		glDisable(GL_DEPTH_TEST);	// for drawing the hud, turn off depth testing so the HUD items are now on top
+		GUILayout->Draw(HUDShader);
 		glEnable(GL_DEPTH_TEST);	// reenable now that the HUD is drawn
+		glEnable(GL_CULL_FACE); 
+		glCullFace(GL_BACK);
 
 		// flip drawn framebuffer onto the display
 		// Swap the screen buffers
-	    glfwSwapBuffers(MyWinInfo->MainWindow);
+	    glfwSwapBuffers(this->MyWinInfo->MainWindow);
+
+		glfwPollEvents();
     }  // end while loop
 
 	// Clean up
@@ -1041,7 +1069,7 @@ void GraphicsManager::Destroy()
 //}
 
 // Generates a texture that is suited for attachments to a framebuffer
-GLuint generateAttachmentTexture(GLboolean depth, GLboolean stencil)
+GLuint generateAttachmentTexture(GLboolean depth, GLboolean stencil, GLuint width, GLuint height)
 {
     // What enum to use?
     GLenum attachment_type;
@@ -1057,9 +1085,9 @@ GLuint generateAttachmentTexture(GLboolean depth, GLboolean stencil)
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
     if(!depth && !stencil)
-        glTexImage2D(GL_TEXTURE_2D, 0, attachment_type, WIDTH, HEIGHT, 0, attachment_type, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, attachment_type, width, height, 0, attachment_type, GL_UNSIGNED_BYTE, NULL);
     else // Using both a stencil and depth test, needs special format arguments
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, WIDTH, HEIGHT, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -1070,9 +1098,16 @@ GLuint generateAttachmentTexture(GLboolean depth, GLboolean stencil)
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
+	CWindow *WindowInfo = static_cast<CWindow *>(glfwGetWindowUserPointer(window));
+	GLuint HEIGHT = WindowInfo->main_win_height;
+	GLuint WIDTH = WindowInfo->main_win_width;
+	//printf("\nWIDTH: %i		HEIGHT:  %i", WIDTH, HEIGHT);
+
+	// 'ESC' -- terminate the drawing loop
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
 
+	// 'C' -- Camera Mode toggle
 	if (key == GLFW_KEY_C && action == GLFW_PRESS)
 	{
 		if (camera.IsActiveCameraToggle)
@@ -1090,7 +1125,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		}
 	}
 
-	// Pause the moving light
+	// 'P' -- Pause the moving light
 	if (key == GLFW_KEY_P && action == GLFW_PRESS)
 	{
 		if (IsPausedLight)
@@ -1103,8 +1138,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		}
 	}
 
-
-	// Active the cursor snap
+	// F1 -- Active the cursor snap
 	if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
 	{
 		if (cursor->IsActiveCursorSnap)
@@ -1117,7 +1151,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		}
 	}
 
-	// Toggle the grid display
+	// F2 -- Toggle the grid display
 	if (key == GLFW_KEY_F2 && action == GLFW_PRESS)
 	{
 		if (IsActiveGridToggle)
@@ -1130,7 +1164,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		}
 	}
 
-	// Picking is active toggle
+	// F3 -- Picking is active toggle
 	if (key == GLFW_KEY_F3 && action == GLFW_PRESS)
 	{
 		if (IsActivePicking == true)
@@ -1143,7 +1177,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		}
 	}
 
-	// Picking is active toggle
+	// F4 -- Post processing shader effect toggle
 	if (key == GLFW_KEY_F4 && action == GLFW_PRESS)
 	{
 		if (IsActivePostProcessing == true)
@@ -1154,6 +1188,28 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			printf("\nPostprocessing mode turned on...");
 			IsActivePostProcessing = true;
 		}
+	}
+
+	// F10 -- A temporary test key to test work functions
+	if (key == GLFW_KEY_F10 && action == GLFW_PRESS)
+	{
+		printf("\nReading pixels on HUD...%i", layout->GUIMembers[0]->GetButtonHt());
+
+		double xpos, ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);
+		int mx = (int)xpos;
+		int my = (int)ypos; 
+
+		unsigned char data[4] = {0, 0, 0, 0};
+		glReadPixels (mx, HEIGHT - my, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &data);
+		GLuint decode_number = (GLuint)data[2]+(GLuint)data[1]*256+(GLuint)data[0]*256*256;
+		printf("\n=========================================");
+		printf("\nMouse clicked.  R: %i,  G: %i,  B: %i -- Model Number %i", data[0], data[1], data[2], decode_number);
+		printf("\nScreen coords clicked:  x:  %i      y:  %i", mx, my);
+
+		// Now we have coordinates of screen click.  Check to see if top button is clicked...
+		layout->GUIMembers[0]->ShowButtonCornerPts();		// display the know corner points (test)
+		layout->OnClick(0, (GLfloat)mx, (GLfloat)my);   // tests the first GUIMember ([0] for testing)
 	}
 
 	if (key >= 0 && key < 1024)
@@ -1189,6 +1245,10 @@ void Do_Movement()
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
+	CWindow *WindowInfo = static_cast<CWindow *>(glfwGetWindowUserPointer(window));
+	GLuint HEIGHT = WindowInfo->main_win_height;
+	GLuint WIDTH = WindowInfo->main_win_width;
+
 	if (firstMouse)
 	{
 	    lastX = (GLfloat) xpos;
@@ -1270,6 +1330,10 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
+	CWindow *WindowInfo = static_cast<CWindow *>(glfwGetWindowUserPointer(window));
+	GLuint HEIGHT = WindowInfo->main_win_height;
+	GLuint WIDTH = WindowInfo->main_win_width;
+
 	// activate the mouse camera control only if the toggle is turned on.
 	if (camera.IsActiveCameraToggle)
 	    camera.ProcessMouseScroll((GLfloat)yoffset);
