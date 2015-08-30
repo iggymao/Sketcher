@@ -40,43 +40,11 @@ void DrawPicking(Shader pickingShader);
 
 GLuint generateAttachmentTexture(GLboolean depth, GLboolean stencil, GLuint width, GLuint height);
 
-//// Window dimensions
-//GLFWwindow *Window;
-//GLuint WIDTH;		// declare a global for the window width
-//GLuint HEIGHT;		// declare a global for the window height
-
-//GLfloat aspect = (GLfloat)WIDTH/(GLfloat)HEIGHT;  // aspect ratio needed to preserve dimension of drawing
-
-// Camera
-//Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 bool keys[1024];
-//GLfloat lastX = WIDTH / 2.0;
-//GLfloat lastY = HEIGHT / 2.0;
 GLfloat lastX;
 GLfloat lastY;
 
-
 bool firstMouse = true;
-
-// Cursor intialization
-//CDrawingObjects *cursor;
-//CCursor *cursor = 0;
-//CCursor *cursor = new CCursor(glm::vec3(0.0f, 0.0f, 0.0f));		// create a new cursor
-//CCursor *CursorObj = cursor;												// store the object in the graphics manager
-
-// Grid attributes
-//CDrawingObjects *gridLine = 0;
-//CGrid *GridLine = new CGrid(30, 0.1f, 40, 0.1f);
-//CGrid *DrawingGridLine = GridLine;		// storing the gridline in our graphics manager
-//bool IsActiveGridToggle = true;
-//bool IsActivePicking = true;
-//bool IsActivePostProcessing = false;
-
-// Model attributes
-//ModelManager *ourModel = 0;
-
-// Our HUD GUI layout
-//CGUILayoutHUD *layout = 0;
 
 // Light attributes
 bool IsPausedLight = true;
@@ -200,60 +168,26 @@ void print_all(GLuint programme) {
 void GraphicsManager::Initialize()
 {
 	printf("\n       Initializing Graphics Manager");
-
 	// Create the main camera object
 	this->CameraObj = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
 
 	// Create the main drawing grid line -- requires an OPENGL context for this step
 	// Must use XY, XZ, or YZ plane designators....such that X < Y < Z in order of labelling
 	this->DrawingGridLine = new CGrid(50, 1.0f, 50, 1.0f, XZ_PLANE);
-//	gridLine = new CGrid(50, 1.0f, 50, 1.0f, XZ_PLANE);
-//	DrawingGridLine = gridLine;											// storing the gridline in our graphics manager
 
 	// Create our cursor -- requires an OPENGL context for this step
-	//CCursor cursor2(glm::vec3(0.0f, 0.0f, 0.0f));		// method1 creation
-	//CDrawingObjects * p_CursorObj = &cursor2;			// method1 creation
-	//CDrawingObjects * p2 = new CCursor(glm::vec3(0.0f, 0.0f, 0.0f));	// method2 creation
 	this->CursorObj = new CCursor(glm::vec3(0.0f, 0.0f, 0.0f));
-	//cursor = new CCursor(glm::vec3(0.0f, 0.0f, 0.0f));
-	//cursor->SetSnapValues(DrawingGridLine->GetSpacing1(), DrawingGridLine->GetSpacing2(), DrawingGridLine->GetPlane());
-	//CursorObj = cursor;		// store the object in the graphics manager
+	this->CursorObj->SetSnapValues(DrawingGridLine->GetSpacing1(), DrawingGridLine->GetSpacing2(), DrawingGridLine->GetPlane());
 
-
-	/////////////////////////////// 
 	// Create the HUD
-	///////////////////////////////
 	this->GUILayout = new CGUILayoutHUD(this->GetWinWidth(), this->GetWinHt());
-//	layout = new CGUILayoutHUD(this->GetWinWidth(), this->GetWinHt());
-//	GUILayout = layout;			//store the object in our graphics manager
 
 	this->IsActivePicking = true;
 	this->IsActivePostProcessing = false;
 	this->IsActiveGridToggle = true;
 
-	//Window = this->MyWinInfo->MainWindow;
-	//HEIGHT = (this->GetWinHt());
-	//WIDTH = (this->GetWinWidth());
 	lastX =(GLfloat)this->GetWinHt() / 2.0f;
 	lastY = (GLfloat)this->GetWinWidth() / 2.0f;
-	//// Do stuff here
-	//std::string strTitle = "OpenGL Window";
-	//GLuint width = WIDTH;
-	//GLuint height = HEIGHT;
-	//GLuint x = 300;
-	//GLuint y = 100;
-
-	//MainWinInfo *meminfo;
-	//meminfo = new MainWinInfo;
-	//meminfo->MainWindow = NULL;
-	//meminfo->strWinTitle = "OpenGL Window";
-	//meminfo->main_win_width = width;
-	//meminfo->main_win_height = height;
-	//meminfo->main_pos_x = x;
-	//meminfo->main_pos_y = y;
-
-	//MyWinInfo = meminfo;
-	//IsLoadedOpenGL = false;
 }
 
 int GraphicsManager::LaunchOpenGL()
@@ -345,9 +279,6 @@ int GraphicsManager::LaunchOpenGL()
 // The routine to Draw in normal mode (Renders our normal scene without picking or HUD consideration)
 void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Shader cursorShader)
 {
-	//Camera *camera = this->CameraObj;
-	//CDrawingObjects *gridline = this->DrawingGridLine;
-
 	// For a moving light source
 	if(!IsPausedLight)
 	{
@@ -407,8 +338,6 @@ void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Sha
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 	// Model
 	glm::mat4 model;  // sets an identity matrix into model
-	//model = glm::mat4();
-	//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
 	// Draw the the contents of all of the ModelObjects:
 	for(unsigned int j = 0; j < (this->ModelObjects.size()); j++)
@@ -445,6 +374,9 @@ void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Sha
 		glUniform1f(glGetUniformLocation(ourShader.Program, "material.shininess"), 32.0f);
 		this->DrawingGridLine->Draw();
 	
+		/////////////////////////////////
+		// snippet for saving
+		/////////////////////////////////
 		//for (GLuint j = 0; j<2;j++)
 		//{
 		//	for (GLuint i = 0; i < 80; i++)
@@ -499,7 +431,6 @@ void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Sha
 
 	// Uses ModelObjects[0] as the light source shape
 	(*(this->ModelObjects[0])).Draw(); 
-	//ourModel.Draw(lightsourceShader, GL_TRIANGLES);
 
 	//////////////////////////////////
 	// End of normal rendering stuff
@@ -510,7 +441,6 @@ void GraphicsManager::DrawNormal(Shader ourShader, Shader lightsourceShader, Sha
 // object ID number, and using that to draw the entire parent object.
 void GraphicsManager::DrawPicking(Shader pickingShader)
 {
-	//Camera *camera = this->CameraObj;
 	glm::vec3 rgb_vec;
 
 	//printf("\nModelObjects #: %i -- Mesh #: %i -- MeshID: %i", j, i, (*(this->ModelObjects[j])).meshes[i]->GetMeshID());
@@ -653,8 +583,6 @@ void GraphicsManager::Draw()
 	Shader post_process_spShader("Shaders/post_process_sp.vertex","Shaders/post_process_sp.fragment");  // shader used for making a framebuffer for picking selecting
 	Shader HUDShader("Shaders/ShaderHUD.vertex","Shaders/ShaderHUD.fragment");  // shader used for making a framebuffer for picking selecting
 
-
-
 	/////////////////////////////////////////////////////////////////////////////////////////////
 	//  Creating Model Stuff
 	/////////////////////////////////////////////////////////////////////////////////////////////
@@ -696,8 +624,6 @@ void GraphicsManager::Draw()
 			//ModelObjects.push_back(ourAISC3);
 		 //}			// end for i
 	}					// end for j
-
-
 
 	//////////////////////////////////////////////////////////////////////
 	// create our framebuffer -- used in post processing filters
@@ -776,7 +702,6 @@ void GraphicsManager::Draw()
 	// Game loop
     while (!glfwWindowShouldClose(this->MyWinInfo->MainWindow))
     {
-
 		///////////////////////////////////////////////////
 		// Bind to framebuffer and draw to color texture
 		///////////////////////////////////////////////////
@@ -820,7 +745,6 @@ void GraphicsManager::Draw()
 		/////////////////////////////////
 		//  Picking related stuff here //
 		/////////////////////////////////
-
 		// This toggles us between picking mode and normal drawing mode
 		if(!IsActivePicking)
 		{
@@ -873,8 +797,8 @@ void GraphicsManager::Draw()
 					unsigned char data[4] = {0, 0, 0, 0};
 					glReadPixels (mx, this->GetWinHt() - my, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &data);
 					GLuint decode_number = (GLuint)data[2]+(GLuint)data[1]*256+(GLuint)data[0]*256*256;
-					printf("\n=========================================");
-					printf("\nMouse clicked.  R: %i,  G: %i,  B: %i -- Model Number %i", data[0], data[1], data[2], decode_number);
+					//printf("\n=========================================");
+					//printf("\nMouse clicked.  R: %i,  G: %i,  B: %i -- Model Number %i", data[0], data[1], data[2], decode_number);
 
 					bool foundmesh = false;
 
@@ -916,7 +840,6 @@ void GraphicsManager::Draw()
 		///////////////////////////////////
 		//  End picking related drawing  //
 		///////////////////////////////////
-
 
 		///////////////////////////////////////////////////
 		//  POST-PROCESSING -- if post-processing is 
@@ -979,8 +902,8 @@ void GraphicsManager::Draw()
 	// glDeleteVertexArrays(1, &VAO);
 	// glDeleteBuffers(1, &VBO);
     
-	// Terminate GLFW, clearing any resources allocated by GLFW.
-    glfwTerminate();
+	//// Terminate GLFW, clearing any resources allocated by GLFW.
+	// glfwTerminate();
     return;
 }
 
@@ -1080,18 +1003,6 @@ void GraphicsManager::Destroy()
 	delete MyWinInfo;
 }
 
-//// encodes a unique ID into a colour with components in range of 0.0 to 1.0
-//glm::vec3 encode_id (int id)
-//{
-//	int r = id / 65536;
-//	int g = (id - r * 65536) / 256;
-//	int b = (id - r * 65536 - g * 256);
-//
-//	// convert to floats.  Only divide by 255 because range is 0-255
-//	return glm::vec3((float)r / 255.0f, (float)g / 255.0f, (float)b / 255.0f);
-//}
-
-// Generates a texture that is suited for attachments to a framebuffer
 GLuint generateAttachmentTexture(GLboolean depth, GLboolean stencil, GLuint width, GLuint height)
 {
     // What enum to use?
@@ -1122,14 +1033,9 @@ GLuint generateAttachmentTexture(GLboolean depth, GLboolean stencil, GLuint widt
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
 	GraphicsManager *GraphicsManagerInfo = static_cast<GraphicsManager *>(glfwGetWindowUserPointer(window));
-//	CWindow *WindowInfo = static_cast<CWindow *>(glfwGetWindowUserPointer(window));
 	GLuint HEIGHT = GraphicsManagerInfo->MyWinInfo->main_win_height;
 	GLuint WIDTH = GraphicsManagerInfo->MyWinInfo->main_win_width;
 	Camera *camera = GraphicsManagerInfo->CameraObj;
-	//CDrawingObjects *cursor = GraphicsManagerInfo->CursorObj;
-
-	//GLuint HEIGHT = WindowInfo->main_win_height;
-	//GLuint WIDTH = WindowInfo->main_win_width;
 	//printf("\nWIDTH: %i		HEIGHT:  %i", WIDTH, HEIGHT);
 
 	// 'ESC' -- terminate the drawing loop
@@ -1253,14 +1159,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void Do_Movement(GLFWwindow* window)
 {
 	GraphicsManager *GraphicsManagerInfo = static_cast<GraphicsManager *>(glfwGetWindowUserPointer(window));
-//	CWindow *WindowInfo = static_cast<CWindow *>(glfwGetWindowUserPointer(window));
 	GLuint HEIGHT = GraphicsManagerInfo->MyWinInfo->main_win_height;
 	GLuint WIDTH = GraphicsManagerInfo->MyWinInfo->main_win_width;
-	//Camera *camera = GraphicsManagerInfo->CameraObj;
-	//GLuint HEIGHT = WindowInfo->main_win_height;
-	//GLuint WIDTH = WindowInfo->main_win_width;
+	
 	// actions possible only if the camera toggle is active
-
 	if(GraphicsManagerInfo->CameraObj->IsActiveCameraToggle)
 	{
 	    // Camera controls
@@ -1283,14 +1185,8 @@ void Do_Movement(GLFWwindow* window)
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
 	GraphicsManager *GraphicsManagerInfo = static_cast<GraphicsManager *>(glfwGetWindowUserPointer(window));
-//	CWindow *WindowInfo = static_cast<CWindow *>(glfwGetWindowUserPointer(window));
 	GLuint HEIGHT = GraphicsManagerInfo->MyWinInfo->main_win_height;
 	GLuint WIDTH = GraphicsManagerInfo->MyWinInfo->main_win_width;
-//	Camera *camera = GraphicsManagerInfo->CameraObj;
-//	CDrawingObjects *gridLine = GraphicsManagerInfo->DrawingGridLine;
-	//CDrawingObjects *cursor = GraphicsManagerInfo->CursorObj;
-	//GLuint HEIGHT = WindowInfo->main_win_height;
-	//GLuint WIDTH = WindowInfo->main_win_width;
 
 	if (firstMouse)
 	{
@@ -1374,14 +1270,9 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	GraphicsManager *GraphicsManagerInfo = static_cast<GraphicsManager *>(glfwGetWindowUserPointer(window));
-//	CWindow *WindowInfo = static_cast<CWindow *>(glfwGetWindowUserPointer(window));
 	GLuint HEIGHT = GraphicsManagerInfo->MyWinInfo->main_win_height;
 	GLuint WIDTH = GraphicsManagerInfo->MyWinInfo->main_win_width;
-	//Camera *camera = GraphicsManagerInfo->CameraObj;
-
-	//GLuint HEIGHT = WindowInfo->main_win_height;
-	//GLuint WIDTH = WindowInfo->main_win_width;
-
+	
 	// activate the mouse camera control only if the toggle is turned on.
 	if (GraphicsManagerInfo->CameraObj->IsActiveCameraToggle)
 	    GraphicsManagerInfo->CameraObj->ProcessMouseScroll((GLfloat)yoffset);

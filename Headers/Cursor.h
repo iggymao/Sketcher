@@ -55,7 +55,6 @@ public:
 	
 	//void CreateBoundingBox(vector<Mesh2*> temp);			// creates a bounding box for the object based on the read in vertex data
 
-
 	void Draw()
 	{    
 		// now Draw mesh
